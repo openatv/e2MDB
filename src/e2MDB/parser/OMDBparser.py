@@ -10,7 +10,6 @@
 from datetime import datetime
 from json import dump
 from getopt import getopt, GetoptError
-from re import search
 from requests import get, exceptions
 from sys import exit, argv
 
@@ -26,6 +25,9 @@ class Provider_omdb:
 	def getName(self):
 		return self.__class__.__name__.split("_")[-1].lower()
 
+	def isActive(self):
+		return True
+
 	def start(self, language="", apikey=None):  # OMDB doesn't support language requests
 		self.apiKey = apikey or self.apiKey
 		return ""
@@ -38,14 +40,14 @@ class Provider_omdb:
 		params = {"t": title, "type": mediaType, "y": year, "plot": "full", "apikey": self.apiKey}
 		return self.getApiDict(url, params=params)
 
-	def createNormalized(self, result, entriesmax=0):  # omdbDict contains only a single result, therefore 'entriesmax' is not used here
+	def createNormalized(self, result, includeLogos=True, entriesmax=0):  # omdbDict contains only a single result, therefore 'entriesmax' is not used here, 'includeLogos' for compatibility reasons
 		def setNormKey(key, value):
 			if value and value != "N/A":
-				norm[key] = value
+				normDict[key] = value
 		normDicts, normList = {}, []
 		if result and result.get("Response", "False") == "True":
 			try:
-				norm = {}
+				normDict = {}
 				titleDict = {}
 				titleDict["text"] = result.get("Title", "")  # e.g. 'Titanic'
 				setNormKey("title", titleDict)
@@ -70,7 +72,7 @@ class Provider_omdb:
 				if imdbId and imdbId != "N/A":
 					providerIds["imdb"] = imdbId
 				setNormKey("providerIds", providerIds)
-				normList.append(norm)
+				normList.append(normDict)
 				normDicts["omdb"] = normList
 			except Exception as errMsg:
 				print(f"{MODULE_NAME}ERROR in module 'createNormalized': {errMsg}'")
@@ -85,10 +87,10 @@ class Provider_omdb:
 	def getSeriesIndex(self, seriesId):  # OMDB do not support this function at all
 		return "not supported by provider 'OMDB'", ""
 
-	def findSeasonEpisode(self, seriesIndex, comparison):  # OMDB do not support this function at all
-		return "not supported by provider 'OMDB'"
+	def findSeasonEpisode(self, seriesIndex="", episodeDescs=[]):  # OMDB do not support this function at all
+		return "not supported by provider 'OMDB'", []
 
-	def getEpisodeDetails(self, seriesId=None, seasonEpisode=None, episodeId=None):  # OMDB  do not support this function at all, use getInfo instead
+	def getEpisodeDetails(self, seriesId=None, seasonEpisode=[]):  # OMDB  do not support this function at all, use getInfo instead
 		return "not supported by provider 'OMDB'", {}
 
 	def getApiDict(self, url, params=None, timeout=(3.05, 6)):
@@ -138,13 +140,7 @@ def main(argv):  # shell interface
 			mediaType = arg
 	if title and language:
 		if not mediaType:
-			found = search(r"\(\d{4}\)", title)  # search for e.g. '(1997)'
-			if found:
-				found = found.group(0)
-				title = title.replace(found, "")[::-1].replace(found, "").replace("+", " ", 1)[::-1].strip()  # replace one '+' from right side
-				mediaType = "movie"
-			else:
-				mediaType = "series"  # set fallback
+			mediaType = "series"  # set fallback
 		print(f"Search for '{title}', mediaType: '{mediaType}'")
 		provider_omdb.start(language)
 		errMsg, omdbDict = provider_omdb.getInfo(title, mediaType=mediaType, year=None)

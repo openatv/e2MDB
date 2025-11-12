@@ -82,13 +82,13 @@ class Provider_tmdb:
 		newDicts["results"] = newList
 		return errMsg, newDicts
 
-	def createNormalized(self, tmdbDicts, entriesmax=0):
+	def createNormalized(self, tmdbDicts, includeLogos=True, entriesMax=0):
 		def setNormKey(key, value):
 			if value:
 				normDict[key] = value
 
 		normDicts, normList = {}, []
-		results = tmdbDicts.get("results", [])[:entriesmax] if entriesmax else tmdbDicts.get("results", [])
+		results = tmdbDicts.get("results", [])[:entriesMax] if entriesMax else tmdbDicts.get("results", [])
 		if results:
 			for result in results:  # There are other series with similar titles, but they are being limited here by [:maxentries]
 				try:
@@ -130,16 +130,17 @@ class Provider_tmdb:
 					backdrop = result.get("backdrop_path", "")  # e.g. '/sCzcYW9h55WcesOqA12cgEr9Exw.jpg'
 					setNormKey("backdropUrl", f"{self.imgUrl}{backdrop}" if backdrop else "")
 					tmdbId = str(result.get("id", 0))  # e.g. '597'
-					errMsg, imagesDict = self.getImagesDict(tmdbId)
-					if not errMsg:
-						logoUrl, fallback = "", ""
-						for logoDict in imagesDict.get("logos", []):
-							if not fallback:
-								fallback = logoDict.get("url", "")
-							if logoDict.get("iso_639_1", "") == self.language[:2]:
-								logoUrl = logoDict.get("url", "")
-								break
-						setNormKey("logoUrl", logoUrl if logoUrl else fallback)
+					if includeLogos:
+						errMsg, imagesDict = self.getImagesDict(tmdbId)
+						if not errMsg:
+							logoUrl, fallback = "", ""
+							for logoDict in imagesDict.get("logos", []):
+								if not fallback:
+									fallback = logoDict.get("url", "")
+								if logoDict.get("iso_639_1", "") == self.language[:2]:
+									logoUrl = logoDict.get("url", "")
+									break
+							setNormKey("logoUrl", logoUrl if logoUrl else fallback)
 					providerIds = {}
 					providerIds["tmdb"] = tmdbId
 					setNormKey("providerIds", providerIds)
@@ -263,10 +264,10 @@ provider_tmdb = Provider_tmdb()
 def main(argv):  # shell interface
 	normFile, tmdbFile, seriesFile, imagesFile, title, language, mediaType, seriesId = "", "", "", "", "Titanic", "en-US", "", ""
 	normDict, tmdbDicts = {}, {}
-	entriesmax = 0
+	entriesMax = 0
 	helpstring = "TMDBparser v0.1: try 'python TMDBparser.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "o:n:s:i:q:l:e:m:h", ["original=", "normalized=", "seriesindex", "images=", "query=", "language=", "entriesmax=", "mediatype"])
+		opts, args = getopt(argv, "o:n:s:i:q:l:e:m:h", ["original=", "normalized=", "seriesindex", "images=", "query=", "language=", "entriesMax=", "mediatype"])
 	except GetoptError as error:
 		print(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -278,7 +279,7 @@ def main(argv):  # shell interface
 			"Example: python TMDBparser.py -q Titanic -o original.json -n normalized.json\n"
 			"-q, --query <options>\t\tget result list from TMDB search'\n"
 			"-l, --language <options>\tset language formatted like 'en-US'\n"
-			"-e, --entriesmax <options>\tset maximum number of entries (defaut is 0=all)\n"
+			"-e, --entriesMax <options>\tset maximum number of entries (defaut is 0=all)\n"
 			"-m, --mediatype <options>\tset media type 'multi', 'movie' or 'series' (default 'multi')\n"
 			"-o, --original <filename>\tfile output of original, formatted in JSON\n"
 			"-n, --normalized <filename>\tfile output of normalized, formatted in JSON\n"
@@ -297,8 +298,8 @@ def main(argv):  # shell interface
 			imagesFile = arg
 		elif opt in ("-l", "--language"):
 			language = arg
-		elif opt in ("-e", "--entriesmax"):
-			entriesmax = int(arg) if arg.isdigit() else 0
+		elif opt in ("-e", "--entriesMax"):
+			entriesMax = int(arg) if arg.isdigit() else 0
 		elif opt in ("-m", "--mediatype"):
 			mediaType = arg
 	if title and language:
@@ -315,7 +316,7 @@ def main(argv):  # shell interface
 				with open(tmdbFile, "w") as file:
 					dump(tmdbDicts, file)
 				print(f"Original JSON file '{tmdbFile}' was successfully created.")
-			normDict = provider_tmdb.createNormalized(tmdbDicts, entriesmax=entriesmax)
+			normDict = provider_tmdb.createNormalized(tmdbDicts, entriesMax=entriesMax)
 		if normDict and normFile:
 			with open(normFile, "w") as file:
 				dump(normDict, file)

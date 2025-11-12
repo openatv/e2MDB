@@ -11,7 +11,6 @@ from json import dump
 from getopt import getopt, GetoptError
 from os import remove
 from os.path import isfile
-from re import search
 from requests import get, post, exceptions
 from sys import exit, argv
 
@@ -27,6 +26,9 @@ class Provider_tvdb:
 
 	def getName(self):
 		return self.__class__.__name__.split("_")[-1].lower()
+
+	def isActive(self):
+		return True
 
 	def start(self, language="en-US", apikey=None):
 		self.apiKey = apikey or self.apiKey
@@ -120,17 +122,17 @@ class Provider_tvdb:
 		}
 		return self.getApiDict(url, params=params)
 
-	def createNormalized(self, tvdbDicts, entriesmax=0):
+	def createNormalized(self, tvdbDicts, includeLogos=True, entriesmax=0):  # 'includeLogos' for compatibility reasons
 		def setNormKey(key, value):
 			if value:
-				norm[key] = value
+				normDict[key] = value
 
 		normDict, normList = {}, []
 		results = tvdbDicts.get("data", [])[:entriesmax] if entriesmax else tvdbDicts.get("data", [])
 		if results:
 			for result in results:  # There are other series with similar titles, but they are being stalled here by [:entriesmax]
 				try:
-					norm = {}
+					normDict = {}
 					language = self.language  # e.g. 'de-DE'
 					translations = result.get("translations", {})
 					title = translations.get(self.langCode, "")
@@ -169,8 +171,8 @@ class Provider_tvdb:
 							remoteId = remoteIds.get("id", "")
 							if remoteId:
 								providerIds[sourceName] = remoteIds.get("id", "")
-					norm["providerIds"] = providerIds
-					normList.append(norm)
+					normDict["providerIds"] = providerIds
+					normList.append(normDict)
 				except Exception as errMsg:
 					print(f"{MODULE_NAME}ERROR in module 'createNormalized': {errMsg}'")
 			normDict["tvdb"] = normList
@@ -240,35 +242,42 @@ class Provider_tvdb:
 					break
 		return errMsg, seriesIndex
 
-	def findSeasonEpisode(self, seriesIndex, comparison):
-		seasonEpisode = ["", "", ""]
-		hitIndex = seriesIndex.lower().find(comparison.lower())
+	def findSeasonEpisode(self, seriesIndex="", episodeDescs=[]):
+		seasonEpisode, hitIndex = [], -1
+		if seriesIndex:
+			seriesIndex = "\n".join(seriesIndex.split("\n")[1:])  # remove first line
+			for desc in episodeDescs:
+				if desc:
+					hitIndex = seriesIndex.lower().find(desc.lower())
+					if hitIndex != -1:
+						break
 		if hitIndex != -1:
-			partialStr = seriesIndex[max(hitIndex - 30, 10):]  # cut the found string in front of the leading line feed (first line is a info dict)
-			partialStr = partialStr[partialStr.find("\n") + 1:]  # cut start according to the leading line feed
-			seasonEpisode = partialStr[:partialStr.find("\n")].split("\t")  # cut end according to the following line feed and create list
+			partialStr = seriesIndex[seriesIndex[:hitIndex].rfind("\n") + 1:]  # cut off entries before hitIndex excluding preceding LF
+			seasonEpisode = partialStr[:partialStr.find("\n")].split("\t")  # cut off entries inclusive following LF and create list
 		return seasonEpisode
 
-	def getEpisodeDetails(self, seriesId=None, seasonEpisode=None, episodeId=None):  # for TMDB: seasonEpisode formatted as '10-17' (means S10E17)
+	def getEpisodeDetails(self, seriesId=None, seasonEpisode=[]):  # TVDB only need episodeId
 		errMsg, episodeDict = "", {}
-		if episodeId:
-			url = f"{self.baseUrl}/episodes/{episodeId}/translations/{self.langCode}"
-			params = {"page": 0}
-			errMsg, tvdbDict = self.getApiDict(url, params=params)
-			episodeDict = self.createNormDesc(tvdbDict, episodeId)
-			if not errMsg:
-				with open("tvdbDetails.json", "w") as file:
-					dump(tvdbDict, file)
+		if seasonEpisode and len(seasonEpisode) > 1:
+			episodeId = seasonEpisode[1]
+			if episodeId:
+				url = f"{self.baseUrl}/episodes/{episodeId}/translations/{self.langCode}"
+				params = {"page": 0}
+				errMsg, tvdbDict = self.getApiDict(url, params=params)
+				episodeDict = self.createNormEpisodeDict(tvdbDict, episodeId)
+				if not errMsg:
+					with open("tvdbDetails.json", "w") as file:
+						dump(tvdbDict, file)
 		else:
 			errMsg, tvdbDict = f"{MODULE_NAME}ERROR in module 'TVDB.getEpisodeDetails': missing parameter 'episodeId'.", {}
 		return errMsg, episodeDict
 
-	def createNormDesc(self, episodeDict, episodeId=""):
+	def createNormEpisodeDict(self, episodeDict, episodeId=""):
 		def setNormKey(key, value):
 			if value:
-				norm[key] = value
+				normDict[key] = value
 
-		norm = {}
+		normDict = {}
 		if episodeDict:
 			setNormKey("source", "tvdb")
 			setNormKey("episodeId", episodeId)
@@ -276,7 +285,7 @@ class Provider_tvdb:
 			name = data.get("name", "").split(" - ")
 			setNormKey("name", name[2] if len(name) > 2 else name[0])  # might be 'Odenthal - 15 - Mordfieber', so reduce to 'Mordfieber'
 			setNormKey("overview", data.get("overview", ""))  # longtext
-		return norm
+		return normDict
 
 	def getApiDict(self, url, params=None, timeout=(3.05, 6)):
 		headers = {"accept": "application/json", "Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
@@ -331,13 +340,7 @@ def main(argv):  # shell interface
 			mediaType = arg
 	if title and language:
 		if not mediaType:
-			found = search(r"\(\d{4}\)", title)  # search for e.g. '(1997)'
-			if found:
-				found = found.group(0)
-				title = title.replace(found, "")[::-1].replace(found, "").replace("+", " ", 1)[::-1].strip()  # replace one '+' from right side
-				mediaType = "movie"
-			else:
-				mediaType = "series"  # set fallback
+			mediaType = "series"  # set fallback
 		print(f"Search for '{title.replace("+", " ")}', mediaType: '{mediaType}'")
 		provider_tvdb.start(language)
 		errMsg, tvdbDicts = provider_tvdb.getInfo(title, mediaType=mediaType, year=None)
