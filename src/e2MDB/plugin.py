@@ -50,15 +50,10 @@ from Tools.BoundFunction import boundFunction
 from Tools.LoadPixmap import LoadPixmap
 from Tools.Directories import resolveFilename, SCOPE_GUISKIN
 
-from .e2MDBproviders import e2mdbproviders
+from .e2MDBProviders import e2mdbproviders
 from .e2MDBDatabase import mediadb
 
 from . import PLUGINDIR, _
-
-config.plugins.e2mdb = ConfigSubsection()
-config.plugins.e2mdb.cachePath = ConfigText(default=join("/media/hdd/"))
-config.plugins.e2mdb.databasePath = ConfigText(default=join("/media/hdd/"))
-config.plugins.e2mdb.enableDatabase = ConfigYesNo(default=False)
 
 
 class e2MDBglobals:
@@ -387,7 +382,6 @@ class e2MDBSetup(Setup, e2MDBhelper):
 		for index, (serviceref, title, path, desc, short_desc, ext_desc, begin, tags, size, duration) in enumerate(serviceList):
 			if self.SCANSTOPPED:
 				break
-
 			if useMediaDB:
 				fpath, fname = split(path)
 				record = {
@@ -403,7 +397,6 @@ class e2MDBSetup(Setup, e2MDBhelper):
 					"fsize": size
 				}
 				mediadb.upsert(record)
-
 			detailInfo = f"{_('Detailinfo:')} '{title}'"
 			self.e2MDBscanbox.setPrgsValue(index)
 			self.e2MDBscanbox.setPrgsHeader(detailInfo)

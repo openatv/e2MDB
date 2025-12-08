@@ -1,10 +1,10 @@
 <setupxml>
 	<setup key="e2MDB" title="e2MDB Settings">
-		<item level="0" text="Enable Media Database" description="Enbale Media Database.">config.plugins.e2MDB.enableDatabase</item>
-		<item level="0" text="Database Path" description="Enter the database path." conditional="config.plugins.e2MDB.enableDatabase.value">config.plugins.e2MDB.databasePath</item>
-		<item level="0" text="Cache Path" description="Enter the cache path.">config.plugins.e2MDB.cachePath</item>
-		<item level="0" text="User API-key for TMDb (The Movie Database)" description="Enter your personal API-key for TMDb (The Movie Database).">config.plugins.e2MDB.tmdbapikey</item>
-		<item level="0" text="User API-key for TVDb (TV Database)" description="Enter your personal API-key for TVDb (TV Database).">config.plugins.e2MDB.tvdbapikey</item>
-		<item level="0" text="User API-key for OMDb (Open Media Database)" description="Enter your personal API-key for OMDb (Open Media Database).">config.plugins.e2MDB.omdbapikey</item>
+		<item level="0" text="Enable Media Database" description="Enbale Media Database.">config.plugins.e2mdb.enableDatabase</item>
+		<item level="0" text="Database Path" description="Enter the database path." conditional="config.plugins.e2mdb.enableDatabase.value">config.plugins.e2mdb.databasePath</item>
+		<item level="0" text="Cache Path" description="Enter the cache path.">config.plugins.e2mdb.cachePath</item>
+		<item level="0" text="User API-key for TMDb (The Movie Database)" description="Enter your personal API-key for TMDb (The Movie Database).">config.plugins.e2mdb.tmdbapikey</item>
+		<item level="0" text="User API-key for TVDb (TV Database)" description="Enter your personal API-key for TVDb (TV Database).">config.plugins.e2mdb.tvdbapikey</item>
+		<item level="0" text="User API-key for OMDb (Open Media Database)" description="Enter your personal API-key for OMDb (Open Media Database).">config.plugins.e2mdb.omdbapikey</item>
 	</setup>
 </setupxml>
