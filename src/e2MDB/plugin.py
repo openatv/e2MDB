@@ -120,12 +120,12 @@ class e2MDBhelper(e2MDBglobals):
 
 	def cleanupCache(self):  # delete older asset overviews, detailed assets and images
 		return
-#		nowDt = datetime.today()
-#		latest = nowDt - timedelta(days=config.plugins.e2mdb.keepcache.value)
-#		ldate = latest.replace(hour=0, minute=0, second=0, microsecond=0)
-#		for filename in glob(join(f"{self.getCachePath()}series/", "*.json")):
-#			if datetime.strptime(filename.split("/")[-1][6:16], "%Y-%m-%d") < ldate:  # keepcache or older?
-#				remove(filename)
+# nowDt = datetime.today()
+# latest = nowDt - timedelta(days=config.plugins.e2mdb.keepcache.value)
+# ldate = latest.replace(hour=0, minute=0, second=0, microsecond=0)
+# for filename in glob(join(f"{self.getCachePath()}series/", "*.json")):
+# if datetime.strptime(filename.split("/")[-1][6:16], "%Y-%m-%d") < ldate:  # keepcache or older?
+# remove(filename)
 
 	def getAPIDict(self, url, headers=None, params=None):
 		errMsg, jsondict = "", {}
@@ -285,7 +285,7 @@ class e2MDBhelper(e2MDBglobals):
 							print("#####thumbnail:", (int(desiredSize[0] * scaleFactor), int(desiredSize[1] * scaleFactor)))
 						img.save(imgFile, format=imgType.replace("jpg", "jpeg") or "jpeg", quality=25, optimize=True)
 						img.close()
-					else: # all other image types (e.g. '.svg')
+					else:  # all other image types (e.g. '.svg')
 						with open(imgFile, "wb") as file:
 							file.write(response.content)
 				except OSError as osError:
@@ -449,10 +449,10 @@ class e2MDBscanner(Screen, e2MDBhelper):
 			"yellow": self.keyYellow,
 			"blue": self.keyBlue,
 			"ok": self.toggleSelection,
-#			"left": self._noop,
-#			"right": self._noop,
-#			"up": self.moveUp,
-#			"down": self.moveDown,
+# "left": self._noop,
+# "right": self._noop,
+# "up": self.moveUp,
+# "down": self.moveDown,
 			"menu": self.keyMenu,
 			"info": self.showInfoMain
 		}, -1)
@@ -503,7 +503,7 @@ class e2MDBscanner(Screen, e2MDBhelper):
 
 	def showInfoMain(self):
 		pass
-#		text = build_info_text()
+# text = build_info_text()
 		text = "Here should be the summarize:"
 		self.session.open(MessageBox, text, MessageBox.TYPE_INFO)
 
@@ -515,9 +515,9 @@ class e2MDBscanner(Screen, e2MDBhelper):
 			for extension in [".jpg", ".png", ".json"]:
 				for file in glob(f"{path}/*{extension}"):
 					remove(file)  # remove all {extension} in '/media/hdd/movie' (and selected subdirs)
-#		for extension in [".png", ".svg"]:
-#			for file in glob(f"{self.getCachePath()}series/*{extension}"):
-#				remove(file)  # remove all {extension} in '/media/hdd/e2MDB/series'
+# for extension in [".png", ".svg"]:
+# for file in glob(f"{self.getCachePath()}series/*{extension}"):
+# remove(file)  # remove all {extension} in '/media/hdd/e2MDB/series'
 		self.e2MDBinfobox.showDialog(_("JPG+PNG and JSON data have been successfully removed from movie folder."))
 
 	def keyBlue(self):
@@ -1182,12 +1182,12 @@ class e2MDBbackroundRefresh(e2MDBhelper):
 e2mdbackroundrefresh = e2MDBbackroundRefresh()
 
 
-#def e2MDBserviceEventRefreshData(self):
-#	service = self.source.service
-#	info = self.source.info
-#	event = self.source.event
-#	if info and service:
-#		e2mdbackroundrefresh.scanSingleTitle(title, desc, short_desc, ext_desc, path, None)
+# def e2MDBserviceEventRefreshData(self):
+# service = self.source.service
+# info = self.source.info
+# event = self.source.event
+# if info and service:
+# e2mdbackroundrefresh.scanSingleTitle(title, desc, short_desc, ext_desc, path, None)
 
 
 def main(session, **kwargs):
