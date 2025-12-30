@@ -79,26 +79,26 @@ class Provider_omdb:
 		return normDicts
 
 	def readSeriesIndex(self, seriesFile):  # OMDB do not support this function at all
-		return "not supported by provider 'OMDB'", ""
+		return "", {}
 
 	def writeSeriesIndex(self, seriesFile, seriesIndex):  # OMDB do not support this function at all
-		return "not supported by provider 'OMDB'"
+		return ""
 
 	def getSeriesIndex(self, seriesId):  # OMDB do not support this function at all
-		return "not supported by provider 'OMDB'", ""
+		return "", {}
 
-	def findSeasonEpisode(self, seriesIndex="", episodeDescs=[]):  # OMDB do not support this function at all
-		return "not supported by provider 'OMDB'", []
+	def findSeasonEpisode(self, seriesIndex="", episodeDesc=""):  # OMDB do not support this function at all
+		return "", ()
 
-	def getEpisodeDetails(self, seriesId=None, seasonEpisode=[]):  # OMDB  do not support this function at all, use getInfo instead
-		return "not supported by provider 'OMDB'", {}
+	def getEpisodeDetails(self, seriesId="", episodeId="", seasonNo="", episodeNo=""):  # OMDB  do not support this function at all, use getInfo instead
+		return "", {}
 
 	def getApiDict(self, url, params=None, timeout=(3.05, 6)):
 		headers = {"accept": "application/json"}
 		try:
 			response = get(url, params=params, headers=headers, timeout=timeout)
-			errMsg, omdbDict = ("", response.json()) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
-			return errMsg, omdbDict
+			errMsg, apiDict = ("", response.json()) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
+			return errMsg, apiDict
 		except exceptions.RequestException as errMsg:
 			return errMsg, {}
 

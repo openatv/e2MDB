@@ -7,7 +7,7 @@
 # For other uses, permission from the authors is necessary.                                            #
 ########################################################################################################
 
-from json import dump
+from json import load, dump
 from os import remove
 from os.path import isfile
 from getopt import getopt, GetoptError
@@ -41,14 +41,14 @@ class Provider_tmdb:
 		self.allGenres = allGenres
 		return ""
 
-	def getImagesDict(self, tmdbId):
-		url = f"https://api.themoviedb.org/3/movie/{tmdbId}/images"
+	def getImagesDict(self, tmdbId, mediaType):
+		url = f"https://api.themoviedb.org/3/{mediaType}/{tmdbId}/images"
 		params = {
 					"api_key": self.apiKey,
 					"include_image_language": "en-US,null",  # additional languages
 					"language": self.language,  # acc. ISO 3166-1 alpha-2
 				}
-		errMsg, imagesDict = self.getApiDict(url, params=params)
+		errMsg, imagesDict = self.getApiDicts(url, params=params)
 		if imagesDict:
 			for imageType in ["backdrops", "logos", "posters"]:
 				for imageDict in imagesDict.get(imageType, []):
@@ -72,7 +72,7 @@ class Provider_tmdb:
 					"append_to_response": "videos,images",
 					"accept": "application/json"
 				}
-		errMsg, tmdbDicts = self.getApiDict(url, params=params)
+		errMsg, tmdbDicts = self.getApiDicts(url, params=params)
 		newDicts, newList = {}, []
 		if not errMsg:
 			for result in tmdbDicts.get("results", []):   # fill up search parameter 'media_type' in case it is missing
@@ -131,7 +131,7 @@ class Provider_tmdb:
 					setNormKey("backdropUrl", f"{self.imgUrl}{backdrop}" if backdrop else "")
 					tmdbId = str(result.get("id", 0))  # e.g. '597'
 					if includeLogos:
-						errMsg, imagesDict = self.getImagesDict(tmdbId)
+						errMsg, imagesDict = self.getImagesDict(tmdbId, mediaType)
 						if not errMsg:
 							logoUrl, fallback = "", ""
 							for logoDict in imagesDict.get("logos", []):
@@ -140,7 +140,7 @@ class Provider_tmdb:
 								if logoDict.get("iso_639_1", "") == self.language[:2]:
 									logoUrl = logoDict.get("url", "")
 									break
-							setNormKey("logoUrl", logoUrl if logoUrl else fallback)
+							setNormKey("titlelogoUrl", logoUrl if logoUrl else fallback)
 					providerIds = {}
 					providerIds["tmdb"] = tmdbId
 					setNormKey("providerIds", providerIds)
@@ -159,7 +159,7 @@ class Provider_tmdb:
 				"language": self.language,
 				"api_key": self.apiKey
 				}
-		errMsg, genreDict = self.getApiDict(url, params=params)
+		errMsg, genreDict = self.getApiDicts(url, params=params)
 		genreList = [(entry.get("id", 0), entry.get("name", "")) for entry in genreDict.get("genres", [])]
 		if errMsg:
 			print(f"{MODULE_NAME}ERROR in module 'getGenreList': {errMsg}")
@@ -167,93 +167,102 @@ class Provider_tmdb:
 
 	def readSeriesIndex(self, seriesFile):
 		try:
-			with open(seriesFile, "r") as file:
-				seriesIndex = file.read()
+			with open(seriesFile) as file:
+				seriesIndex = load(file)
 		except OSError as errMsg:
-			return errMsg, ""
+			return errMsg, {}
 		return "", seriesIndex
 
 	def writeSeriesIndex(self, seriesFile, seriesIndex):
 		if seriesIndex:
 			try:
 				with open(seriesFile, "w") as file:
-					file.write(seriesIndex)
+					dump(seriesIndex, file)
 			except OSError as errMsg:
 				return errMsg
 		return ""
 
 	def getSeriesIndex(self, seriesId):  # create 'seriesIndex' containing 'season-episode', 'episodeID and 'episodeName'
-		errMsg, seriesIndex = "", ""
+		errMsg, seriesIndex = "", {}
 		url = f"{self.baseUrl}/tv/{seriesId}"
 		params = {"language": self.language, "api_key": self.apiKey}
-		errMsg, seasonDict = self.getApiDict(url, params=params)  # get all seasons
+		errMsg, seasonDict = self.getApiDicts(url, params=params)  # get all seasons
 		if not errMsg:
-			seriesIndex = f"{str({'source': 'tmdb', 'seriesId': str(seasonDict.get('id', '')), 'seriesName': seasonDict.get('name', '')})}\n"
+			seriesIndex["source"] = "tmdb"
+			seriesIndex["seriesName"] = seasonDict.get("name", "")
+			seriesIndex["seriesId"] = str(seasonDict.get("id", 0))
+			seriesIndex["episodes"] = {}
 			for season in seasonDict.get("seasons", []):
 				seasonNumber = season.get("season_number", "")
 				if seasonNumber:  # seasonNumber '0' only contains accompanying information for the series
 					url = f"{self.baseUrl}/tv/{seriesId}/season/{seasonNumber}"  # get all episodes
-					errMsg, episodesDict = self.getApiDict(url, params=params)
+					errMsg, episodesDict = self.getApiDicts(url, params=params)
 					if not errMsg:
 						for episode in episodesDict.get("episodes", []):
-							seriesIndex += f"{seasonNumber}-{episode.get('episode_number', '')}\t{episode.get("id", '')}\t{episode.get("name", '')}\n"
+							entry = (str(episode.get("id", 0)), episode.get("name", ""))
+							seriesIndex["episodes"][f"{seasonNumber}-{episode.get('episode_number', '')}"] = entry
 		return errMsg, seriesIndex
 
-	def findSeasonEpisode(self, seriesIndex="", episodeDescs=[]):
-		seasonEpisode, hitIndex = [], -1
-		if seriesIndex:
-			seriesIndex = "\n".join(seriesIndex.split("\n")[1:])  # remove first line
-			for desc in episodeDescs:
-				if desc:
-					hitIndex = seriesIndex.lower().find(desc.lower())
-					if hitIndex != -1:
-						break
-		if hitIndex != -1:
-			partialStr = seriesIndex[seriesIndex[:hitIndex].rfind("\n") + 1:]  # cut off entries before hitIndex excluding preceding LF
-			seasonEpisode = partialStr[:partialStr.find("\n")].split("\t")  # cut off entries inclusive following LF and create list
-		return seasonEpisode  # e.g. ['1-2', '283766', 'Die Warnung']
+	def findSeasonEpisode(self, seriesIndex={}, episodeDesc=""):
+		seasonEpisode = ()
+		if seriesIndex and episodeDesc:
+			for episode in seriesIndex.get("episodes", {}).items():
+				if episode[1][1] == episodeDesc:
+					seasonEpisode = tuple((episode[0], episode[1][0], episode[1][1]))
+					break
+		return seasonEpisode  # e.g. ('1-2', '283766', 'Die Warnung')
 
-	def getEpisodeDetails(self, seriesId=None, seasonEpisode=[]):  # TMDB needs seriesId, seasonNo and episodeNo
+	def getEpisodeDetails(self, seriesId="", episodeId="", seasonNo="", episodeNo=""):  # TMDB only uses seriesId, seasonNo and episodeNo
 		errMsg, episodeDict = "", {}
-		if seriesId and seasonEpisode and "-" in seasonEpisode[0]:
-			seasonNo, episodeNo = seasonEpisode[0].split("-")
-			if seriesId and seasonNo and episodeNo:
-				url = f"{self.baseUrl}/tv/{seriesId}/season/{seasonNo}/episode/{episodeNo}"
-				params = {"language": self.language, "api_key": self.apiKey}
-				errMsg, tmdbDict = self.getApiDict(url, params=params)
-				if errMsg:
-					print(f"{MODULE_NAME}ERROR in module 'getEpisodeDetails': {errMsg}")
-				return errMsg, self.createNormEpisodeDict(tmdbDict)
+		if seriesId and seasonNo and episodeNo:
+			url = f"{self.baseUrl}/tv/{seriesId}/season/{seasonNo}/episode/{episodeNo}"
+			params = {"language": self.language, "api_key": self.apiKey}
+			errMsg, tmdbDict = self.getApiDicts(url, params=params)
+			if errMsg:
+				print(f"{MODULE_NAME}ERROR in module 'getEpisodeDetails': {errMsg}")
+			else:
+				episodeDict = self.createNormEpisodeDict(seriesId, tmdbDict)
 		else:
-			errMsg, episodeDict = f"{MODULE_NAME}ERROR in module 'TMDB.getEpisodeDetails': missing parameters 'seriesId' and/or 'seasonEpisode.", {}
+			errMsg = f"{MODULE_NAME}ERROR in module 'TMDB.getEpisodeDetails': missing parameters 'seriesId', 'seasonNo' or 'episodeNo'."
 		return errMsg, episodeDict
 
-	def createNormEpisodeDict(self, episodeDict):  # creates episode details in a normalized form
-		def setNormKey(key, value):
+	def createNormEpisodeDict(self, seriesId, episodeDict):  # creates episode details in a normalized form
+		def setDictKey(normDict, key, value):
 			if value:
 				normDict[key] = value
-
 		normDict = {}
 		if episodeDict:
-			setNormKey("source", "tmdb")
-			setNormKey("episodeId", episodeDict.get("id", ""))
-			setNormKey("name", episodeDict.get("name", ""))
-			setNormKey("overview", episodeDict.get("overview", ""))  # longtext
-			setNormKey("seasonNumber", episodeDict.get("season_number", ""))
-			setNormKey("episodeNumber", episodeDict.get("episode_number", ""))
-			setNormKey("released", episodeDict.get("air_date", ""))
-			image = episodeDict.get("still_path", "")
-			setNormKey("image", f"{self.imgUrl}{image}" if image else "")  # e.g. '/eZgBiSDTc25mEjMoyRKZTa2ggbm.jpg'
-			setNormKey("crew", episodeDict.get("crew", ""))  # is TMDB original dict
-			setNormKey("guestStars", episodeDict.get("guest_stars", ""))  # is TMDB original dict
+			setDictKey(normDict, "source", "tmdb")
+			setDictKey(normDict, "seriesId", seriesId)
+			setDictKey(normDict, "episodeId", episodeDict.get("id", ""))
+			setDictKey(normDict, "name", episodeDict.get("name", ""))
+			setDictKey(normDict, "overview", episodeDict.get("overview", ""))  # longtext
+			setDictKey(normDict, "seasonNumber", episodeDict.get("season_number", ""))
+			setDictKey(normDict, "episodeNumber", episodeDict.get("episode_number", ""))
+			setDictKey(normDict, "released", episodeDict.get("air_date", ""))
+			imagePath = episodeDict.get("still_path", "")
+			setDictKey(normDict, "imageUrl", f"{self.imgUrl}{imagePath}" if imagePath else "")  # e.g. '/eZgBiSDTc25mEjMoyRKZTa2ggbm.jpg'
+			for staff in [("crew", "crew"), ("guest_stars", "cast")]:  # (originalKey, normalizedKey)
+				staffList = []
+				for profileDict in episodeDict.get(staff[0], []):
+					staffDict = {}
+					setDictKey(staffDict, "department", profileDict.get("department", ""))
+					setDictKey(staffDict, "job", profileDict.get("job", ""))
+					setDictKey(staffDict, "name", profileDict.get("name", ""))
+					setDictKey(staffDict, "character", profileDict.get("character", ""))
+					setDictKey(staffDict, "nameId", profileDict.get("id", ""))
+					imagePath = profileDict.get("profile_path", "")
+					setDictKey(staffDict, "image", f"{self.imgUrl}{imagePath}" if imagePath else "")  # e.g. '/eZgBiSDTc25mEjMoyRKZTa2ggbm.jpg'
+					staffList.append(staffDict)
+				setDictKey(normDict, staff[1], staffList)
 		return normDict
 
-	def getApiDict(self, url, params=None, timeout=(3.05, 6)):
+	def getApiDicts(self, url, params=None, timeout=(3.05, 6)):
 		headers = {"accept": "application/json"}
 		try:
 			response = get(url, params=params, headers=headers, timeout=timeout)
-			errMsg, tmdbDicts = ("", response.json()) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
-			return errMsg, tmdbDicts
+			errMsg, apiDicts = ("", response.json()) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
+			return errMsg, apiDicts
 		except exceptions.RequestException as errMsg:
 			return errMsg, {}
 
@@ -309,7 +318,7 @@ def main(argv):  # shell interface
 		provider_tmdb.start(language)
 		errMsg, tmdbDicts = provider_tmdb.getInfo(title, mediaType=mediaType, year=None)
 		if errMsg:
-			print("ERROR getting data:", errMsg)
+			print(f"ERROR getting data: {errMsg}")
 			exit(2)
 		if tmdbDicts:
 			if tmdbFile:
@@ -345,16 +354,14 @@ def main(argv):  # shell interface
 								print(f"Error writing series index file '{seriesFile}': {errMsg}")
 							else:
 								print(f"Series index file '{seriesFile}' was successfully created.")
-					print(provider_tmdb.findSeasonEpisode(seriesIndex, "Emily hat Geldprobleme"))  # special episode search for series
+			# episode details
+			errMsg, episodeDict = provider_tmdb.getEpisodeDetails(seriesId="4613", seasonNo="1", episodeNo="5")
+			if episodeDict:
+				with open("episodeDict.json", "w") as file:
+					dump(episodeDict, file)
 
-			"""
-			errMsg, detailDict = provider_tmdb.getEpisodeDetails(seriesId="1912244", seasonEpisode="19-80")
-			if detailDict:
-				with open("detailsTMDB.json", "w") as file:
-					dump(detailDict, file)
-			"""
 		if imagesFile:
-			errMsg, imagesDict = provider_tmdb.getImagesDict("597")
+			errMsg, imagesDict = provider_tmdb.getImagesDict("4613", "tv")
 			if errMsg:
 				print(f"Error creating images file '{seriesFile}': {errMsg}")
 			elif imagesDict:

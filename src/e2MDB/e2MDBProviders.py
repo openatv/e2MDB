@@ -37,7 +37,7 @@ class e2MDBproviders:
 		self.movieSearchOrder = [(provider_tmdb, True), (provider_tvdb, True), (provider_omdb, True)]  # (provider, active), will be defined later by the user in setup
 		self.allKeys = [
 						"countries", "releaseDate", "mediaType", "genres", "voteAverage",
-						"voteCount", "coverUrl", "backdropUrl", "logoUrl", "providerIds"
+						"voteCount", "coverUrl", "backdropUrl", "titlelogoUrl", "providerIds"
 						]  # with exception of 'Title' and 'Description', as these receive special treatment
 		self.allProvIds = ["imdb", "tmdb", "tvdb"]
 
@@ -47,16 +47,14 @@ class e2MDBproviders:
 			if provider[1]:  # provider is active?
 				provider[0].start(self.language, getApiKey(provider[0].getName()))
 
-	def getInfo(self, title, mediaType="multi", year="", descriptions=[], callback=None, errback=None):
+	def getInfo(self, title, mediaType="multi", year="", desc="", short_desc="", ext_desc="", callback=None, errback=None):
 		if not title:
 			errMsg = f"{MODULE_NAME}ERROR in module 'getInfo': title is missing."
 			return errMsg, {}, {}
 		if not mediaType or mediaType == "multi":
-			estimatedType, foundStr = self.guessCategory([title] + descriptions)
+			estimatedType, matchReason = self.guessCategory(title, desc=desc, short_desc=short_desc)
 			mediaType = estimatedType if estimatedType else "multi"  # 'movie', 'series' or 'multi'
-			year = foundStr if foundStr and foundStr.isdigit() else ""
-		yearStr = f"' with year '{year}'" if year else ""
-		print(f"{MODULE_NAME}Gathering data for title '{title}'{yearStr} as media type '{mediaType}'...")
+		print(f"{MODULE_NAME}Gathering data for title '{title}' as media type '{mediaType}'...")
 		errMsg, normDicts = self.gatherProvidersInfo(title, mediaType=mediaType, year=year)
 		if errMsg:
 			if errback:
@@ -69,7 +67,7 @@ class e2MDBproviders:
 				if errback:
 					errback(errMsg, {}, {})
 				return errMsg, {}, {}
-		errMsg, finalDict = self.assembleFinalResult(normDicts, title, descriptions=descriptions)
+		errMsg, finalDict = self.assembleFinalResult(normDicts, title, desc=desc, short_desc=short_desc, ext_desc=ext_desc)
 		if errMsg:
 			if errback:
 				errback(errMsg, {}, {})
@@ -93,73 +91,98 @@ class e2MDBproviders:
 		return errMsg
 
 	def getSeriesIndex(self, providerName, seriesId):
-		errMsg, seriesIndex = "", ""
+		errMsg, seriesIndex = "", {}
 		for provider in self.seriesSearchOrder:
 			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
 				errMsg, seriesIndex = provider[0].getSeriesIndex(seriesId)
 		return errMsg, seriesIndex
 
-	def findSeasonEpisode(self, providerName, seriesIndex, comparison):
-		seasonEpisode = ["", "", ""]
+	def findSeasonEpisode(self, providerName, seriesIndex, episodeDesc=""):
+		seasonEpisode = ()
 		for provider in self.seriesSearchOrder:
 			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
-				seasonEpisode = provider[0].findSeasonEpisode(seriesIndex, comparison)
+				seasonEpisode = provider[0].findSeasonEpisode(seriesIndex, episodeDesc)  # e.g. ('1-2', '283766', 'Die Warnung')
+				break
 		return seasonEpisode
 
-	def guessCategory(self, sources):
-		movieKeys = ["film", "movie", "фильм", "кино", "ταινία", "película", "cinéma", "cine", "cinema", "filma"]
-		seriesKeys = [
-					"serial", "series", "serie", "serien", "série", "séries", "serious", "folge", "episodio", "episode",
-					"épisode", "l'épisode", "ep.", "animation", "staffel", "soap", "doku", "tv", "talk", "show", "news",
-					"factual", "entertainment", "telenovela", "dokumentation", "dokutainment", "documentary", "informercial",
-					"information", "sitcom", "reality", "program", "magazine", "mittagsmagazin", "т/с", "м/с", "сезон", "с-н",
-					"эпизод", "сериал", "серия", "actualité", "discussion", "interview", "débat", "émission", "divertissement",
-					"jeu", "magasine", "information", "météo", "journal", "sport", "culture", "infos", "feuilleton",
-					"téléréalité", "société", "clips", "concert", "santé", "éducation", "variété"
-					]
-		result = "", ""
-		for source in sources:
-			if source:
-				# search for season/episode tags
-				seasonEpisode = ""
-				for regex in [r"S\d+E\d+", r"S\d+\/E\d+", r"S\d+\|E\d+", r"\(\d+\/\d+\)", r"\(\d+\|\d+\)"]:  # search for e.g. 'S02E05', 'S02/E05', 'S02|E05', (02/05), (02|05)
-					found = search(regex, source)
+	def getEpisodeDetails(self, providerName, seriesId="", episodeId="", seasonNo="", episodeNo=""):
+		errMsg, episodeDict = "", {}
+		for provider in self.seriesSearchOrder:
+			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
+				errMsg, episodeDict = provider[0].getEpisodeDetails(seriesId=seriesId, episodeId=episodeId, seasonNo=seasonNo, episodeNo=episodeNo)
+				break
+		return errMsg, episodeDict
+
+	def guessCategory(self, title, desc="", short_desc=""):  # don't use 'ext_desc', it leads to incorrect results
+		def findSeasonsEpisodes(description):  # search for season/episode tags
+			for regex in [r"S\d+E\d+", r"S\d+\/E\d+", r"S\d+\|E\d+"]:  # search for e.g. 'S02E05', 'S02/E05', 'S02|E05'
+				found = search(regex, description.upper())
+				if found:
+					print("#####description1:", description)
+					found = found.group(0).replace("/", "").replace("|", "").replace("(", "").replace(")", "").strip()
+					seasonNo, episodeNo = [str(int(value)) for value in found.upper().replace("S", "").split("E") if value.isdigit()]
+					matchReason = f"S{int(seasonNo):02d}E{int(episodeNo):02d}"
+					print("#####matchReason1:", matchReason)
+					return "series", matchReason  # return in form like 'S02E05'
+			return "", ""
+
+		def findYearTags(description):  # search for year tags
+				for regex in [r"\(\d{4}\)"]:  # search for e.g. '(1997)'
+					found = search(regex, description)
 					if found:
-						seasonEpisode = found.group(0).replace("/", "").replace("|", "").replace("(", "").replace(")", "").strip()
-						break
-				if seasonEpisode:
-					result = "series", seasonEpisode
-					break
-				# search for year tags
-				yearReleased = ""
-				for regex in [r"\(\d{4}\)", r" \d{4}"]:  # search for e.g. '(1997)', ' 1997'
-					found = search(regex, source)
-					if found:
-						yearReleased = found.group(0).strip()
-						break
-				if yearReleased:
-					result = "movie", yearReleased
-					break
-				# search for series keywords
-				seriesFound = ""
-				lowerSource = source.lower()
-				for tag in seriesKeys:
-					if tag in lowerSource:
-						seriesFound = tag
-						break
-				if seriesFound:
-					result = "series", ""
-					break
-				# search for movie keywords
-				movieFound = ""
-				for tag in movieKeys:
-					if tag in lowerSource:
-						movieFound = tag
-						break
-				if movieFound:
-					result = "movie", ""
-					break
-		return result
+						print("#####description2:", description)
+						print("#####matchReason2:", found.group(0).strip())
+						return "movie", found.group(0).strip()
+				return "", ""
+
+		def findSeriesKeywords(description):  # search for series keywords
+			seriesKeys = [
+				"serie", "serien", "folge", "episode", "reihe", "staffel", "doku", "magazin",  # DE
+				"serial", "series", "season", "docu", "soap", "talk", "show", "news", "infomercial", "sitcom",  # EN
+				"episodio", "temporada", "telenovela", "reality", "magacín",  # ES
+				"série", "épisode", "saison", "télénovela",  # FR
+				"aflevering", "seizoen",  # NL
+				"episodio", "stagione",  # IT
+				"episódio", "novela",  # PT
+				"avsnitt", "säsong",  # SV
+				"сериал", "серии", "эпизод", "серия", "сезон", "реалити", "журнал",  # RU
+				"seri", "episode", "musim",  # ID
+				"dizi", "bölüm", "sezon",  # TR
+				"سلسلة", "حلقة", "موسم", "واقعي",  # AR
+				"시리즈", "회", "시즌", "리얼리티",  # KO
+				"chuỗi", "tập", "mùa",  # VI
+				"ซีรีส์", "ตอน", "ฤดูกาล",  # TH
+			]  # without duplicate entries. it's sufficient if 'docu' appears once (that's why a word like 'documentation' is meaningless)
+			lowerdesc = description.lower()
+			for tag in seriesKeys:
+				if tag in lowerdesc:
+					print("#####description3:", description)
+					print("#####matchReason3:", tag)
+					return "series", ""
+			return "", ""
+
+		def findMovieKeywords(description):  # search for movie keywords
+			movieKeys = ["film", "movie", "фильм", "кино", "ταινία", "película", "cinéma", "cine", "cinema", "filma"]
+			lowerdesc = description.lower()
+			for tag in movieKeys:
+				if tag in lowerdesc:
+					print("#####description4:", description)
+					print("#####matchReason4:", tag)
+					return "movie", ""
+			return "", ""
+
+		# search titles and all descriptions for typical characteristics in order to identify the media type.
+		for findHelper in [findSeasonsEpisodes, findYearTags, findSeriesKeywords, findMovieKeywords]:
+			mediaType, matchReason = findHelper(title)
+			if mediaType:
+				return mediaType, matchReason
+		for findHelper in [findSeasonsEpisodes, findSeriesKeywords, findMovieKeywords]:
+			for descs in [short_desc, desc]:
+				if descs:
+					mediaType, matchReason = findHelper(descs)
+					if mediaType:
+						return mediaType, matchReason
+		return "", ""
 
 	def gatherProvidersInfo(self, title, mediaType="", year=None):
 		errMsg, normDicts = "", {}
@@ -183,7 +206,7 @@ class e2MDBproviders:
 				errMsg, providerDict = provider[0].getInfo(title, mediaType=mediaType, year=year)
 				normDict = provider[0].createNormalized(providerDict)
 				foundInfo = "found infos" if normDict.get(providerName) else "found nothing"
-				print(f"{MODULE_NAME}Searching for title '{title}' in {providerName}...{foundInfo}")
+				print(f"{MODULE_NAME}Searching for title '{title}' in {providerName} as '{mediaType}'... {foundInfo}")
 				if not index:  # very first call of provider (is forced TMDB in case of 'multi')
 					mediaType = normDict.get("mediatype", "") or mediaType
 					if not mediaType:
@@ -198,7 +221,7 @@ class e2MDBproviders:
 						break  # premature termination on first result
 		return errMsg, normDicts
 
-	def assembleFinalResult(self, normDicts, title, descriptions=[]):
+	def assembleFinalResult(self, normDicts, title, desc="", short_desc="", ext_desc=""):
 		errMsg, finalDict = "", {}
 		missingKeys, missingIds = self.allKeys[:], self.allProvIds[:]
 		abort = False
@@ -214,10 +237,10 @@ class e2MDBproviders:
 					newTitleText = newTitleDict.get("text", "")
 					compareTitle = title.replace("–", "").replace("-", "").lower()
 					compareNewTitle = newTitleText.replace("–", "").replace("-", "").lower()
-					if compareTitle in compareNewTitle and abs(len(newTitleText) - len(title)) < 8:  # entry is a qualified source
-						titleDict = finalDict.get("title")
+					if compareTitle in compareNewTitle:  # entry is a qualified source
+						titleDict = finalDict.get("title", {})
 						if titleDict:
-							if titleDict.get("language")[:2] != self.language[:2] and newTitleDict.get("language", "")[:2] == self.language[:2]:
+							if titleDict.get("language", "")[:2] != self.language[:2] and newTitleDict.get("language", "")[:2] == self.language[:2]:
 								finalDict["title"] = newTitleDict
 						else:
 							finalDict["title"] = newTitleDict
@@ -269,7 +292,7 @@ def main(argv):  # shell interface
 	finalDict = {}
 	helpstring = "providers v0.1: try 'python providers.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "n:f:s:q:l:m:h", ["normalized=", "finalresult=", "seriesinfo=", "query=", "language=", "mediatype="])
+		opts, args = getopt(argv, "n:f:q:l:m:sh", ["normalized=", "finalresult=", "query=", "language=", "mediatype=", "seriesinfo"])
 	except GetoptError as error:
 		print(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -282,9 +305,9 @@ def main(argv):  # shell interface
 			"-q, --query <options>\t\tget result list\n"
 			"-l, --language <options>\tset language formatted like 'en-US'\n"
 			"-m, --mediatype <options>\tset media type 'multi', 'movie' or 'series' (default 'multi')\n"
-			"-n, --normalized <filename>\tfile output of single normalized result, formatted in JSON\n"
-			"-f, --finalresult <filename>\tfile output of normalized single final result, formatted in JSON\n"
-			"-s, --seriesinfo <filename>\tfile output of all seasons and episodes of a series, formatted in JSON\n")
+			"-n, --normalized <filename>\tfile output of single normalized result, formatted as JSON\n"
+			"-f, --finalresult <filename>\tfile output of normalized single final result, formatted as JSON\n"
+			"-s, --seriesinfo\tfile output of all seasons and episodes of a series, formatted as JSON\n")
 			exit()
 		elif opt in ("-q", "--query"):
 			title = arg.replace("+", " ").strip()
@@ -293,7 +316,7 @@ def main(argv):  # shell interface
 		elif opt in ("-f", "--finalresult"):
 			finalFile = arg
 		elif opt in ("-s", "--seriesinfo"):
-			seriesFile = arg
+			seriesFile = ".json"
 		elif opt in ("-l", "--language"):
 			language = arg.replace("_", "-")
 		elif opt in ("-m", "--mediatype"):
@@ -325,6 +348,7 @@ def main(argv):  # shell interface
 				seriesId = str(finalDict.get("providerIds", {}).get(finalProvider, 0))  # e.g. '597'
 				mediaType = finalDict.get("mediaType", "")  # e.g. 'movie' or 'series'
 				if seriesId and mediaType == "series":  # special episode search for series
+					seriesFile = f"{finalProvider}_{seriesId}{seriesFile}"
 					if isfile(seriesFile):
 						errMsg, seriesIndex = e2mdbproviders.readSeriesIndex(finalProvider, seriesFile)
 						if errMsg:
@@ -339,9 +363,9 @@ def main(argv):  # shell interface
 						elif seriesIndex and len(seriesIndex) > 1:
 							errMsg = e2mdbproviders.writeSeriesIndex(finalProvider, seriesFile, seriesIndex)
 							if errMsg:
+								print(f"ERROR: Series info index file '{seriesFile}' was not created.")
+							else:
 								print(f"Series info index file '{seriesFile}' was successfully created.")
-
-							print(f"Series info index file '{seriesFile}' was successfully created.")
 	else:
 		errMsg = "'Title' or 'language' is missing"
 		print("ERROR getting data:", errMsg)

@@ -8,10 +8,11 @@
 ########################################################################################################
 
 # PYTHON IMPORTS
+from io import BytesIO
 from json import dump, load
 from glob import glob
-from os.path import exists, join, normpath, split, splitext, isfile
-from os import stat, makedirs, remove
+from os.path import exists, join, normpath, split, splitext, isfile, isdir, abspath, basename
+from os import stat, makedirs, remove, listdir, walk
 from PIL import Image
 from requests import get, exceptions
 from secrets import choice
@@ -20,17 +21,15 @@ from time import localtime, strftime
 from twisted.internet.reactor import callInThread
 
 # ENIGMA IMPORTS
-
 from enigma import eListboxPythonMultiContent, eServiceCenter, eServiceReference, eLabel, eListbox, eSize, eTimer, getDesktop, gFont, iServiceInformation, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_BLEND, BT_SCALE, BT_KEEP_ASPECT_RATIO
-
-from Components.ActionMap import HelpableActionMap
-from Components.config import config, ConfigYesNo, ConfigSubsection, ConfigText
+from Components.ActionMap import ActionMap, HelpableActionMap
+from Components.config import config
 from Components.GUIComponent import GUIComponent
-from Components.Label import Label
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
 from Components.Pixmap import Pixmap
 from Components.PluginComponent import plugins
 from Components.ProgressBar import ProgressBar
+from Components.Sources.List import List
 from Components.ScrollLabel import ScrollLabel
 from Components.Sources.Event import Event
 from Components.Sources.ServiceEvent import ServiceEvent
@@ -39,27 +38,35 @@ from Components.UsageConfig import preferredTimerPath
 from Plugins.Plugin import PluginDescriptor
 from RecordTimer import RecordTimerEntry, parseEvent
 from Screens.ChoiceBox import ChoiceBox
+from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
 from Screens.Setup import Setup
 from Screens.TimerEntry import TimerEntry
 from ServiceReference import ServiceReference
 from skin import parseColor, parseFont
-
-
 from Tools.BoundFunction import boundFunction
+from Tools.Directories import resolveFilename, SCOPE_PLUGINS
 from Tools.LoadPixmap import LoadPixmap
-from Tools.Directories import resolveFilename, SCOPE_GUISKIN
 
-from .e2MDBProviders import e2mdbproviders
-from .e2MDBDatabase import mediadb
-
+# PLUGIN IMPORTS
 from . import PLUGINDIR, _
+from .e2MDBproviders import e2mdbproviders
+from .e2MDBdatabase import mediadb
 
 
 class e2MDBglobals:
 	MODULE_NAME = __name__.split(".")[-2]
 	MOVIE_LIST_SREF_ROOT = "2:0:1:0:0:0:0:0:0:0:"
 	RESOLUTION = "FHD" if getDesktop(0).size().width() > 1300 else "HD"
+	PLUGINPATH = resolveFilename(SCOPE_PLUGINS, "Extensions/e2MDB/")  # e.g. /usr/lib/enigma2/python/Plugins/Extensions/e2MDB/
+	ICONPATH = join(PLUGINPATH, f"pics/{RESOLUTION}/icons/")
+	REPORTPATH = "/tmp/"
+	FOREIGN_TYPES = (".mp4", ".mkv", ".avi")  # only foreign types, no image-specific recordings (e.g. '.ts' files)
+	FOREIGN_SEPAS = ("_", "|", "-", " ")  # possible separators 'title|episodename' of foreign recordings (e.g. '.mp4'), the order is essential!
+	EXCLUDED_DIRS = {"trash", ".trash", "scan", ".scan", "trashcan", ".trashcan"}
+	VIDEO_EXTS = (".ts", ".mkv", ".avi", ".mp4", ".m4v", ".mpg", ".mpeg", ".mov", ".wmv", ".flv", ".stream", ".iso")
+	IMAGE_EXTS = ("jpg", "jpeg", "png", "gif")
+	IMAGE_RESOLUTIONS = {"backdrop": (1280, 720), "cover": (350, 525), "titlelogo": (200, 50)}  # values valid for HD
 	USERAGENT = choice([
 			"Mozilla/5.0 (Linux; Android 14; SM-A536B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.231 Mobile Safari/537.36",
 			"Mozilla/5.0 (Linux; Android 14; SM-S918W Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/122.0.6261.119 Mobile Safari/537.36/122.0.6261.119",
@@ -71,15 +78,10 @@ class e2MDBglobals:
 			])
 
 
-e2mdbglobals = e2MDBglobals()
-
-
-class e2MDBhelper:
+class e2MDBhelper(e2MDBglobals):
 	def getCachePath(self):
-		return f"{config.plugins.e2mdb.cachePath.value}tmp/e2MDB/" if config.plugins.e2mdb.cachePath.value == "/" else f"{config.plugins.e2mdb.cachePath.value}e2MDB/"
-
-	def getMoviePath(self):  # TODO: stimmt das so?
-		return f"{config.plugins.e2mdb.cachePath.value}movie/"
+		cachePath = config.plugins.e2mdb.cachePath.value
+		return f"{cachePath}tmp/e2MDB/" if cachePath == "/" else f"{cachePath}e2MDB/"
 
 	def getDataBaseFile(self):
 		path = join(config.plugins.e2mdb.databasePath.value, "e2MDB")
@@ -91,20 +93,18 @@ class e2MDBhelper:
 			mediadb.createTable()
 		return path
 
-	def calcMovieLen(self, fname):
+	def getMediaLength(self, fname):
 		if exists(fname):
 			try:
-				with open(fname, "rb") as f:
-					packed = f.read()
+				with open(fname, "rb") as file:
+					packed = file.read()
 				while len(packed) > 0:
-					packedCue = packed[:12]
-					packed = packed[12:]
-					cue = unpack(">QI", packedCue)
+					cue = unpack(">QI", packed[:12])
 					if cue[1] == 5:
 						movie_len = cue[0] / 90000
 						return movie_len
-			except Exception as err:
-				print(f"[{e2mdbglobals.MODULE_NAME}] ERROR failure at getting movie length from cut list: {err}!")
+			except Exception as errMsg:
+				print(f"[{self.MODULE_NAME}] ERROR failure at getting movie length from cut list: {errMsg}!")
 		return -1
 
 	def createCachePaths(self):
@@ -114,18 +114,18 @@ class e2MDBhelper:
 				if not isfile(path):
 					makedirs(path, exist_ok=True)
 		except OSError as errMsg:
-			print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBhelper:createCachePaths': {errMsg}!")
+			print(f"[{self.MODULE_NAME}] ERROR in class 'e2MDBhelper:createCachePaths': {errMsg}!")
 			return errMsg
 		return ""
 
 	def cleanupCache(self):  # delete older asset overviews, detailed assets and images
 		return
-# now = datetime.today()
-# latest = now - timedelta(days=config.plugins.e2mdb.keepcache.value)
-# ldate = latest.replace(hour=0, minute=0, second=0, microsecond=0)
-# for filename in glob(join(f"{self.getCachePath()}series/", "*.json")):
-# if datetime.strptime(filename.split("/")[-1][6:16], "%Y-%m-%d") < ldate:  # keepcache or older?
-# remove(filename)
+#		nowDt = datetime.today()
+#		latest = nowDt - timedelta(days=config.plugins.e2mdb.keepcache.value)
+#		ldate = latest.replace(hour=0, minute=0, second=0, microsecond=0)
+#		for filename in glob(join(f"{self.getCachePath()}series/", "*.json")):
+#			if datetime.strptime(filename.split("/")[-1][6:16], "%Y-%m-%d") < ldate:  # keepcache or older?
+#				remove(filename)
 
 	def getAPIDict(self, url, headers=None, params=None):
 		errMsg, jsondict = "", {}
@@ -139,106 +139,220 @@ class e2MDBhelper:
 			del response
 			return errMsg, jsondict
 		except exceptions.RequestException as errMsg:
-			print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBhelper:getAPIdata': {errMsg}")
+			print(f"[{self.MODULE_NAME}] ERROR in class 'e2MDBhelper:getAPIdata': {errMsg}")
 			return errMsg, jsondict
 
-	def scanSingleTitle(self, serviceref, info, progressCallback=None):
-		def dataError(error):
-			print(f"[{e2mdbglobals.MODULE_NAME}] ERROR: {error}")
-
-		title = info.getName(serviceref)
-		serviceList = []
-		downloadList = []
-		if not title.startswith("."):
-			event = info.getEvent(serviceref)
-			extended_description = event and event.getExtendedDescription() or ""
-			short_description = event and event.getShortDescription() or ""
-			desc = info.getInfoString(serviceref, iServiceInformation.sDescription)
-			print("#####serviceref.getPath():", serviceref.getPath())
-			serviceList.append((serviceref, title, serviceref.getPath(), desc, short_description, extended_description))
-
-		for index, (serviceref, title, path, desc, short_desc, ext_desc) in enumerate(serviceList):
-			print(f"[{e2mdbglobals.MODULE_NAME}] Service: {title}, Path: {path}, Description: {desc}, Short Description: {short_desc}, Extended Description: {ext_desc}")
-			pathWithoutExtension = splitext(path)[0]
-			jsonFile = f"{pathWithoutExtension}.json"
-			if isfile(jsonFile):
-				continue
-
-			coverPath = f"{pathWithoutExtension}.jpg"
-			# coverPath = f"{pathWithoutExtension}.cover.jpg"
-			backdropPath = f"{pathWithoutExtension}.backdrop.jpg"
-			titleLogoPath = f"{pathWithoutExtension}.logo.jpg"
-			print("#####title:", title)
-			print("#####descs:", desc, short_desc, ext_desc)
-			estimatedType, foundStr = e2mdbproviders.guessCategory([title, desc, short_desc, ext_desc])
-			print("#####estimated Type:", estimatedType if estimatedType else "not possible", foundStr)
-			errMsg, normDicts, finalDict = e2mdbproviders.getInfo(title, mediaType=estimatedType, year="")  # TODO: Das Jahr muß noch rein
-			print("#####finalMediaType:", finalDict.get("mediaType", ""))
-			try:
-				with open(jsonFile, "w") as file:
-					dump(finalDict, file)
-			except OSError as osError:
-				print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBSetup:titleScanner': Final result data could not be saved: {osError}")
-			coverUrl = finalDict.get("coverUrl", "")
-			backdropUrl = finalDict.get("backdropUrl", "")
-			titleLogoUrl = finalDict.get("titleLogoUrl", "")
-			if coverUrl and not isfile(coverPath):
-				downloadList.append((coverUrl, coverPath))
-			if backdropUrl and not isfile(backdropPath):
-				downloadList.append((backdropUrl, backdropPath))
-			if titleLogoUrl and not isfile(titleLogoPath):
-				downloadList.append((titleLogoUrl, titleLogoPath))
-			print(f"[{e2mdbglobals.MODULE_NAME}] Result for '{title}': {errMsg}, Final Dict: {finalDict}, Result Dicts: {normDicts}")
-			if finalDict.get("mediaType", "") == "series":  # in case title is declared as series, try to find all seasons/episodes
+	def scanSingleTitle(self, title, reducedTitle, desc, short_desc, ext_desc, path):
+		jsonFile = f"{splitext(path)[0]}.json"  # filename without extension
+		if not isfile(jsonFile):
+			episodeDict = {}
+			seasonEpisode = ()
+			print("#####title     :", title)
+			print("###reducedTitle:", reducedTitle)
+			print("#####desc      :", desc)
+			print("#####short_desc:", short_desc)
+			print("#####ext_desc  :", ext_desc)
+			estimatedType, matchReason = e2mdbproviders.guessCategory(title, desc=desc, short_desc=short_desc)
+			print("#####estimatedType:", estimatedType)
+			print("#####matchReason:", matchReason)
+			year = matchReason.strip("(").strip(")") if estimatedType == "movie" else ""
+			errMsg, normDicts, finalDict = e2mdbproviders.getInfo(reducedTitle, mediaType=estimatedType, year=year, desc=desc, short_desc=short_desc, ext_desc=ext_desc)
+			if errMsg:
+				print(f"[{self.MODULE_NAME}] ERROR for '{reducedTitle}': {errMsg}")
+			else:
+				print(f"[{self.MODULE_NAME}] Result for '{reducedTitle}': Final Dict: {finalDict}, Result Dicts: {normDicts}")
+			foundMediaType = finalDict.get("mediaType", "")
+			if foundMediaType == "series":  # in case title is declared as series, try to find all seasons/episodes
 				finalProvider = finalDict.get("source", "")
 				seriesId = finalDict.get("providerIds", {}).get(finalProvider, "")
 				if finalProvider and seriesId:
-					seriesFile = join(f"{self.getCachePath()}series/{finalProvider}_{seriesId}.idx")
-					if isfile(seriesFile):
-						errMsg, seriesIndex = e2mdbproviders.readSeriesIndex(finalProvider, seriesFile)
-						if errMsg:
-							print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBSetup:titleScanner': Series data could not be loaded: {errMsg}")
-					else:
-# if progressCallback and callable(progressCallback):
-# progressCallback(f"{_('Seriesinfo:')} '{title}'")
-						errMsg, seriesIndex = e2mdbproviders.getSeriesIndex(finalProvider, seriesId)
-						if errMsg:
-							print(f"[{e2mdbglobals.MODULE_NAME}] No series info found for '{title}': {errMsg}")
-						else:
-							print("#####seriesIndex :", seriesIndex)
-							print("type(seriesIndex):", type(seriesIndex))
-							errMsg = e2mdbproviders.writeSeriesIndex(finalProvider, seriesFile, seriesIndex)
+					if matchReason:  # seasonEpisode using details from filename
+						plainSeasonEpisode = "-".join([str(int(value)) for value in matchReason.upper().replace("S", "").split("E") if value.isdigit()])
+						seasonEpisode = (plainSeasonEpisode, seriesId, "")  # e.g. ('1-2', '283766', '')
+						print("####seasonEpisode:", seasonEpisode)
+					else:  # seasonEpisode details using episode name
+						seriesFile = f"{self.getCachePath()}series/{finalProvider}_{seriesId}_index.json"
+						if isfile(seriesFile):
+							errMsg, seriesIndex = e2mdbproviders.readSeriesIndex(finalProvider, seriesFile)
 							if errMsg:
-								print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBSetup:titleScanner': Series data could not be saved: {errMsg}")
+								print(f"[{self.MODULE_NAME}] ERROR in class 'e2MDBsetup:scanSingleTitle': Series data could not be loaded: {errMsg}")
+						else:
+							errMsg, seriesIndex = e2mdbproviders.getSeriesIndex(finalProvider, seriesId)
+							if errMsg:
+								print(f"[{self.MODULE_NAME}] No series info found for '{title}': {errMsg}")
 							else:
-								print(f"[{e2mdbglobals.MODULE_NAME}] Series index for '{title}' was successfully stored in '{seriesFile}'.")
-# if progressCallback and callable(progressCallback):
-# progressCallback(detailInfo)
+								errMsg = e2mdbproviders.writeSeriesIndex(finalProvider, seriesFile, seriesIndex)
+								if errMsg:
+									print(f"[{self.MODULE_NAME}] ERROR in class 'e2MDBsetup:scanSingleTitle': Series data could not be saved: {errMsg}")
+								else:
+									print(f"[{self.MODULE_NAME}] Series index for '{title}' was successfully stored in '{seriesFile}'.")
+						seasonEpisode = e2mdbproviders.findSeasonEpisode(finalProvider, seriesIndex, desc or short_desc)  # e.g. ('1-2', '283766', 'Die Warnung')
+					if seasonEpisode:
+						plainSeasonEpisode, episodeId, episodeDesc = seasonEpisode
+						print("#####episodeId    :", episodeId)
+						seasonNo, episodeNo = plainSeasonEpisode.split("-")
+						print("#####seasonNo     :", seasonNo)
+						print("#####episodeNo    :", episodeNo)
+						errMsg, episodeDict = e2mdbproviders.getEpisodeDetails(finalProvider, seriesId=seriesId, episodeId=episodeId, seasonNo=seasonNo, episodeNo=episodeNo)
+						self.writeJsonFile(jsonFile, episodeDict)
+			print("#####episodeDict  :", episodeDict)
+			print("#####finalDict    :", finalDict)
+			print("#####orginalPath  :", path)
+			reducedPath = path
+			if self.getForeignExtension(path):  # special treatment for foreign recordings (e.g. '.mp4')
+				separator = f"S{int(seasonNo):02d}E{int(episodeNo):02d}" if foundMediaType == "series" and matchReason else ""
+				reducedPath, desc = self.divideFilenameInfos(path, desc, separator)  # reduce path
+				print("#####reducedPath:", reducedPath)
+				jsonFile = f"{splitext(reducedPath)[0]}.json"  # reduced path without extension
+			self.writeJsonFile(jsonFile, finalDict)
+			self.downloadImages(finalDict, reducedPath)
+			return (1, 0) if finalDict else (0, 1)
 
-		for url, fileName in downloadList:
-			infoText = f"[{e2mdbglobals.MODULE_NAME}] Downloading {url} to {fileName}"
-			print(infoText)
-			callInThread(self.imageDownload, url, fileName, fail=dataError)  # download + store image
+	def downloadImages(self, currDict, path):
+		def dataError(error):
+			print(f"[{self.MODULE_NAME}] ERROR: {error}")
+
+		for name in ["cover", "backdrop", "titlelogo"]:
+			url = currDict.get(f"{name}Url", "")
+			if name == "titlelogo":
+				logoName = path[path.rfind("/") + 1:]
+				namePath = f"{self.getCachePath()}series/{logoName}.{name}.{url[url.rfind("."):]}"
+			else:
+				namePath = f"{path}.{name}{url[url.rfind("."):]}"
+			if url and not isfile(namePath):
+				print(f"[{self.MODULE_NAME}] Downloading {url} to {namePath}")
+				callInThread(self.imageDownload, url, namePath, fail=dataError)  # download + store image
+
+	def getForeignExtension(self, filePath):
+		extension = ""
+		for foreign in self.FOREIGN_TYPES:
+			if foreign in filePath:
+				extension = foreign
+				break
+		return extension
+
+	def guessForeignSeparator(self, searchString):
+		guessedSeptor = ""
+		charCounts = [(character, searchString.count(character)) for character in self.FOREIGN_SEPAS]
+		countList = [item[1] for item in charCounts if item[1]]  # isolate occuring characters only
+		if countList and len(countList) > 1:  # more than one possible separators found
+			minCount = min(countList)  # get minimum value of occuring characters
+			chars = [item[0] for item in charCounts if item[1] == minCount]  # only isolate the least common characters
+			guessedSeptor = chars[0] if chars else ""  # take the first least common characters if available
+		return guessedSeptor
+
+	def divideFilenameInfos(self, path, desc, separator=""):  # only for foreign types, e.g. 'Wir waren wie Brüder_Currahee.mp4'
+		extension = self.getForeignExtension(path)
+		if extension:  # is a foreign type
+			path = path.strip(extension)  # remove extension
+		print("#####separator1:", f"*{separator}*")
+		if not separator:
+			separator = self.guessForeignSeparator(path)
+		print("#####separator2:", f"*{separator}*")
+		if separator:
+			pathItems = path.split(separator)
+			print("#####pathItems:", pathItems)
+			path = pathItems[0].strip(".").strip()    # use only the beginning part of the path/title
+			desc = " ".join(pathItems[1:])  # use the rest for description
+		return path, desc  # e.g. ('Wir waren wie Brüder', 'Currahee') or ('Wir waren wie Brüder', 'S01S01')
 
 	def imageDownload(self, url, imgFile, callback=None, fail=None):
+		def getDesiredPixmapSize(pathName):
+			for imgCategory in self.IMAGE_RESOLUTIONS:
+				if imgCategory in pathName:
+					return self.IMAGE_RESOLUTIONS.get(imgCategory, (0, 0))
+			return ()
+
+		def isSupportedPixmapType(pathName):
+				for extension in self.IMAGE_EXTS:
+					if f".{extension}" in pathName:
+						return extension
+				return ""
+
 		if not isfile(imgFile):
 			try:
-				headers = {"User-Agent": e2mdbglobals.USERAGENT}
+				headers = {"User-Agent": self.USERAGENT}
 				response = get(url, headers=headers, timeout=(3.05, 6))
 				response.raise_for_status()
+				desiredSize = getDesiredPixmapSize(imgFile)
+				imgType = isSupportedPixmapType(imgFile)
 				try:
-					with open(imgFile, "wb") as file:
-						file.write(response.content)
+					if imgType:  # supported pixmap type?
+						img = Image.open(BytesIO(response.content))
+						if desiredSize:
+							scaleFactor = 1.5 if self.RESOLUTION == "FHD" else 1.0
+							img.thumbnail((int(desiredSize[0] * scaleFactor), int(desiredSize[1] * scaleFactor)), Image.LANCZOS)
+							print("#####thumbnail:", (int(desiredSize[0] * scaleFactor), int(desiredSize[1] * scaleFactor)))
+						img.save(imgFile, format=imgType.replace("jpg", "jpeg") or "jpeg", quality=25, optimize=True)
+						img.close()
+					else: # all other image types (e.g. '.svg')
+						with open(imgFile, "wb") as file:
+							file.write(response.content)
 				except OSError as osError:
-					print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'TVscreenHelper:imageDownload': {imgFile} - picture could not be saved: {osError}")
+					print(f"[{self.MODULE_NAME}] ERROR in class 'TVscreenHelper:imageDownload': {imgFile} - picture could not be saved: {osError}")
 					if fail:
 						fail(osError)
 				if callback:
 					callback(imgFile)
 			except exceptions.RequestException as rqError:
-				print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'TVscreenHelper:imageDownload': {url} - picture could not be downloaded: {rqError}")
+				print(f"[{self.MODULE_NAME}] ERROR in class 'TVscreenHelper:imageDownload': {url} - picture could not be downloaded: {rqError}")
 				if fail:
 					fail(rqError)
+
+	def readJsonFile(self, jsonFile):
+		jsonData = {}
+		try:
+			if isfile(jsonFile):
+				with open(jsonFile) as file:
+					self.jsonData = load(file)
+		except OSError as osError:
+			print(f"[{self.MODULE_NAME}] ERROR in class 'e2MDBhelper:readJsonFile': JsonData could not be loaded: {osError}")
+		return jsonData
+
+	def writeJsonFile(self, jsonFile, jsonDict):
+		if not isfile(jsonFile):
+			try:
+				with open(jsonFile, "w") as file:
+					dump(jsonDict, file)
+			except OSError as osError:
+				print(f"[{self.MODULE_NAME}] ERROR in class 'e2MDBhelper:writeJsonFile': JsonData could not be saved: {osError}")
+
+	def getStartPoints(self):
+		roots = []
+		if isdir("/media/hdd/movie"):
+			roots.append("/media/hdd/movie")
+			for name in self.listdir_filtered("/media/hdd/movie"):
+				path = join("/media/hdd/movie", name)
+				if isdir(path) and basename(normpath(path)).lower() not in self.EXCLUDED_DIRS:
+					roots.append(path)
+		return roots
+
+	def niceFolderLabel(self, path):
+		base = basename(normpath(path)) or path
+		if abspath(path) == abspath("/media/hdd/movie"):
+			found = 0
+			try:
+				for file in listdir(path):  # countVideosRootOnly
+					if isfile(join(path, file)) and file.lower().endswith(self.VIDEO_EXTS):
+						found += 1
+			except Exception:
+				pass
+			label = f"{base} (Aufnahmen) ({found})"
+		else:
+			found = 0
+			for root, dirs, files in walk(path):  # countVideosRecursive
+				dirs[:] = [dir for dir in dirs if basename(normpath(join(root, dir))).lower() not in self.EXCLUDED_DIRS]
+				for file in files:
+					if file.lower().endswith(self.VIDEO_EXTS):
+						found += 1
+			label = f"{base} (Aufnahmen) ({found})"
+		return label, found
+
+	def listdir_filtered(self, path):
+		try:
+			return sorted(listdir(path))
+		except Exception:
+			return []
 
 
 class StubInfo:
@@ -259,12 +373,13 @@ class StubInfo:
 
 	def getInfo(self, serviceref, w):
 		try:
+			path = serviceref.getPath()
 			if w == iServiceInformation.sTimeCreate:
-				return stat(serviceref.getPath()).st_birthtime
+				return stat(path).st_birthtime
 			if w == iServiceInformation.sFileSize:
-				return stat(serviceref.getPath()).st_size
+				return stat(path).st_size
 			if w == iServiceInformation.sDescription:
-				return serviceref.getPath()
+				return path
 		except Exception:  # nosec # noqa: E722
 			pass
 		return 0
@@ -276,119 +391,211 @@ class StubInfo:
 justStubInfo = StubInfo()
 
 
-class e2MDBSetup(Setup, e2MDBhelper):
+class e2MDBscanner(Screen, e2MDBhelper):
+	skin = """
+	<screen name="e2MDBscanner" position="center,center" size="1124,1026" title="e2MDB - Scanner" backgroundColor="#20000000" flags="wfNoBorder">
+		<widget source="Title" render="Label" position="30,12" size="1060,52" font="Regular;40" halign="center" foregroundColor="#ffffff" backgroundColor="black" transparent="1" />
+		<widget source="pathList" render="Listbox" position="30,100" size="1060,540" itemCornerRadiusSelected="4" itemGradientSelected="#051a264d,#10304070,#051a264d,horizontal" enableWrapAround="1" foregroundColorSelected="white" backgroundColor="#16000000" transparent="1" scrollbarMode="showOnDemand" scrollbarBorderWidth="1" scrollbarWidth="10" scrollbarBorderColor="blue" scrollbarForegroundColor="#00203060">
+			<convert type="TemplatedMultiContent">{"template": [
+				MultiContentEntryPixmapAlphaBlend(pos=(6,2), size=(40,40), flags=BT_HALIGN_LEFT|BT_VALIGN_CENTER|BT_SCALE, png=1),  # checkbox
+				MultiContentEntryText(pos=(50,2), size=(980,40), font=0, flags=RT_HALIGN_LEFT|RT_VALIGN_CENTER, text=2),  # pathText
+				],
+				"fonts": [gFont("Regular",30)],
+				"itemHeight":44
+				}
+			</convert>
+		</widget>
+		<widget source="progheader" render="Label" position="30,800" size="1060,40" font="Regular;30" foregroundColor="yellow" backgroundColor="black" transparent="1" valign="bottom" />
+		<widget name="progbar" position="30,850" size="1060,24" foregroundColor="yellow" borderColor="yellow" borderWidth="2" backgroundColor="black" />
+		<widget source="progsubline" render="Label" position="30,880" size="1060,40" font="Regular;30" foregroundColor="yellow" backgroundColor="black" transparent="1" />
+		<widget source="progstatus" render="Label" position="30,920" size="1060,40" font="Regular;30" foregroundColor="yellow" backgroundColor="black" transparent="1" />
+		<widget source="key_red" render="Label" position="30,970" size="250,40" zPosition="1" font="Regular;27" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="black" transparent="1" />
+		<eLabel name="red_bg" position="28,968" size="254,44" backgroundColor="red" cornerRadius="4" zPosition="-2" />
+		<eLabel name="red_bg_center" position="30,970" size="250,40" backgroundColor="black" cornerRadius="4" zPosition="-1" />
+		<widget source="key_green" render="Label" position="300,970" size="250,40" zPosition="1" font="Regular;27" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="black" transparent="1" />
+		<eLabel name="green_bg" position="298,968" size="254,44" backgroundColor="green" cornerRadius="4" zPosition="-2" />
+		<eLabel name="green_bg_center" position="300,970" size="250,40" backgroundColor="black" cornerRadius="4" zPosition="-1" />
+		<widget source="key_yellow" render="Label" position="570,970" size="250,40" zPosition="1" font="Regular;27" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="black" transparent="1" />
+		<eLabel name="yellow_bg" position="568,968" size="254,44" backgroundColor="yellow" cornerRadius="4" zPosition="-2" />
+		<eLabel name="yellow_bg_center" position="570,970" size="250,40" backgroundColor="black" cornerRadius="4" zPosition="-1" />
+		<widget source="key_blue" render="Label" position="840,970" size="250,40" zPosition="1" font="Regular;27" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="black" transparent="1" />
+		<eLabel name="blue_bg" position="838,968" size="254,44" backgroundColor="blue" cornerRadius="4" zPosition="-2" />
+		<eLabel name="blue_bg_center" position="840,970" size="250,40" backgroundColor="black" cornerRadius="4" zPosition="-1" />
+	</screen>
+	"""
+
 	def __init__(self, session):
-		Setup.__init__(self, session=session, setup="e2MDB", plugin="Extensions/e2MDB")
-		self.SCANACTIVE = False
-		self.SCANSTOPPED = False
+		Screen.__init__(self, session)
+		self.session = session
+		self.setTitle("e2MDB - Scanner")
+		self.allMediaPaths = []
+		self.skinList = []
+		self.scanActive, self.scanStop, self.selectAll = False, False, True
 		self.e2MDBinfobox = session.instantiateDialog(e2MDBinfoBox)
-		self.e2MDBscanbox = session.instantiateDialog(e2MDBscanBox)
-		self["key_yellow"] = StaticText(_("Start Scanning"))
-		self["key_blue"] = StaticText(_("Remove JPG & JSON"))  # TODO: set to "" after tests
-		description = _("Pluto TV Actions")
-		self["addAction"] = HelpableActionMap(self, ["ColorActions"], {
-			"yellow": (self.keyYellow, _("Start Scanning")),
-			"blue": (self.keyBlue, _("Removing Data"))  # TODO: remove after tests
-		}, prio=0, description=description)
-		self.onLayoutFinish.append(self.layoutFinished)
-		e2mdbproviders.start(config.misc.locale.value)  # start all providers with default language
+		self["pathList"] = List()
+		self["key_red"] = StaticText(_("Deselect all"))
+		self["key_green"] = StaticText(_("Nothing"))
+		self["key_yellow"] = StaticText(_("Remove Data"))  # TODO: set to "" after tests
+		self["key_blue"] = StaticText(_("Start Scan"))
+		self["progheader"] = StaticText()
+		self["progbar"] = ProgressBar()
+		self["progbar"].hide()
+		self["progsubline"] = StaticText()
+		self["progstatus"] = StaticText()
+		self["actions"] = ActionMap(["OkCancelActions", "ButtonSetupActions", "MenuActions"], {
+			"cancel": self.close,
+			"red": self.toggleAllEntries,
+			"green": self.showInfoMain,
+			"yellow": self.keyYellow,
+			"blue": self.keyBlue,
+			"ok": self.toggleSelection,
+#			"left": self._noop,
+#			"right": self._noop,
+#			"up": self.moveUp,
+#			"down": self.moveDown,
+			"menu": self.keyMenu,
+			"info": self.showInfoMain
+		}, -1)
+		self.stats = {"total": 0, "done": 0, "ok": 0, "skipped": 0, "err": 0}
 		if self.createCachePaths():
 			self.exit()
 		self.cleanupCache()
-
-	def keySave(self):
-		if config.plugins.e2mdb.enableDatabase.value:
-			self.getDataBaseFile()
-		Setup.keySave(self)
+		checkedPixmap, unchekedPixMap = join(self.ICONPATH, "lock_on.png"), join(self.ICONPATH, "lock_off.png")
+		self.checkBoxPixmaps = [LoadPixmap(cached=True, path=unchekedPixMap), LoadPixmap(cached=True, path=checkedPixmap)]
+		e2mdbproviders.start(config.misc.locale.value)  # start all providers with default language
+		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
-		self.e2MDBscanbox.setHeadline(_("Scanning 'movie' folder"))
-		self.e2MDBscanbox.setKeyYellow(_("Abort"))
-		self.e2MDBscanbox.setKeyBlue(_("Show/hide"))
+		self.createSkinList()
 
-	def keyBlue(self):
-		if self.SCANACTIVE:
-			if self.e2MDBscanbox.getIsVisible():
-				self.e2MDBscanbox.hideDialog()
-			else:
-				self.e2MDBscanbox.showDialog()
-		else:  # TODO: remove after tests
-			for file in glob(f"{self.getMoviePath()}*.jpg"):
-				remove(file)
-			for file in glob(f"{self.getMoviePath()}*.json"):
-				remove(file)
-			self.e2MDBinfobox.showDialog(_("JPG and JSON data have been successfully removed from movie folder."))
+	def createSkinList(self):
+		skinList = []
+		self.allMediaPaths = []
+		for index, path in enumerate(self.getStartPoints()):
+			label, found = self.niceFolderLabel(path)
+			checked = 1 if isdir(path) else 0
+			skinList.append((checked, self.checkBoxPixmaps[checked], label))
+			self.allMediaPaths.append(path)
+		self["pathList"].updateList(skinList)
+		self.skinList = skinList
+
+	def toggleSelection(self):
+		if self.skinList:
+			index = self["pathList"].getSelectedIndex()
+			checked = not self.skinList[index][0]
+			self.skinList[index] = (checked, self.checkBoxPixmaps[checked], self.skinList[index][2])
+			self["pathList"].updateList(self.skinList)
+
+	def toggleAllEntries(self):
+		self.selectAll = not self.selectAll
+		for index, entry in enumerate(self.skinList[:]):
+			self.skinList[index] = (self.selectAll, self.checkBoxPixmaps[self.selectAll], entry[2])
+			self["pathList"].updateList(self.skinList)
+		msgText = _("Deselect all") if self.selectAll else _("Select all")
+		self["key_red"].setText(msgText)
+
+	def getSelectedPaths(self):
+		selectedPaths = []
+		for index, entry in enumerate(self.skinList):
+			if entry[0]:
+				selectedPaths.append(self.allMediaPaths[index])
+		return selectedPaths
+
+	def showInfoMain(self):
+		pass
+#		text = build_info_text()
+		text = "Here should be the summarize:"
+		self.session.open(MessageBox, text, MessageBox.TYPE_INFO)
+
+	def keyMenu(self):
+		self.session.open(e2MDBsetup)
 
 	def keyYellow(self):
-		if self.SCANACTIVE:
-			self.SCANSTOPPED = True
+		for path in self.getSelectedPaths():
+			for extension in [".jpg", ".png", ".json"]:
+				for file in glob(f"{path}/*{extension}"):
+					remove(file)  # remove all {extension} in '/media/hdd/movie' (and selected subdirs)
+#		for extension in [".png", ".svg"]:
+#			for file in glob(f"{self.getCachePath()}series/*{extension}"):
+#				remove(file)  # remove all {extension} in '/media/hdd/e2MDB/series'
+		self.e2MDBinfobox.showDialog(_("JPG+PNG and JSON data have been successfully removed from movie folder."))
+
+	def keyBlue(self):
+		if self.scanActive:
+			self.scanStop = True
+			self["key_blue"].setText(_("Start Scan"))
 		else:
-			self.SCANSTOPPED = False
+			self.scanStop = False
+			self["key_blue"].setText(_("Stop Scan"))
 			callInThread(self.titleScanner)
 
-	def titleScanner(self):
-		def dataError(error):
-			print(f"[{e2mdbglobals.MODULE_NAME}] ERROR: {error}")
-
+	def titleScanner(self):  # threaded
+		self.scanActive = True
 		useMediaDB = False
 		if config.plugins.e2mdb.enableDatabase.value:
 			self.getDataBaseFile()
 			useMediaDB = True
-
-		self.SCANACTIVE = True
-		self.e2MDBscanbox.showDialog()
+		serviceList = []
 		servicehandler = eServiceCenter.getInstance()
-		directorycount = 0
-		root = eServiceReference(f"{e2mdbglobals.MOVIE_LIST_SREF_ROOT}{self.getMoviePath()}")
-		reflist = root and servicehandler.list(root)
-		serviceList = []  # TODO: does this necessarily have to be 'serviceList' or can it also be called 'serviceList'
-		downloadList = []
-		if reflist is None:
-			print(f"[{e2mdbglobals.MODULE_NAME}] Listing of movies failed")
-			return
-		rootpath = normpath(root.getPath())
-		print(f"[{e2mdbglobals.MODULE_NAME}] Scanning directory: {rootpath}")
-		while True:
-			serviceref = reflist.getNext()
-			if self.SCANSTOPPED or not serviceref.valid():
+		for mediaPath in self.getSelectedPaths():
+			if self.scanStop:
 				break
-			info = servicehandler.info(serviceref)
-			if info is None:
-				info = justStubInfo
+			root = eServiceReference(f"{self.MOVIE_LIST_SREF_ROOT}{mediaPath}/")
+			reflist = root and servicehandler.list(root)
+			if reflist is None:
+				print(f"[{self.MODULE_NAME}] Listing of movies failed")
+				return
+			print(f"[{self.MODULE_NAME}] Scanning directory: {normpath(root.getPath())}")
+			while True:
+				serviceref = reflist.getNext()
+				if self.scanStop or not serviceref.valid():
+					break
+				info = servicehandler.info(serviceref)
+				if info is None:
+					info = justStubInfo
 	# begin = info.getInfo(serviceref, iServiceInformation.sTimeCreate)
-			if serviceref.flags & eServiceReference.mustDescent:
+				if serviceref.flags & eServiceReference.mustDescent:
 	# dirname = info.getName(serviceref)
 	# if not dirname.endswith('.AppleDouble/') and not dirname.endswith('.AppleDesktop/') and not dirname.endswith('.AppleDB/') and not dirname.endswith('Network Trash Folder/') and not dirname.endswith('Temporary Items/'):
 	# self.list.append((serviceref, info, begin, -1))
-	# directorycount += 1
-				continue
-			title = info.getName(serviceref)
-			if title.startswith("."):
-				continue
-			event = info.getEvent(serviceref)
-			extended_description = event and event.getExtendedDescription() or ""
-			short_description = event and event.getShortDescription() or ""
-			desc = info.getInfoString(serviceref, iServiceInformation.sDescription)
-			begin = info.getInfo(serviceref, iServiceInformation.sTimeCreate)
-			tags = info.getInfoString(serviceref, iServiceInformation.sTags)
-			size = self.getFileSize(serviceref.getPath())
-			duration = info.getLength(serviceref)
-			if duration < 0:
-				duration = self.calcMovieLen(f"{serviceref.getPath()}.cuts")
-			print("#####serviceref.getPath():", serviceref.getPath())
-			serviceList.append((serviceref, title, serviceref.getPath(), desc, short_description, extended_description, begin, tags, size, duration))
-		lenList = len(serviceList)
-		self.e2MDBscanbox.setPrgsRange((0, lenList))
+					continue
+				title = info.getName(serviceref)
+				if title.startswith("."):
+					continue
+				event = info.getEvent(serviceref)
+				short_desc = event and event.getShortDescription() or ""
+				ext_desc = event and event.getExtendedDescription() or ""
+				desc = info.getInfoString(serviceref, iServiceInformation.sDescription)
+				begin = info.getInfo(serviceref, iServiceInformation.sTimeCreate)
+				tags = info.getInfoString(serviceref, iServiceInformation.sTags)
+				path = serviceref.getPath()
+				size = self.getFileSize(path)
+				duration = info.getLength(serviceref)
+				if duration < 0:
+					duration = self.getMediaLength(f"{path}.cuts")
+				serviceList.append((serviceref, title, path, desc, short_desc, ext_desc, begin, tags, size, duration))
+		totalNo = len(serviceList)
+		successNo, failedNo = 0, 0
+		self["progbar"].show()
+		self["progbar"].setRange((0, totalNo))
 		for index, (serviceref, title, path, desc, short_desc, ext_desc, begin, tags, size, duration) in enumerate(serviceList):
-			if self.SCANSTOPPED:
+			if self.scanStop:
 				break
+			if exists(f"{splitext(path)[0]}.json"):  # was already scanned before?
+				continue
+			reducedTitle = title
+			if self.getForeignExtension(title):  # special treatment for foreign recordings (e.g. '.mp4')
+				estimatedType, matchReason = e2mdbproviders.guessCategory(title, desc=desc, short_desc=short_desc)
+				separator = matchReason if estimatedType == "series" and matchReason else ""
+				reducedTitle, desc = self.divideFilenameInfos(title, desc, separator)
+				short_desc, ext_desc = desc, ""
+			fpath, fname = split(path)
 			if useMediaDB:
-				fpath, fname = split(path)
 				record = {
 					"path": fpath,
 					"fname": fname,
 					"ref": serviceref.toString(),
-					"title": title,
+					"title": reducedTitle,
 					"shortDesc": short_desc,
 					"extDesc": ext_desc,
 					"tags": tags,
@@ -397,74 +604,39 @@ class e2MDBSetup(Setup, e2MDBhelper):
 					"fsize": size
 				}
 				mediadb.upsert(record)
-			detailInfo = f"{_('Detailinfo:')} '{title}'"
-			self.e2MDBscanbox.setPrgsValue(index)
-			self.e2MDBscanbox.setPrgsHeader(detailInfo)
-			self.e2MDBscanbox.setPrgsText(f"{index + 1}/{lenList}")
-			print(f"[{e2mdbglobals.MODULE_NAME}] Service: {title}, Path: {path}, Description: {desc}, Short Description: {short_desc}, Extended Description: {ext_desc}")
-			pathWithoutExtension = splitext(path)[0]
-			jsonFile = f"{pathWithoutExtension}.json"
-			if isfile(jsonFile):
-				continue
+			self["progheader"].setText(f"{_('Scanning:')} '{fpath}'")
+			self["progbar"].setValue(index)
+			self["progsubline"].setText(f"{_('Processing:')} '{splitext(title)[0]}'")   # remove extension
+			self["progstatus"].setText(f"{_('Total')}: {totalNo} | {_('Ready')}: {index + 1} | {_('Successful')}: {successNo} | {_('Failed')}: {failedNo} | ")  # remove extension
+			print(f"[{self.MODULE_NAME}] Service: {title}, Path: {path}, Description: {desc}, Short Description: {short_desc}, Extended Description: {ext_desc}")
+			success, failed = self.scanSingleTitle(title, reducedTitle, desc, short_desc, ext_desc, path)
+			successNo += success
+			failedNo += failed
+		self["progheader"].setText("")
+		self["progbar"].hide()
+		self["progsubline"].setText("")
+		self["progstatus"].setText("")
+		msgText = _("Scan was canceled by user.") if self.scanStop else _("Scan successfully finished.\nPress INFO for details.")
+		self.e2MDBinfobox.showDialog(msgText)
+		self.scanActive, self.scanStop = False, False
 
-			coverPath = f"{pathWithoutExtension}.jpg"
-			# coverPath = f"{pathWithoutExtension}.cover.jpg"
-			backdropPath = f"{pathWithoutExtension}.backdrop.jpg"
-			titleLogoPath = f"{pathWithoutExtension}.logo.jpg"
-			print("#####title:", title)
-			print("#####descs:", desc, short_desc, ext_desc)
-			estimatedType, foundStr = e2mdbproviders.guessCategory([title, desc, short_desc, ext_desc])
-			print("#####estimated Type:", estimatedType if estimatedType else "not possible", foundStr)
-			errMsg, normDicts, finalDict = e2mdbproviders.getInfo(title, mediaType=estimatedType, year="")  # TODO: Das Jahr muß noch rein
-			print("#####finalMediaType:", finalDict.get("mediaType", ""))
-			try:
-				with open(jsonFile, "w") as file:
-					dump(finalDict, file)
-			except OSError as osError:
-				print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBSetup:titleScanner': Final result data could not be saved: {osError}")
-			coverUrl = finalDict.get("coverUrl", "")
-			backdropUrl = finalDict.get("backdropUrl", "")
-			titleLogoUrl = finalDict.get("titleLogoUrl", "")
-			if coverUrl and not isfile(coverPath):
-				downloadList.append((coverUrl, coverPath))
-			if backdropUrl and not isfile(backdropPath):
-				downloadList.append((backdropUrl, backdropPath))
-			if titleLogoUrl and not isfile(titleLogoPath):
-				downloadList.append((titleLogoUrl, titleLogoPath))
-			print(f"[{e2mdbglobals.MODULE_NAME}] Result for '{title}': {errMsg}, Final Dict: {finalDict}, Result Dicts: {normDicts}")
-			if finalDict.get("mediaType", "") == "series":  # in case title is declared as series, try to find all seasons/episodes
-				finalProvider = finalDict.get("source", "")
-				seriesId = finalDict.get("providerIds", {}).get(finalProvider, "")
-				if finalProvider and seriesId:
-					seriesFile = join(f"{self.getCachePath()}series/{finalProvider}_{seriesId}.idx")
-					if isfile(seriesFile):
-						errMsg, seriesIndex = e2mdbproviders.readSeriesIndex(finalProvider, seriesFile)
-						if errMsg:
-							print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBSetup:titleScanner': Series data could not be loaded: {errMsg}")
-					else:
-						self.e2MDBscanbox.setPrgsHeader(f"{_('Seriesinfo:')} '{title}'")
-						errMsg, seriesIndex = e2mdbproviders.getSeriesIndex(finalProvider, seriesId)
-						if errMsg:
-							print(f"[{e2mdbglobals.MODULE_NAME}] No series info found for '{title}': {errMsg}")
-						else:
-							print("#####seriesIndex :", seriesIndex)
-							print("type(seriesIndex):", type(seriesIndex))
-							errMsg = e2mdbproviders.writeSeriesIndex(finalProvider, seriesFile, seriesIndex)
-							if errMsg:
-								print(f"[{e2mdbglobals.MODULE_NAME}] ERROR in class 'e2MDBSetup:titleScanner': Series data could not be saved: {errMsg}")
-							else:
-								print(f"[{e2mdbglobals.MODULE_NAME}] Series index for '{title}' was successfully stored in '{seriesFile}'.")
-						self.e2MDBscanbox.setPrgsHeader(detailInfo)
-		for url, fileName in downloadList:
-			infoText = f"[{e2mdbglobals.MODULE_NAME}] Downloading {url} to {fileName}"
-			print(infoText)
-			callInThread(self.imageDownload, url, fileName, fail=dataError)  # download + store image
-		self.e2MDBscanbox.hideDialog()
-		self.SCANACTIVE = False
+	def getFileSize(self, fpath):
+		try:
+			fsize = stat(fpath).st_size
+		except OSError as errMsg:
+			fsize = -1
+			print(f"[{self.MODULE_NAME}] ERROR in module 'getFileSize': {errMsg}!")
+		return fsize
 
-	def exit(self):
-		self.session.deleteDialog(self.e2MDBinfobox)
-		self.session.deleteDialog(self.e2MDBscanbox)
+
+class e2MDBsetup(Setup, e2MDBhelper):
+	def __init__(self, session):
+		Setup.__init__(self, session=session, setup="e2MDB", plugin="Extensions/e2MDB")
+
+	def keySave(self):
+		if config.plugins.e2mdb.enableDatabase.value:
+			self.getDataBaseFile()
+		Setup.keySave(self)
 
 
 class e2MDBinfoBox(Screen):
@@ -496,74 +668,6 @@ class e2MDBinfoBox(Screen):
 
 	def getIsVisible(self):
 		return self.isVisible
-
-
-class e2MDBscanBox(Screen):
-	skin = """
-	<screen name="e2MDBscanBox" position="820,250" size="410,142" flags="wfNoBorder" resolution="1280,720" title="e2MDB Scanning progress">
-		<eLabel name="e2MDB_bg" position="2,2" size="406,32" backgroundColor="black,#203060,horizontal" zPosition="-1" />
-		<eLabel name="e2MDB_line" position="2,34" size="406,2" backgroundColor="#27153c,#101093,black,horizontal" zPosition="10" />
-		<eLabel position="0,0" size="410,142" backgroundColor="#203060" zPosition="-3" />
-		<eLabel position="2,2" size="406,138" backgroundColor="#10060613" zPosition="-2" />
-		<widget source="headline" render="Label" position="10,2" size="400,32" font="Regular;24" transparent="1" halign="left" valign="center"/>
-		<widget source="progressHdr" render="Label" position="10,38" size="390,28" font="Regular;18" wrap="ellipsis" transparent="1" valign="bottom" />
-		<widget name="progressBar" position="80,68" size="320,20" foregroundColor="#203060" zPosition="1" backgroundColor="#505050" />
-		<widget source="progressTxt" render="Label" position="10,70" size="68,16" font="Regular;14" foregroundColor="yellow" backgroundColor="#16000000" transparent="0" halign="center" valign="top" zPosition="2" />
-		<eLabel position="8,68" size="72,20" zPosition="-1" backgroundColor="#324b96" />
-		<widget source="key_yellow" render="Label" position="36,108" size="120,24" font="Regular;18" transparent="1" halign="left" valign="center"/>
-		<widget source="key_blue" render="Label" position="176,108" size="160,24" font="Regular;18" transparent="1" halign="left" valign="center"/>
-		<eLabel name="button_yellow" position="20,106" size="6,30" backgroundColor="#7a6213,#e6c619,vertical" zPosition="1" />
-		<eLabel name="button_blue" position="160,106" size="6,30" backgroundColor="#101093,#4040ff,vertical" zPosition="1" />
-	</screen>
-	"""
-
-	def __init__(self, session):
-		Screen.__init__(self, session)
-		self["headline"] = StaticText()
-		self["progressHdr"] = StaticText()
-		self["progressBar"] = ProgressBar()
-		self["progressTxt"] = StaticText()
-		self["key_yellow"] = StaticText()
-		self["key_blue"] = StaticText()
-		self.isVisible = False
-		self.wasVisible = False
-
-	def showDialog(self):
-		self.wasVisible = False
-		self.isVisible = True
-		self.show()
-
-	def hideDialog(self):
-		self.wasVisible = self.isVisible
-		self.isVisible = False
-		self.hide()
-
-	def getWasVisible(self):
-		return self.wasVisible
-
-	def getIsVisible(self):
-		return self.isVisible
-
-	def setPrgsRange(self, range):
-		self["progressBar"].setRange(range)
-
-	def setPrgsValue(self, value):
-		self["progressBar"].setValue(value)
-
-	def setHeadline(self, text):
-		self["headline"].setText(text)
-
-	def setPrgsText(self, text):
-		self["progressTxt"].setText(text)
-
-	def setPrgsHeader(self, text):
-		self["progressHdr"].setText(text)
-
-	def setKeyYellow(self, text):
-		self["key_yellow"].setText(text)
-
-	def setKeyBlue(self, text):
-		self["key_blue"].setText(text)
 
 
 class InfoLine(GUIComponent):
@@ -666,7 +770,6 @@ class InfoLine(GUIComponent):
 		mpaa = item.get("OfficialRating", None)  # FSK
 		runtime = item.get("Runtime")
 		genres = item.get("Genres")
-
 		if user_rating:
 			pixd_size = self.star24.size()
 			pixd_width = pixd_size.width()
@@ -678,11 +781,8 @@ class InfoLine(GUIComponent):
 				backcolor=None, backcolor_sel=None,
 				flags=BT_SCALE | BT_KEEP_ASPECT_RATIO))
 			xPos += 7 + pixd_width
-
 			user_rating_str = f" {user_rating:.1f}"
-
 			textWidth = self._calcTextWidth(user_rating_str, font=self.font, size=eSize(self.getDesktopWith() // 3, 0))[0]
-
 			res.append(MultiContentEntryText(
 				pos=(xPos, yPos), size=(textWidth, height),
 				font=0, flags=RT_HALIGN_CENTER | RT_BLEND | RT_VALIGN_CENTER,
@@ -753,8 +853,7 @@ class InfoLine(GUIComponent):
 		return res
 
 
-class e2MDBEventViewSimple(Screen):
-
+class e2MDBeventViewSimple(Screen, e2MDBhelper):
 	skin = """
 		<screen name="EventViewSimple" position="0,0" size="1280,720" resolution="1280,720" title="EventviewSimple" flags="wfNoBorder" backgroundColor="#0000000">
 			<widget name="backdrop" position="0,0" size="e,e" alphatest="blend" zPosition="-10" scaleFlags="moveRightTop"/>
@@ -762,7 +861,6 @@ class e2MDBEventViewSimple(Screen):
 			<widget name="title_logo" position="40,40" size="600,60" alphatest="blend"/>
 			<widget name="title" position="40,30" size="600,60" alphatest="blend" font="Regular;50" transparent="1" noWrap="1"/>
 			<widget name="infoline" position="40,100" size="600,40" font="Regular;24" fontAdditional="Regular;14" transparent="1"/>
-
 			<widget name="epg_description" position="50,150" size="400,520" font="epg_info;22" scrollbarMode="showOnDemand" foregroundColor="layer-a-foreground" transparent="1" />
 			<widget name="channel" position="832,218" size="370,70" font="epg_event;26" halign="center" valign="bottom" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="1" />
 			<eLabel text="Playback Time:" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" noWrap="1" font="screen_info;24" halign="right" position="812,295" size="200,30" transparent="1" />
@@ -810,7 +908,7 @@ class e2MDBEventViewSimple(Screen):
 	REMOVE_TIMER = 1
 	NO_ACTION = 2
 
-	def __init__(self, session, event, serviceRef, jsonPath, coverPath, titleLogoPath, backDropPath):
+	def __init__(self, session, event, serviceRef, jsonFile, coverPath, titleLogoPath, backDropPath):
 		Screen.__init__(self, session, enableHelp=True)
 		self.keyGreenAction = self.NO_ACTION
 		self.event = event
@@ -818,14 +916,9 @@ class e2MDBEventViewSimple(Screen):
 		self.isRecording = (not serviceRef.ref.flags & eServiceReference.isGroup) and serviceRef.ref.getPath() and "%3a//" not in serviceRef.ref.toString()
 		self.setTitle(_("Event View"))
 		self.images = (coverPath, titleLogoPath, backDropPath)
-		if isfile(jsonPath):
-			with open(jsonPath, "r") as file:
-				self.jsonData = load(file)
-		else:
-			self.jsonData = {}
-
+		self.jsonData = self.readJsonFile(jsonFile)
 		self["title_logo"] = Pixmap()
-		self["title"] = Label()
+		self["title"] = StaticText()
 		self["backdrop"] = Pixmap()
 		self["backdrop_mask"] = Pixmap()
 		self["infoline"] = InfoLine(self)
@@ -834,12 +927,12 @@ class e2MDBEventViewSimple(Screen):
 		self["epg_description"] = ScrollLabel()
 		self["key_menu"] = StaticText(_("MENU"))
 		self["key_info"] = StaticText(_("INFO"))
-		self["key_red"] = StaticText("")
-		self["key_blue"] = StaticText("")
+		self["key_red"] = StaticText()
+		self["key_blue"] = StaticText()
 		self["summary_description"] = StaticText()
-		self["datetime"] = Label()
-		self["channel"] = Label()
-		self["duration"] = Label()
+		self["datetime"] = StaticText()
+		self["channel"] = StaticText()
+		self["duration"] = StaticText()
 		self["actions"] = HelpableActionMap(self, ["OkCancelActions", "EventViewActions", "ColorActions"], {
 			"cancel": (self.close, _("Close screen")),
 			"ok": (self.close, _("Close screen")),
@@ -847,9 +940,8 @@ class e2MDBEventViewSimple(Screen):
 			# "info": (self.close, _("Close screen")),
 			"pageUp": (self.pageUp, _("Show previous page")),
 			"pageDown": (self.pageDown, _("Show next page")),
-			"blue": (self.keyBlue, _("Gater Data"))
+			"blue": (self.keyBlue, _("Gather Data"))
 		}, prio=0, description=_("Event View Actions"))
-
 		self.onLayoutFinish.append(self.layoutFinished)
 
 	def layoutFinished(self):
@@ -883,7 +975,7 @@ class e2MDBEventViewSimple(Screen):
 			self["title"].setText("")
 		if isfile(self.images[2]):
 			if True:
-				maskAlpha = Image.open(join(PLUGINDIR, "/images/mask_l.png")).convert("RGBA").split()[3]
+				maskAlpha = Image.open(join(PLUGINDIR, "images", "mask_l.png")).convert("RGBA").split()[3]
 				if maskAlpha.mode != "L":
 					maskAlpha = maskAlpha.convert("L")
 				im = Image.open(self.images[2]).convert("RGBA")
@@ -918,7 +1010,7 @@ class e2MDBEventViewSimple(Screen):
 		self.serviceRef = service
 		self["Service"].newService(service.ref)
 		serviceName = service.getServiceName()
-		self["channel"].setText(f"{serviceName if serviceName else _("Unknown Service")} - {_("Recording")} if self.isRecording else ""}")
+		self["channel"].setText(f"{serviceName or _("Unknown Service")} - {_("Recording")} if self.isRecording else ""}")
 
 	def setEvent(self, event):
 		if event is None or not hasattr(event, "getEventName"):
@@ -1066,36 +1158,40 @@ oldeshowEventInformation = None
 def e2MDBshowEventInformation(self):
 	path = self.getCurrent().getPath()
 	pathWithoutExtension = splitext(path)[0]
-	jsonPath = f"{pathWithoutExtension}.json"
-	if isfile(jsonPath):
+	jsonFile = f"{pathWithoutExtension}.json"
+	print("#####pathWithoutExtension:", pathWithoutExtension)
+	if isfile(jsonFile):
 		evt = self["list"].getCurrentEvent()
-		coverPath = f"{pathWithoutExtension}.jpg"
-		# coverPath = f"{pathWithoutExtension}.cover.jpg"
+		coverPath = f"{pathWithoutExtension}.cover.jpg"
 		backdropPath = f"{pathWithoutExtension}.backdrop.jpg"
-		titleLogoPath = f"{pathWithoutExtension}.logo.png"
-		self.session.open(e2MDBEventViewSimple, evt, ServiceReference(self.getCurrent()), jsonPath, coverPath, titleLogoPath, backdropPath)
+		titleLogoPath = f"{pathWithoutExtension}.titlelogo.png"
+		self.session.open(e2MDBeventViewSimple, evt, ServiceReference(self.getCurrent()), jsonFile, coverPath, titleLogoPath, backdropPath)
 	else:
 		oldeshowEventInformation(self)
 
 
 def setup(session, **kwargs):
-	session.open(e2MDBSetup)
+	session.open(e2MDBsetup)
 
 
-class e2MDBBackroundRefresh(e2MDBhelper):
+class e2MDBbackroundRefresh(e2MDBhelper):
 	def __init__(self):
 		pass
 
 
-e2mdbackroundrefresh = e2MDBBackroundRefresh()
+e2mdbackroundrefresh = e2MDBbackroundRefresh()
 
 
-def e2MDBServiceEventRefreshData(self):
-	service = self.source.service
-	info = self.source.info
-	event = self.source.event
-	if info and service:
-		e2mdbackroundrefresh.scanSingleTitle(service, info, None)
+#def e2MDBserviceEventRefreshData(self):
+#	service = self.source.service
+#	info = self.source.info
+#	event = self.source.event
+#	if info and service:
+#		e2mdbackroundrefresh.scanSingleTitle(title, desc, short_desc, ext_desc, path, None)
+
+
+def main(session, **kwargs):
+	session.open(e2MDBscanner)
 
 
 def autostart(reason, session):
@@ -1103,7 +1199,7 @@ def autostart(reason, session):
 	from Screens.MovieSelection import MovieSelection
 	oldeshowEventInformation = MovieSelection.showEventInformation
 	MovieSelection.showEventInformation = e2MDBshowEventInformation
-	# ServiceEvent.refreshData = e2MDBServiceEventRefreshData # TODO Enable for background data refresh.
+	# ServiceEvent.refreshData = e2MDBserviceEventRefreshData # TODO Enable for background data refresh.
 
 
 def menu(menuid, **kwargs):
@@ -1114,7 +1210,7 @@ def menu(menuid, **kwargs):
 
 def Plugins(**kwargs):
 	return [
-		PluginDescriptor(name=_("e2MDB"), description=_("e2MDB"), where=[PluginDescriptor.WHERE_PLUGINMENU], icon="plugin.png", fnc=setup),
+		PluginDescriptor(name=_("e2MDB"), description=_("e2MDB"), where=[PluginDescriptor.WHERE_PLUGINMENU], icon="plugin.png", fnc=main),
 		PluginDescriptor(name=_("e2MDB"), description=_("e2MDB"), where=[PluginDescriptor.WHERE_MENU], icon="plugin.png", fnc=menu),
 		PluginDescriptor(name=_("e2MDB"), where=PluginDescriptor.WHERE_SESSIONSTART, fnc=autostart),
 	]

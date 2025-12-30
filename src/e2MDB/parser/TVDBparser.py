@@ -7,7 +7,7 @@
 # For other uses, permission from the authors is necessary.                                            #
 ########################################################################################################
 
-from json import dump
+from json import load, dump
 from getopt import getopt, GetoptError
 from os import remove
 from os.path import isfile
@@ -120,7 +120,7 @@ class Provider_tvdb:
 			"limit": 10,
 			"page": 0
 		}
-		return self.getApiDict(url, params=params)
+		return self.getApidicts(url, params=params)
 
 	def createNormalized(self, tvdbDicts, includeLogos=True, entriesmax=0):  # 'includeLogos' for compatibility reasons
 		def setNormKey(key, value):
@@ -197,36 +197,38 @@ class Provider_tvdb:
 
 	def getLanguages(self):
 		url = f"{self.baseUrl}/languages"
-		errMsg, languageDict = self.getApiDict(url)
+		errMsg, languageDict = self.getApidicts(url)
 		if errMsg:
 			print(f"{MODULE_NAME}ERROR in module 'getLanguages': {errMsg}")
 		return errMsg, languageDict.get("data", [])
 
 	def readSeriesIndex(self, seriesFile):
 		try:
-			with open(seriesFile, "r") as file:
-				seriesIndex = file.read()
+			with open(seriesFile) as file:
+				seriesIndex = load(file)
 		except OSError as errMsg:
-			return errMsg, ""
+			return errMsg, {}
 		return "", seriesIndex
 
 	def writeSeriesIndex(self, seriesFile, seriesIndex):
 		if seriesIndex:
 			try:
 				with open(seriesFile, "w") as file:
-					file.write(seriesIndex)
+					dump(seriesIndex, file)
 			except OSError as errMsg:
 				return errMsg
 		return ""
 
 	def getSeriesIndex(self, seriesId):  # create 'seriesIndex' containing 'season-episode', 'episodeID and 'episodeName'
-		errMsg, seriesIndex = "", ""
+		errMsg, seriesIndex = "", {}
 		url = f"{self.baseUrl}/series/{seriesId}/episodes/default/{self.langCode}"
 		params = {"page": 0}
-		errMsg, episodesDict = self.getApiDict(url, params=params)  # get first page of all seasons
+		errMsg, episodesDict = self.getApidicts(url, params=params)  # get first page of all seasons
 		if not errMsg:
 			data = episodesDict.get("data", {})
-			seriesIndex = f"{str({'source': 'tvdb', 'seriesId': str(data.get('id', '')), 'seriesName': data.get('name', '')})}\n"
+			seriesIndex["source"] = "tmdb"
+			seriesIndex["seriesName"] = data.get("name", "")
+			seriesIndex["seriesId"] = str(data.get("id", 0))
 			while not errMsg:
 				url = episodesDict.get("links", {}).get("next", "")  # get url for next page
 				data = episodesDict.get("data", {})
@@ -235,44 +237,37 @@ class Provider_tvdb:
 					if seasonNumber:  # seasonNumber '0' only contains accompanying information for the series
 						name = episode.get("name", "").split(" - ")
 						name = name[2] if len(name) > 2 else name[0]  # might be 'Odenthal - 15 - Mordfieber', so reduce to 'Mordfieber'
-						seriesIndex += f"{seasonNumber}-{episode.get('number', '')}\t{episode.get("id", '')}\t{name}\n"
+						seriesIndex[f"{seasonNumber}-{episode.get('number', '')}"] = (str(episode.get("id", 0)), name)
 				if url:
-					errMsg, episodesDict = self.getApiDict(url, params=params)  # get first page of all seasons
+					errMsg, episodesDict = self.getApidicts(url, params=params)  # get first page of all seasons
 				else:
 					break
 		return errMsg, seriesIndex
 
-	def findSeasonEpisode(self, seriesIndex="", episodeDescs=[]):
-		seasonEpisode, hitIndex = [], -1
-		if seriesIndex:
-			seriesIndex = "\n".join(seriesIndex.split("\n")[1:])  # remove first line
-			for desc in episodeDescs:
-				if desc:
-					hitIndex = seriesIndex.lower().find(desc.lower())
-					if hitIndex != -1:
-						break
-		if hitIndex != -1:
-			partialStr = seriesIndex[seriesIndex[:hitIndex].rfind("\n") + 1:]  # cut off entries before hitIndex excluding preceding LF
-			seasonEpisode = partialStr[:partialStr.find("\n")].split("\t")  # cut off entries inclusive following LF and create list
-		return seasonEpisode
+	def findSeasonEpisode(self, seriesIndex="", episodeDesc=""):
+		seasonEpisode = ()
+		if seriesIndex and episodeDesc:
+			for episode in seriesIndex.get("episodes", {}).items():
+				if episode[1][1] == episodeDesc:
+					seasonEpisode = tuple((episode[0], episode[1][0], episode[1][1]))
+					break
+		return seasonEpisode  # e.g. ('1-2', '283766', 'Die Warnung')
 
-	def getEpisodeDetails(self, seriesId=None, seasonEpisode=[]):  # TVDB only need episodeId
+	def getEpisodeDetails(self, seriesId="", episodeId="", seasonNo="", episodeNo=""):  # TVDB only uses 'episodeId'
 		errMsg, episodeDict = "", {}
-		if seasonEpisode and len(seasonEpisode) > 1:
-			episodeId = seasonEpisode[1]
-			if episodeId:
-				url = f"{self.baseUrl}/episodes/{episodeId}/translations/{self.langCode}"
-				params = {"page": 0}
-				errMsg, tvdbDict = self.getApiDict(url, params=params)
-				episodeDict = self.createNormEpisodeDict(tvdbDict, episodeId)
-				if not errMsg:
-					with open("tvdbDetails.json", "w") as file:
-						dump(tvdbDict, file)
+		if episodeId:
+			url = f"{self.baseUrl}/episodes/{episodeId}/translations/{self.langCode}"
+			params = {"page": 0}
+			errMsg, tvdbDict = self.getApidicts(url, params=params)
+			if errMsg:
+				print(f"{MODULE_NAME}ERROR in module 'getEpisodeDetails': {errMsg}")
+			else:
+				episodeDict = self.createNormEpisodeDict(seriesId, tvdbDict, episodeId)
 		else:
-			errMsg, tvdbDict = f"{MODULE_NAME}ERROR in module 'TVDB.getEpisodeDetails': missing parameter 'episodeId'.", {}
+			errMsg = f"{MODULE_NAME}ERROR in module 'TVDB.getEpisodeDetails': missing parameter 'episodeId'."
 		return errMsg, episodeDict
 
-	def createNormEpisodeDict(self, episodeDict, episodeId=""):
+	def createNormEpisodeDict(self, seriesId, episodeId, episodeDict):
 		def setNormKey(key, value):
 			if value:
 				normDict[key] = value
@@ -280,6 +275,7 @@ class Provider_tvdb:
 		normDict = {}
 		if episodeDict:
 			setNormKey("source", "tvdb")
+			setNormKey("seriesId", seriesId)
 			setNormKey("episodeId", episodeId)
 			data = episodeDict.get("data", {})
 			name = data.get("name", "").split(" - ")
@@ -287,12 +283,12 @@ class Provider_tvdb:
 			setNormKey("overview", data.get("overview", ""))  # longtext
 		return normDict
 
-	def getApiDict(self, url, params=None, timeout=(3.05, 6)):
+	def getApidicts(self, url, params=None, timeout=(3.05, 6)):
 		headers = {"accept": "application/json", "Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
 		try:
 			response = get(url, params=params, headers=headers, timeout=timeout)
-			errMsg, tvdbDicts = ("", response.json()) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
-			return errMsg, tvdbDicts
+			errMsg, apiDicts = ("", response.json()) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
+			return errMsg, apiDicts
 		except exceptions.RequestException as errMsg:
 			return errMsg, {}
 
@@ -321,7 +317,7 @@ def main(argv):  # shell interface
 			"-e, --entriesmax <options>\tset maximum number of entries (defaut is 0=all)\n"
 			"-m, --mediatype <options>\tset media type 'movie' or 'series' (default 'series')\n"
 			"-o, --original <filename>\tfile output of original formatted in JSON\n"
-			"-n, --normalized <filename>\tnormalized file output formatted in JSON\n",
+			"-n, --normalized <filename>\tnormalized file output formatted in JSON\n"
 			"-s, --seriesindex <filename>\tfile output of all seasons and episodes of a series, formatted in JSON\n")
 			exit()
 		elif opt in ("-q", "--query"):
@@ -381,7 +377,6 @@ def main(argv):  # shell interface
 								print(f"Error writing series index file '{seriesFile}': {errMsg}")
 							else:
 								print(f"Series index file '{seriesFile}' was successfully created.")
-					print(provider_tvdb.findSeasonEpisode(seriesIndex, "Emily hat Geldprobleme"))  # special episode search for series
 			"""
 				errMsg, episodeDict = provider_tvdb.getEpisodeDetails(episodeId="10298220")
 				if episodeDict:
