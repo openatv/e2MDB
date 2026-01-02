@@ -50,8 +50,8 @@ from Tools.LoadPixmap import LoadPixmap
 
 # PLUGIN IMPORTS
 from . import PLUGINDIR, _
-from .e2MDBproviders import e2mdbproviders
-from .e2MDBdatabase import mediadb
+from .e2MDBProviders import e2mdbproviders
+from .e2MDBDatabase import mediadb
 
 
 class e2MDBglobals:
