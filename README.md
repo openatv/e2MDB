@@ -122,14 +122,14 @@ The plugin stores its configuration under `config.plugins.e2mdb`.
 | `tvdbapikey` | `ConfigText` | TVDb API key |
 | `omdbactive` | `ConfigYesNo` | enables OMDb |
 | `omdbapikey` | `ConfigText` | OMDb API key |
-| `cachePath` | `ConfigText` | cache root prefix |
+| `cache_path` | `ConfigText` | cache root prefix |
 | `database_path` | `ConfigText` | SQLite root prefix |
 | `enableDatabase` | `ConfigYesNo` | enables optional media DB |
 
 ### Effective cache root
 
 - Default: `/media/hdd/e2MDB`
-- Special fallback when `cachePath == "/"`: `/tmp/e2MDB`
+- Special fallback when `cache_path == "/"`: `/tmp/e2MDB`
 
 ---
 

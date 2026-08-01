@@ -1,0 +1,469 @@
+<skin>
+<!-- cf#_#start -->
+	<!-- SKIN DESIGN -->
+	<screen name="SkinDesign-s">
+		<!--eLabel name="upperleftcorner-s" position="0,0" zPosition="-105" size="40,25" backgroundColor="#1A27408B" /-->
+		<!--eLabel name="lowerleftcorner-s" position="0,675" zPosition="-105" size="40,45" backgroundColor="#1A27408B" /-->
+		<!--eLabel name="upperrightcorner-s" position="1240,0" zPosition="-105" size="40,60" backgroundColor="#1A0F0F0F" /-->
+		<!--eLabel name="lowerrightcorner-s" position="1240,640" zPosition="-105" size="40,80" backgroundColor="#1A0F0F0F" /-->
+		<!--eLabel name="optionallayerhorizontal-s" position="0,655" zPosition="-105" size="1127,30" backgroundColor="#1A27408B" /-->
+		<!--eLabel name="optionallayervertical-s" position="102,51" zPosition="-105" size="60,669" backgroundColor="#1A27408B" /-->
+	</screen>
+	<screen name="SkinDesign-m">
+		<!--eLabel name="upperleftcorner-m" position="0,0" zPosition="-105" size="40,25" backgroundColor="#1A27408B" /-->
+		<!--eLabel name="lowerleftcorner-m" position="0,675" zPosition="-105" size="40,45" backgroundColor="#1A27408B" /-->
+		<!--eLabel name="upperrightcorner-m" position="1240,0" zPosition="-105" size="40,60" backgroundColor="#1A0F0F0F" /-->
+		<!--eLabel name="lowerrightcorner-m" position="1240,640" zPosition="-105" size="40,80" backgroundColor="#1A0F0F0F" /-->
+		<!--eLabel name="optionallayerhorizontal-m" position="0,655" zPosition="-105" size="1127,30" backgroundColor="#1A27408B" /-->
+		<!--eLabel name="optionallayervertical-m" position="102,51" zPosition="-105" size="60,669" backgroundColor="#1A27408B" /-->
+	</screen>
+<!-- SKIN DESIGN - screen title underline -->
+	<screen name="ul-layer1_1">
+		<!--eLabel name="underline" position="40,88" size="1200,1" backgroundColor="layer-a-underline" zPosition="-1" /-->
+	</screen>
+	<screen name="ul-layer1_1_overlay">
+		<eLabel name="underline" position="40,88" size="1200,1" backgroundColor="layer-a-background" zPosition="0" />
+	</screen>
+	<screen name="ul-layer1_2">
+		<!--eLabel name="underline" position="40,88" size="755,1" backgroundColor="layer-a-underline" zPosition="-1" /-->
+	</screen>
+	<screen name="ul-layer1_2_overlay">
+		<eLabel name="underline" position="40,88" size="755,1" backgroundColor="layer-a-background" zPosition="0" />
+	</screen>
+	<screen name="ul-layer2_1">
+		<eLabel name="underline" position="5,66" size="700,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-messagebox">
+		<eLabel name="underline" position="0,68" size="1280,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-historyzap">
+		<eLabel name="underline" position="9,60" size="532,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-numberzap">
+		<eLabel name="underline" position="0,60" size="460,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-autodiseqc">
+		<eLabel name="underline" position="290,225" size="700,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-antilogo">
+		<eLabel name="underline" position="0,60" size="170,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-jobview">
+		<eLabel name="underline" position="290,225" size="700,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-sleeptimer">
+		<eLabel name="underline" position="1,66" size="498,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-multibootstartup">
+		<eLabel name="underline" position="1,66" size="698,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-restoreinfo">
+		<eLabel name="underline" position="0,68" size="680,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-pininput">
+		<eLabel name="underline" position="1,70" size="598,1" backgroundColor="layer-a-underline" />
+	</screen>
+	<screen name="ul-inputbox">
+		<eLabel name="underline" position="1,50" size="1198,1" backgroundColor="layer-a-underline" />
+	</screen>
+<!-- SKIN DESIGN - SCREENS -->
+	<screen name="template1_2layer">
+		<panel name="SkinDesign-s" />
+		<panel name="template1_2layer-1" />
+	</screen>
+	<screen name="template1_1layer">
+		<panel name="SkinDesign-s" />
+		<panel name="template1_1layer-1" />
+	</screen>
+	<screen name="template1_1layer_graphicalepg">
+		<panel name="SkinDesign-s" />
+		<panel name="template1_1layer-2" />
+	</screen>
+	<screen name="INFOBAREPGWIDGET_Layer">
+		<panel name="INFOBAREPGWIDGET_Layer-1" />
+	</screen>
+	<screen name="QuickMenu_Layer">
+		<panel name="QuickMenu_Layer-1" />
+	</screen>
+<!-- SKIN DESIGN - BUTTONS -->
+<!--
+		i = info
+		m = menu
+		e = exit
+		o = ok
+		t = text
+/-->
+	<screen name="T_B_OK">
+		<ePixmap position="1045,600" size="81,40" zPosition="10" pixmap="buttons/ok.png" transparent="1" alphatest="blend" />
+	</screen>
+	<screen name="T_B_EXIT">
+		<ePixmap position="1140,600" size="81,40" zPosition="10" pixmap="buttons/key_exit.png" transparent="1" alphatest="blend" />
+	</screen>
+	<screen name="T_B_MENU">
+		<ePixmap position="950,600" size="81,40" zPosition="10" pixmap="buttons/menu.png" transparent="1" alphatest="blend" />
+	</screen>
+	<screen name="T_B_HELP">
+		<ePixmap position="1045,600" size="81,40" zPosition="10" pixmap="buttons/key_help.png" transparent="1" alphatest="blend" />
+	</screen>
+
+	<screen name="ime-buttons_template1">
+		<ePixmap position="950,600" size="81,40" zPosition="10" pixmap="buttons/info.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1045,600" size="81,40" zPosition="10" pixmap="buttons/menu.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="_me-buttons_template1">
+		<ePixmap position="1045,600" size="81,40" zPosition="10" pixmap="buttons/menu.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="__e-buttons_template1">
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="_ie-buttons_template1">
+		<ePixmap position="1045,600" size="81,40" zPosition="10" pixmap="buttons/info.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="_oe-buttons_template1">
+		<panel name="T_B_OK" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="_he-buttons_template1">
+		<panel name="T_B_HELP" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="mhe-buttons_template1">
+		<panel name="T_B_MENU" />
+		<panel name="T_B_HELP" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="moe-buttons_template1">
+		<panel name="T_B_MENU" />
+		<panel name="T_B_OK" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="ioe-buttons_template1">
+		<ePixmap position="950,600" size="81,40" zPosition="10" pixmap="buttons/info.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_OK" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="tie-buttons_template1">
+		<ePixmap position="950,600" size="81,40" zPosition="10" pixmap="buttons/text.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1045,600" size="81,40" zPosition="10" pixmap="buttons/info.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="toe-buttons_template1">
+		<ePixmap position="950,600" size="81,40" zPosition="10" pixmap="buttons/text.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_OK" />
+		<panel name="T_B_EXIT" />
+	</screen>
+	<screen name="imoe-buttons_template1">
+		<ePixmap position="855,600" size="81,40" zPosition="10" pixmap="buttons/info.png" transparent="1" alphatest="blend" />
+		<panel name="T_B_MENU" />
+		<panel name="T_B_OK" />
+		<panel name="T_B_EXIT" />
+	</screen>
+
+	<screen name="mhe-buttons_template2">
+		<ePixmap position="950,635" size="81,40" zPosition="10" pixmap="buttons/menu.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1045,635" size="81,40" zPosition="10" pixmap="buttons/key_help.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1140,635" size="81,40" zPosition="10" pixmap="buttons/key_exit.png" transparent="1" alphatest="blend" />
+	</screen>
+	<screen name="_oe-buttons_template2">
+		<ePixmap position="1045,635" size="81,40" zPosition="10" pixmap="buttons/ok.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1140,635" size="81,40" zPosition="10" pixmap="buttons/key_exit.png" transparent="1" alphatest="blend" />
+	</screen>
+
+	<screen name="moe-buttons_template2">
+		<ePixmap position="950,635" size="81,40" zPosition="10" pixmap="buttons/menu.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1045,635" size="81,40" zPosition="10" pixmap="buttons/ok.png" transparent="1" alphatest="blend" />
+		<ePixmap position="1140,635" size="81,40" zPosition="10" pixmap="buttons/key_exit.png" transparent="1" alphatest="blend" />
+	</screen>
+
+<!-- SKIN DESIGN - MENUS -->
+
+	<screen name="MENU_template_title">
+		<widget source="Title" render="Label" position="5,555" size="1280,180" font="global_large_menu;90" noWrap="0" backgroundColor="text-background" transparent="1" foregroundColor="background-text" valign="bottom" zPosition="-50" />
+	</screen>
+
+	<screen name="MENU_template">
+		<panel name="SkinDesign-m" />
+		<panel name="MENU_template-1" />
+		<panel name="MENU_template_title" />
+	</screen>
+	<screen name="MENU_textTitle_template">
+		<panel name="SkinDesign-m" />
+		<panel name="MENU_template-1" />
+	</screen>
+	<screen name="CONTEXTMENU_template">
+		<panel name="SkinDesign-m" />
+		<panel name="CONTEXTMENU_template-1" />
+		<panel name="MENU_template_title" />
+	</screen>
+	<screen name="CONTEXTMENU_textTitle_template">
+		<panel name="SkinDesign-m" />
+		<panel name="CONTEXTMENU_template-1" />
+	</screen>
+	<screen name="CONTEXTMENU2_template">
+		<panel name="SkinDesign-m" />
+		<panel name="CONTEXTMENU2_template-1" />
+		<panel name="MENU_template_title" />
+	</screen>
+	<screen name="CONTEXTMENU2_textTitle_template">
+		<panel name="SkinDesign-m" />
+		<panel name="CONTEXTMENU2_template-1" />
+	</screen>
+<!-- SKIN DESIGN - INFOBAR EXTENDED INFO -->
+	<screen name="INFOBAREXTENDEDINFO">
+		<panel name="INFOBAREXTENDEDINFO-1" />
+	</screen>
+
+	<screen name="INFOBAREXTENDEDINFOCRYPTPANEL">
+		<panel name="INFOBAREXTENDEDINFOCRYPTPANEL-1" />
+	</screen>
+
+<!-- SKIN DESIGN - INFOBAR COLOR GRADIENT -->
+	<screen name="COLORGRADIENT_bottom_IB">
+		<!--ePixmap alphatest="blend" pixmap="colorgradient_bottom_ib.png" position="0,560" size="1280,160" zPosition="-1" /-->
+	</screen>
+	<screen name="COLORGRADIENT_top_IB">
+		<!--ePixmap alphatest="blend" pixmap="colorgradient_top_ib.png" position="0,0" size="1280,30" zPosition="-1" /-->
+	</screen>
+	<screen name="COLORGRADIENT_bottom_EPG">
+		<!--ePixmap alphatest="blend" pixmap="colorgradient_bottom_epg.png" position="0,10" size="1280,220" zPosition="-1" /-->
+	</screen>
+	<screen name="COLORGRADIENT_top_QM">
+		<!--ePixmap alphatest="blend" pixmap="colorgradient_top_qm.png" position="0,0" size="1280,94" zPosition="-1" /-->
+	</screen>
+	<screen name="COLORGRADIENT_bottom_MB">
+		<!--ePixmap alphatest="blend" pixmap="colorgradient_bottom_mb.png" position="0,570" size="1280,150" zPosition="-1" /-->
+	</screen>
+	<screen name="COLORGRADIENT_bottom_PB">
+		<!--ePixmap alphatest="blend" pixmap="colorgradient_bottom_pb.png" position="0,640" size="1280,80" zPosition="-1" /-->
+	</screen>
+<!-- SKIN DESIGN - Infobar ZZZPicon -->
+	<screen name="IB_ZZZPicon">
+		<widget alphatest="blend" position="0,560" size="267,160" render="MetrixHDXPicon" source="session.CurrentService" transparent="1" zPosition="4">
+			<convert type="ServiceName">Reference</convert>
+		</widget>
+	</screen>
+<!-- SKIN DESIGN - Infobar XPicon -->
+	<screen name="IB_XPicon">
+<!-- cf#_#picon -->
+		<widget alphatest="blend" position="33,574" size="220,132" render="MetrixHDXPicon" source="session.CurrentService" transparent="1" zPosition="4">
+			<convert type="ServiceName">Reference</convert>
+		</widget>
+	</screen>
+<!-- SKIN DESIGN - Infobar Picon -->
+	<screen name="InfoBar_Picon">
+		<panel name="IB_XPicon" />
+	</screen>
+<!-- Player PVRState -->
+	<screen name="PVRState" position="230,238" zPosition="2" size="820,230" backgroundColor="transparent" flags="wfNoBorder" >
+		<panel name="PVRState_1" />
+	</screen>
+	<screen name="PVRState_Top" position="0,0" zPosition="2" size="1280,30" backgroundColor="transparent" flags="wfNoBorder" >
+		<panel name="PVRState_3" />
+		<!--panel name="PVRState_3_mt" /-->
+		<!--panel name="PVRState_3_ct" /-->
+	</screen>
+<!-- graphical EPG Style -->
+	<screen name="GraphicalEPG" position="0,0" size="1280,720" title="Electronic Program Guide" flags="wfNoBorder" backgroundColor="transparent">
+		<panel name="GraphicalEPG_1" />
+	</screen>
+	<screen name="GraphicalEPGPIG" position="0,0" size="1280,720" title="Electronic Program Guide" flags="wfNoBorder" backgroundColor="transparent">
+		<panel name="GraphicalEPGPIG_1" />
+	</screen>
+<!-- graphical EPG Style -->
+<!-- EPG/Channellist list, description - running text and scrollbar settings (RTSB_...) -->
+	<screen name="RTSB_vEPG_description">
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="15,586" size="1250,78" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="0" valign="top" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_gEPGPIG1_description">
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="70,144" size="820,128" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="1" valign="top" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_gEPGPIG2_description">
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="70,143" size="648,226" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="1" valign="top" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_gEPG1_description">
+		<widget source="Event" render="Pixmap" position="70,144" size="90,128" alphatest="blend" zPosition="1" scaleFlags="fill" condition="config.plugins.e2mdb.epgMetaEnabled.value">
+			<convert type="E2MDBEventInfo">Cover</convert>
+		</widget>
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="160,144" size="1060,128" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="1" valign="top" zPosition="1" condition="config.plugins.e2mdb.epgMetaEnabled.value">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="70,144" size="1150,128" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="1" valign="top" zPosition="1" condition="!config.plugins.e2mdb.epgMetaEnabled.value">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_gEPG2_description">
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="70,144" size="1150,51" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="1" valign="top" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_QuickEPG_description">
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="650,77" size="615,102" font="epg_info;19" backgroundColor="epg-eventdescription-background" foregroundColor="epg-eventdescription-foreground" transparent="1" valign="top" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_EPGselectionMulti_description">
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="825,80" size="385,523" font="epg_info;19" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="1" valign="top" condition="!config.plugins.e2mdb.epgMetaEnabled.value">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+		<widget source="Event" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="825,80" size="385,523" font="epg_info;19" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="1" valign="top" condition="config.plugins.e2mdb.epgMetaEnabled.value">
+			<convert type="E2MDBEventInfo">AdvDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_EPGSelection_description">
+		<panel name="RTSB_EPGselectionMulti_description"/>
+	</screen>
+	<screen name="RTSB_ChannelList_StandardList_LEFT">
+		<widget name="list" position="70,100" size="700,530" listMarginLeft="5" listMarginRight="5" scrollbarMode="showNever" fieldMargins="5" itemsDistances="5" progressbarHeight="8" progressBarWidth="50" progressbarBorderWidth="1" colorServiceRecorded="layer-a-channelselection-foreground-colorServiceRecorded" colorServicePseudoRecorded="layer-a-channelselection-foreground-colorServicePseudoRecorded" colorServiceStreamed="layer-a-channelselection-foreground-colorServiceStreamed" colorServiceDescription="layer-a-channelselection-foreground-ServiceDescription" colorServiceDescriptionSelected="layer-a-channelselection-foreground-ServiceDescriptionSelected" colorEventProgressbar="layer-a-channelselection-progressbar" colorEventProgressbarBorder="layer-a-channelselection-progressbarborder" colorEventProgressbarBorderSelected="layer-a-channelselection-foregroundColorSelected" foregroundColorServiceNotAvail="#00555555" serviceItemHeight="30" serviceNumberFont="epg_event;22" serviceNameFont="epg_event;22" serviceInfoFont="epg_text;20" progressInfoFont="epg_info;18" transparent="0" backgroundColor="layer-a-background" foregroundColor="layer-a-channelselection-foreground" backgroundColorSelected="layer-a-selection-background" foregroundColorSelected="layer-a-channelselection-foregroundColorSelected" />
+	</screen>
+
+	<screen name="RTSB_ChannelList_StandardList_RIGHT">
+		<widget name="list" position="424,105" size="792,510" listMarginLeft="5" listMarginRight="5" scrollbarMode="showNever" fieldMargins="5" itemsDistances="5" progressbarHeight="8" progressBarWidth="50" progressbarBorderWidth="1" colorServiceRecorded="layer-a-channelselection-foreground-colorServiceRecorded" colorServicePseudoRecorded="layer-a-channelselection-foreground-colorServicePseudoRecorded" colorServiceStreamed="layer-a-channelselection-foreground-colorServiceStreamed" colorServiceDescription="layer-a-channelselection-foreground-ServiceDescription" colorServiceDescriptionSelected="layer-a-channelselection-foreground-ServiceDescriptionSelected" colorEventProgressbar="layer-a-channelselection-progressbar" colorEventProgressbarBorder="layer-a-channelselection-progressbarborder" colorEventProgressbarBorderSelected="layer-a-channelselection-foregroundColorSelected" foregroundColorServiceNotAvail="#00555555" serviceItemHeight="30" serviceNumberFont="epg_event;22" serviceNameFont="epg_event;22" serviceInfoFont="epg_text;20" progressInfoFont="epg_info;18" transparent="0" backgroundColor="layer-a-background" foregroundColor="layer-a-channelselection-foreground" backgroundColorSelected="layer-a-selection-background" foregroundColorSelected="layer-a-channelselection-foregroundColorSelected" />
+	</screen>
+	<screen name="RTSB_ChannelList_EventFull">
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="785,375" size="420,223" font="epg_info; 18" zPosition="2" backgroundColor="layer-b-background" foregroundColor="layer-b-accent1" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_ChannelSelection-1_list_plus_description">
+		<panel name="RTSB_ChannelList_StandardList_LEFT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="825,195" size="385,286" font="epg_info; 18" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_ChannelSelection-1_list_plus_description#_FHDscreen">
+		<panel name="RTSB_ChannelList_StandardList_LEFT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="1238,293" size="578,440" font="epg_info; 26" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_ChannelSelection-1P_list_plus_description">
+		<panel name="RTSB_ChannelList_StandardList_LEFT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="825,188" size="385,264" font="epg_info; 18" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_ChannelSelection-1P_list_plus_description#_FHDscreen">
+		<panel name="RTSB_ChannelList_StandardList_LEFT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="1238,282" size="578,404" font="epg_info; 27" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#start -->
+	<screen name="RTSB_ChannelSelection-2_list_plus_description">
+		<panel name="RTSB_ChannelList_StandardList_LEFT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="825,310" size="385,226" font="epg_info; 18" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_ChannelSelection-2P_list_plus_description">
+		<panel name="RTSB_ChannelList_StandardList_LEFT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="825,302" size="385,226" font="epg_info; 18" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_ChannelSelection-3_list_plus_description">
+		<panel name="RTSB_ChannelList_StandardList_RIGHT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="60,283" size="322,226" font="epg_info; 18" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_ChannelSelection-4_list_plus_description">
+		<panel name="RTSB_ChannelList_StandardList_RIGHT"/>
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="60,173" size="322,246" font="epg_info; 18" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+	<screen name="RTSB_ChannelSelectionRadio_list_plus_description">
+		<widget name="list" position="70,132" size="700,380" listMarginLeft="5" listMarginRight="5" scrollbarMode="showNever" fieldMargins="5" itemsDistances="5" progressbarHeight="8" progressBarWidth="50" progressbarBorderWidth="1" colorServiceRecorded="layer-a-channelselection-foreground-colorServiceRecorded" colorServicePseudoRecorded="layer-a-channelselection-foreground-colorServicePseudoRecorded" colorServiceStreamed="layer-a-channelselection-foreground-colorServiceStreamed" colorServiceDescription="layer-a-channelselection-foreground-ServiceDescription" colorServiceDescriptionSelected="layer-a-channelselection-foreground-ServiceDescriptionSelected" colorEventProgressbar="layer-a-channelselection-progressbar" colorEventProgressbarBorder="layer-a-channelselection-progressbarborder" colorEventProgressbarBorderSelected="layer-a-channelselection-foregroundColorSelected" foregroundColorServiceNotAvail="#00555555" serviceItemHeight="30" serviceNumberFont="epg_event;22" serviceNameFont="epg_event;22" serviceInfoFont="epg_text;20" progressInfoFont="epg_info;18" transparent="0" backgroundColor="layer-a-background" foregroundColor="layer-a-channelselection-foreground" backgroundColorSelected="layer-a-selection-background" foregroundColorSelected="layer-a-channelselection-foregroundColorSelected" />
+		<widget source="ServiceEvent" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="815,190" size="385,250" font="epg_info; 18" backgroundColor="layer-a-background" foregroundColor="layer-a-foreground" transparent="0" halign="left" valign="top">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_Infobarepgwidget_description">
+		<widget source="session.Event_Now" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" size="555,315" position="70,158" backgroundColor="layer-a-background" foregroundColor="layer-a-foreground" font="epg_info; 20" halign="left" transparent="1" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+		<widget source="session.Event_Next" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" size="555,265" position="655,184" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" font="epg_info; 20" halign="left" transparent="1" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_Infobarepgwidget_description#_FHDscreen">
+		<widget source="session.Event_Now" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" size="832,464" position="105,235" backgroundColor="layer-a-background" foregroundColor="layer-a-foreground" font="epg_info;30" halign="left" transparent="1" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+		<widget source="session.Event_Next" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" size="832,388" position="982,275" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" font="epg_info;30" halign="left" transparent="1" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!-- cf#_#rename -->
+	<screen name="RTSB_Infobarepgwidget_description#_UHDscreen">
+		<widget source="session.Event_Now" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" size="1665,945" position="210,474" backgroundColor="layer-a-background" foregroundColor="layer-a-foreground" font="epg_info; 60" halign="left" transparent="1" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+		<widget source="session.Event_Next" render="MetrixHDRunningText" options="movetype=none,startdelay=600,steptime=60,direction=top,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" size="1665,795" position="1965,553" backgroundColor="layer-b-background" foregroundColor="layer-b-foreground" font="epg_info; 60" halign="left" transparent="1" zPosition="1">
+			<convert type="EventName">FullDescription</convert>
+		</widget>
+	</screen>
+<!--EPG/Channellist list, description - running text and scrollbar settings -->
+<!-- cf#_#start -->
+<!-- Infobar, Scondinfobar, Moviebar/Emc Running Text -->
+	<screen name="RT_EMCMediaCenter_1">
+		<widget source="session.CurrentService" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="150,588" size="892,56" font="infobar_event;40" valign="center" noWrap="1" backgroundColor="infobarbackground" foregroundColor="infobarfont1" transparent="1">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+	</screen>
+	<screen name="RT_EMCMediaCenter_2">
+		<widget source="session.CurrentService" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="187,568" size="930,56" font="infobar_event;40" valign="center" noWrap="1" backgroundColor="infobarbackground" foregroundColor="infobarfont1" transparent="1">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+	</screen>
+	<screen name="RT_EMCMediaCenter_3">
+		<widget source="session.CurrentService" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="110,644" size="716,30" font="infobar_event;24" valign="center" noWrap="1" backgroundColor="infobarbackground" foregroundColor="infobarfont1" transparent="1">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+	</screen>
+	<screen name="RT_MoviePlayer_1">
+		<widget source="session.CurrentService" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="150,588" size="892,56" font="infobar_event;40" valign="center" noWrap="1" backgroundColor="infobarbackground" foregroundColor="infobarfont1" transparent="1">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+	</screen>
+	<screen name="RT_MoviePlayer_2">
+		<widget source="session.CurrentService" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="187,568" size="930,56" font="infobar_event;40" valign="center" noWrap="1" backgroundColor="infobarbackground" transparent="1">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+	</screen>
+	<screen name="RT_MoviePlayer_3">
+		<widget source="session.CurrentService" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" position="110,644" size="716,30" font="infobar_event;24" valign="center" noWrap="1" backgroundColor="infobarbackground" foregroundColor="infobarfont1" transparent="1">
+			<convert type="ServiceName">Name</convert>
+		</widget>
+	</screen>
+	<screen name="RT_INFOBARSTYLEMODERN">
+		<widget backgroundColor="infobarbackground" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" foregroundColor="infobarfont1" font="infobar_event; 40" halign="left" noWrap="1" position="286,558" size="805,56" source="session.Event_Now" transparent="1" valign="center">
+			<convert type="EventName">Name</convert>
+		</widget>
+		<widget backgroundColor="infobarbackground" render="MetrixHDRunningText" options="movetype=none,startdelay=900,steptime=1,step=3,direction=left,startpoint=0,wrap=1,always=0,repeat=2,oneshot=1" font="infobar_event; 35" foregroundColor="infobarfont2" halign="left" noWrap="1" position="286,617" size="805,56" source="session.Event_Next" transparent="1" valign="top">
+			<convert type="EventName">Name</convert>
+		</widget>
+	</screen>
+<!-- Infobar, Scondinfobar, Moviebar/Emc Running Text -->
+<!-- Show Menu Buttons -->
+	<screen name="MenuButtons">
+		<panel name="MenuButtons_template"/>
+	</screen>
+<!-- Menu Buttons -->
+</skin>

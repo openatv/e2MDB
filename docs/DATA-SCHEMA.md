@@ -12,17 +12,17 @@ A normalized search result is the lightweight structure used during provider sea
 |---|---|---|
 | `provider` | `string` | source provider such as `tmdb`, `tvdb`, or `omdb` |
 | `title` | `string` | movie or series title |
-| `mediaType` | `string` | `movie` or `series` |
+| `media_type` | `string` | `movie` or `series` |
 | `countries` | `string` | production countries |
 | `released` | `string` | first known release/publication date |
 | `genres` | `string` | comma-separated genres |
 | `overview` | `string` | provider long description |
 | `voteAverage` | `string` | average user rating |
 | `voteCount` | `string` | number of votes |
-| `coverUrl` | `string` | poster/cover URL |
-| `backdropUrl` | `string` | backdrop URL |
-| `titleLogoUrl` | `string` | title-logo URL |
-| `imageUrl` | `string` | additional still/image URL |
+| `cover_url` | `string` | poster/cover URL |
+| `backdrop_url` | `string` | backdrop URL |
+| `titlelogo_url` | `string` | title-logo URL |
+| `image_url` | `string` | additional still/image URL |
 | `providerIds` | `dict` | provider-specific IDs such as TMDb / TVDb / IMDb |
 
 ### Purpose
@@ -40,7 +40,7 @@ The normalized final series structure is richer and is used after a series match
 | `provider` | `string` | source provider |
 | `title` | `string` | series title |
 | `tagline` | `string` | subtitle / tagline |
-| `mediaType` | `string` | always `series` |
+| `media_type` | `string` | always `series` |
 | `countries` | `string` | production countries |
 | `released` | `string` | first release date |
 | `ageRating` | `string` | localized age rating |
@@ -49,18 +49,18 @@ The normalized final series structure is richer and is used after a series match
 | `genres` | `string` | genre list |
 | `overview` | `string` | description |
 | `runtime` | `string` | runtime in minutes |
-| `coverUrl` | `string` | poster/cover URL |
-| `coverPath` | `string` | cache-relative cover path |
-| `coverSrc` | `string` | source classification, usually `series` |
-| `backdropUrl` | `string` | backdrop URL |
-| `backdropPath` | `string` | cache-relative backdrop path |
-| `backdropSrc` | `string` | source classification |
-| `titleLogoUrl` | `string` | title-logo URL |
-| `titlelogoPath` | `string` | cache-relative title-logo path |
-| `titleLogoSrc` | `string` | source classification |
-| `imageUrl` | `string` | still/image URL |
-| `imagePath` | `string` | cache-relative image path |
-| `imageSrc` | `string` | source classification |
+| `cover_url` | `string` | poster/cover URL |
+| `cover_path` | `string` | cache-relative cover path |
+| `cover_src` | `string` | source classification, usually `series` |
+| `backdrop_url` | `string` | backdrop URL |
+| `backdrop_path` | `string` | cache-relative backdrop path |
+| `backdrop_src` | `string` | source classification |
+| `titlelogo_url` | `string` | title-logo URL |
+| `titlelogo_path` | `string` | cache-relative title-logo path |
+| `titlelogo_src` | `string` | source classification |
+| `image_url` | `string` | still/image URL |
+| `image_path` | `string` | cache-relative image path |
+| `image_src` | `string` | source classification |
 | `providerIds` | `dict` | provider IDs |
 | `crew` | `list[dict]` | crew members such as director or writer |
 | `cast` | `list[dict]` | cast members / actors |
@@ -75,7 +75,7 @@ The normalized final series structure is richer and is used after a series match
 | `name` | `string` | person name |
 | `character` | `string` | played character / role |
 | `profileId` | `string` | provider-side profile ID |
-| `profileUrl` | `string` | profile image URL |
+| `profile_url` | `string` | profile image URL |
 
 ### Interpretation inside e2MDB
 
@@ -91,14 +91,14 @@ This means some fields may originate from the episode layer while others are inh
 
 ## 3. Normalized final movie dictionary
 
-The movie final-data schema is similar but explicitly fixed to `mediaType = movie`.
+The movie final-data schema is similar but explicitly fixed to `media_type = movie`.
 
 | Field | Type | Description |
 |---|---|---|
 | `provider` | `string` | source provider |
 | `title` | `string` | movie title |
 | `tagline` | `string` | subtitle / tagline |
-| `mediaType` | `string` | always `movie` |
+| `media_type` | `string` | always `movie` |
 | `countries` | `string` | production countries |
 | `released` | `string` | first release date |
 | `ageRating` | `string` | localized age rating |
@@ -107,22 +107,22 @@ The movie final-data schema is similar but explicitly fixed to `mediaType = movi
 | `genres` | `string` | genre list |
 | `overview` | `string` | description |
 | `runtime` | `string` | runtime in minutes |
-| `coverUrl` | `string` | poster/cover URL |
-| `coverSrc` | `string` | source classification, usually `movie` |
-| `backdropUrl` | `string` | backdrop URL |
-| `backdropSrc` | `string` | source classification |
-| `titleLogoUrl` | `string` | title-logo URL |
-| `titleLogoSrc` | `string` | source classification |
-| `imageUrl` | `string` | still/image URL |
-| `imageSrc` | `string` | source classification |
+| `cover_url` | `string` | poster/cover URL |
+| `cover_src` | `string` | source classification, usually `movie` |
+| `backdrop_url` | `string` | backdrop URL |
+| `backdrop_src` | `string` | source classification |
+| `titlelogo_srl` | `string` | title-logo URL |
+| `titlelogo_src` | `string` | source classification |
+| `image_url` | `string` | still/image URL |
+| `image_src` | `string` | source classification |
 | `providerIds` | `dict` | provider IDs |
 | `crew` | `list[dict]` | crew members |
 | `cast` | `list[dict]` | cast members |
 | `title_ratio` | `string` | title matching score |
 | `desc_ratio` | `string` | description matching score |
-| `coverPath` | `string` | cache-relative cover path |
-| `backdropPath` | `string` | cache-relative backdrop path |
-| `imagePath` | `string` | cache-relative image path |
+| `cover_path` | `string` | cache-relative cover path |
+| `backdrop_path` | `string` | cache-relative backdrop path |
+| `image_path` | `string` | cache-relative image path |
 
 ### Crew and cast entry structure
 
@@ -134,7 +134,7 @@ The crew/cast entry format is the same as for series:
 | `name` | `string` | person name |
 | `character` | `string` | played role |
 | `profileId` | `string` | provider-side person ID |
-| `profileUrl` | `string` | image URL |
+| `profile_url` | `string` | image URL |
 
 ---
 

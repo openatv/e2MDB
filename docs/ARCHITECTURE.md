@@ -109,8 +109,8 @@ This design keeps the normal movie-selection workflow intact while upgrading it 
 Important methods:
 
 - `getCacheDir()`
-- `getFullOrgPath(path)`
-- `getReducedOrgPath(org_path)`
+- `get_full_org_path(path)`
+- `get_reduced_org_path(org_path)`
 - `getReducedOrgHash(org_path)`
 - `getPrimaryDatapath(...)`
 - `getSecondaryDatapath(...)`

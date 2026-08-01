@@ -1,5 +1,5 @@
 ########################################################################################################
-# e2MDBproviders by Mr.Servo @OpenATV (c) 2025                                                         #
+# E2MDBProviders by Mr.Servo @OpenATV (c) 2026                                                         #
 # Special thanks to jbleyel @OpenATV for his valuable support in creating the code.                    #
 # -----------------------------------------------------------------------------------------------------#
 # This plugin is licensed under the GNU version 3.0 <https://www.gnu.org/licenses/gpl-3.0.en.html>.    #
@@ -8,367 +8,309 @@
 # For other uses, permission from the authors is necessary.                                            #
 ########################################################################################################
 
-from json import dump
+# PYTHON IMPORTS
+from json import dump, loads
 from getopt import getopt, GetoptError
-from os import remove
-from os.path import isfile
 from re import search
 from sys import exit, argv
+
+# PLUGIN IMPORTS
 try:
-	from .parser.TMDBparser import provider_tmdb
-	from .parser.TVDBparser import provider_tvdb
-	from .parser.OMDBparser import provider_omdb
-	from . import getApiKey
+	from .provider.TMDB import provider_tmdb
+	from .provider.TVDB import provider_tvdb
+	from .provider.OMDB import provider_omdb
+	from .provider.IMDB import provider_imdb
+	from .provider.TVMAZE import provider_tvmaze
+	from .provider.ANIME import provider_anime
+	from .provider.KITSU import provider_kitsu
+	from .provider.FanArt import provider_fanart
 except ImportError:
-	from parser.TMDBparser import provider_tmdb
-	from parser.TVDBparser import provider_tvdb
-	from parser.OMDBparser import provider_omdb
+	from provider.TMDB import provider_tmdb
+	from provider.TVDB import provider_tvdb
+	from provider.OMDB import provider_omdb
+	from provider.IMDB import provider_imdb
+	from provider.TVMAZE import provider_tvmaze
+	from provider.ANIME import provider_anime
+	from provider.KITSU import provider_kitsu
+	from provider.FanArt import provider_fanart
 
-	def getApiKey(provider=None):
-		return None  # fallback for standalone usage without e2MDB plugin
-
+try:
+	from . import write_log
+except ImportError:
+	def write_log(log_text1, log_text2=""):  # in order using E2MDBProviders interactive
+		print(f"{log_text1} {log_text2}")
 
 MODULE_NAME = f"[{__name__.split(".")[-1]}] ".replace("[__main__] ", "")
 
 
-class e2MDBproviders:
+class E2MDBProviders:
 	def __init__(self):
-		self.seriesSearchOrder = [(provider_tmdb, True), (provider_tvdb, True), (provider_omdb, True)]  # (provider, active), will be defined later by the user in setup
-		self.movieSearchOrder = [(provider_tmdb, True), (provider_tvdb, True), (provider_omdb, True)]  # (provider, active), will be defined later by the user in setup
-		self.allKeys = [
-						"countries", "releaseDate", "mediaType", "genres", "voteAverage",
-						"voteCount", "coverUrl", "backdropUrl", "titlelogoUrl", "providerIds"
+		self.series_search_order = {"tvdb": True, "tmdb": True, "tvmaze": False, "anime": False, "kitsu": False, "omdb": True, "imdb": False}
+		self.movie_search_order = {"tmdb": True, "imdb": False, "anime": False, "kitsu": False, "tvdb": True, "omdb": True}
+		self.language = "en-US"
+		self.all_keys = [
+						"countries", "releaseDate", "media_type", "genres", "vote_average",
+						"vote_count", "cover_url", "backdrop_url", "titlelogo_url", "provider_ids"
 						]  # with exception of 'Title' and 'Description', as these receive special treatment
-		self.allProvIds = ["imdb", "tmdb", "tvdb"]
+		self.all_prov_ids = ["imdb", "tmdb", "tvdb", "tvmaze", "anime", "anilist", "kitsu"]
+		self.providers_dict = {"tmdb": provider_tmdb, "tvdb": provider_tvdb, "tvmaze": provider_tvmaze, "anime": provider_anime, "kitsu": provider_kitsu, "imdb": provider_imdb, "omdb": provider_omdb}
+		self.artwork_provider = provider_fanart
+		self.ready_providers = set()
+		self.start_errors = []
+		self.last_search_errors = []
 
-	def start(self, language):
+	def start(self, language, api_keys, series_search_order, movie_search_order):
+		self.series_search_order = series_search_order
+		self.movie_search_order = movie_search_order
 		self.language = language.replace("_", "-")
-		for provider in dict.fromkeys(self.seriesSearchOrder + self.movieSearchOrder):  # initiate all active provider parser
-			if provider[1]:  # provider is active?
-				provider[0].start(self.language, getApiKey(provider[0].getName()))
-
-	def getInfo(self, title, mediaType="multi", year="", desc="", short_desc="", ext_desc="", callback=None, errback=None):
-		if not title:
-			errMsg = f"{MODULE_NAME}ERROR in module 'getInfo': title is missing."
-			return errMsg, {}, {}
-		if not mediaType or mediaType == "multi":
-			estimatedType, matchReason = self.guessCategory(title, desc=desc, short_desc=short_desc)
-			mediaType = estimatedType if estimatedType else "multi"  # 'movie', 'series' or 'multi'
-		print(f"{MODULE_NAME}Gathering data for title '{title}' as media type '{mediaType}'...")
-		errMsg, normDicts = self.gatherProvidersInfo(title, mediaType=mediaType, year=year)
-		if errMsg:
-			if errback:
-				errback(errMsg, {}, {})
-			return errMsg, {}, {}
-		if not normDicts and mediaType != "multi":  # fallback when no result
-			mediaType = "series" if mediaType == "movie" else "movie"  # switch mediaTypes 'movie' and 'series' and try again
-			errMsg, normDicts = self.gatherProvidersInfo(title, mediaType=mediaType, year=year)
-			if errMsg:
-				if errback:
-					errback(errMsg, {}, {})
-				return errMsg, {}, {}
-		errMsg, finalDict = self.assembleFinalResult(normDicts, title, desc=desc, short_desc=short_desc, ext_desc=ext_desc)
-		if errMsg:
-			if errback:
-				errback(errMsg, {}, {})
-			return errMsg, {}, {}
-		if callback:
-			callback(errMsg, normDicts, finalDict)
-		return errMsg, normDicts, finalDict
-
-	def readSeriesIndex(self, providerName, seriesFile):
-		errMsg, seriesIndex = "", ""
-		for provider in self.seriesSearchOrder:
-			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
-				errMsg, seriesIndex = provider[0].readSeriesIndex(seriesFile)
-		return errMsg, seriesIndex
-
-	def writeSeriesIndex(self, providerName, seriesFile, seriesIndex):
-		errMsg = ""
-		for provider in self.seriesSearchOrder:
-			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
-				errMsg = provider[0].writeSeriesIndex(seriesFile, seriesIndex)
-		return errMsg
-
-	def getSeriesIndex(self, providerName, seriesId):
-		errMsg, seriesIndex = "", {}
-		for provider in self.seriesSearchOrder:
-			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
-				errMsg, seriesIndex = provider[0].getSeriesIndex(seriesId)
-		return errMsg, seriesIndex
-
-	def findSeasonEpisode(self, providerName, seriesIndex, episodeDesc=""):
-		seasonEpisode = ()
-		for provider in self.seriesSearchOrder:
-			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
-				seasonEpisode = provider[0].findSeasonEpisode(seriesIndex, episodeDesc)  # e.g. ('1-2', '283766', 'Die Warnung')
-				break
-		return seasonEpisode
-
-	def getEpisodeDetails(self, providerName, seriesId="", episodeId="", seasonNo="", episodeNo=""):
-		errMsg, episodeDict = "", {}
-		for provider in self.seriesSearchOrder:
-			if provider[1] and providerName == provider[0].getName():  # provider is active and equal name?
-				errMsg, episodeDict = provider[0].getEpisodeDetails(seriesId=seriesId, episodeId=episodeId, seasonNo=seasonNo, episodeNo=episodeNo)
-				break
-		return errMsg, episodeDict
-
-	def guessCategory(self, title, desc="", short_desc=""):  # don't use 'ext_desc', it leads to incorrect results
-		def findSeasonsEpisodes(description):  # search for season/episode tags
-			for regex in [r"S\d+E\d+", r"S\d+\/E\d+", r"S\d+\|E\d+"]:  # search for e.g. 'S02E05', 'S02/E05', 'S02|E05'
-				found = search(regex, description.upper())
-				if found:
-					print("#####description1:", description)
-					found = found.group(0).replace("/", "").replace("|", "").replace("(", "").replace(")", "").strip()
-					seasonNo, episodeNo = [str(int(value)) for value in found.upper().replace("S", "").split("E") if value.isdigit()]
-					matchReason = f"S{int(seasonNo):02d}E{int(episodeNo):02d}"
-					print("#####matchReason1:", matchReason)
-					return "series", matchReason  # return in form like 'S02E05'
-			return "", ""
-
-		def findYearTags(description):  # search for year tags
-				for regex in [r"\(\d{4}\)"]:  # search for e.g. '(1997)'
-					found = search(regex, description)
-					if found:
-						print("#####description2:", description)
-						print("#####matchReason2:", found.group(0).strip())
-						return "movie", found.group(0).strip()
-				return "", ""
-
-		def findSeriesKeywords(description):  # search for series keywords
-			seriesKeys = [
-				"serie", "serien", "folge", "episode", "reihe", "staffel", "doku", "magazin",  # DE
-				"serial", "series", "season", "docu", "soap", "talk", "show", "news", "infomercial", "sitcom",  # EN
-				"episodio", "temporada", "telenovela", "reality", "magacín",  # ES
-				"série", "épisode", "saison", "télénovela",  # FR
-				"aflevering", "seizoen",  # NL
-				"episodio", "stagione",  # IT
-				"episódio", "novela",  # PT
-				"avsnitt", "säsong",  # SV
-				"сериал", "серии", "эпизод", "серия", "сезон", "реалити", "журнал",  # RU
-				"seri", "episode", "musim",  # ID
-				"dizi", "bölüm", "sezon",  # TR
-				"سلسلة", "حلقة", "موسم", "واقعي",  # AR
-				"시리즈", "회", "시즌", "리얼리티",  # KO
-				"chuỗi", "tập", "mùa",  # VI
-				"ซีรีส์", "ตอน", "ฤดูกาล",  # TH
-			]  # without duplicate entries. it's sufficient if 'docu' appears once (that's why a word like 'documentation' is meaningless)
-			lowerdesc = description.lower()
-			for tag in seriesKeys:
-				if tag in lowerdesc:
-					print("#####description3:", description)
-					print("#####matchReason3:", tag)
-					return "series", ""
-			return "", ""
-
-		def findMovieKeywords(description):  # search for movie keywords
-			movieKeys = ["film", "movie", "фильм", "кино", "ταινία", "película", "cinéma", "cine", "cinema", "filma"]
-			lowerdesc = description.lower()
-			for tag in movieKeys:
-				if tag in lowerdesc:
-					print("#####description4:", description)
-					print("#####matchReason4:", tag)
-					return "movie", ""
-			return "", ""
-
-		# search titles and all descriptions for typical characteristics in order to identify the media type.
-		for findHelper in [findSeasonsEpisodes, findYearTags, findSeriesKeywords, findMovieKeywords]:
-			mediaType, matchReason = findHelper(title)
-			if mediaType:
-				return mediaType, matchReason
-		for findHelper in [findSeasonsEpisodes, findSeriesKeywords, findMovieKeywords]:
-			for descs in [short_desc, desc]:
-				if descs:
-					mediaType, matchReason = findHelper(descs)
-					if mediaType:
-						return mediaType, matchReason
-		return "", ""
-
-	def gatherProvidersInfo(self, title, mediaType="", year=None):
-		errMsg, normDicts = "", {}
-		providers = self.movieSearchOrder[:] if mediaType == "movie" else self.seriesSearchOrder[:]
-		if mediaType == "multi":
-			if (provider_tmdb, True) in providers:
-				providers.insert(0, providers.pop(providers.index((provider_tmdb, True))))  # make TMDB the first entry
+		self.ready_providers = set()
+		self.start_errors = []
+		self.last_search_errors = []
+		for pvr_name in series_search_order | movie_search_order:  # combine and remove duplicates
+			provider, api_key = self.providers_dict.get(pvr_name), api_keys.get(pvr_name)
+			enabled = bool(series_search_order.get(pvr_name) or movie_search_order.get(pvr_name))
+			if provider and enabled:
+				if api_key or not getattr(provider, "requires_api_key", True):
+					try:
+						provider_error = provider.start(api_key or "", self.language)  # initiate all active provider parser
+					except Exception as err:
+						provider_error = str(err)
+					if provider_error:
+						self.start_errors.append("%s: %s" % (pvr_name, provider_error))
+						write_log(f"{MODULE_NAME} ERROR in module 'E2MDBProviders:start': {provider_error}")
+					else:
+						self.ready_providers.add(pvr_name)
+				else:
+					error = f"missing API-Key for provider '{pvr_name}'"
+					self.start_errors.append(error)
+					write_log(f"{MODULE_NAME} ERROR in module 'E2MDBProviders:start': {error}")
+		if api_keys.get("fanart_active"):
+			# FanArt.tv is used as artwork fallback only. E2MDB needs one personal FanArt.tv API key.
+			fanart_key = api_keys.get("fanart", "")
+			if fanart_key:
+				fanart_err = self.artwork_provider.start(fanart_key, self.language)
+				if fanart_err:
+					self.start_errors.append(str(fanart_err))
+					write_log(f"{MODULE_NAME} ERROR in module 'E2MDBProviders:start': {fanart_err}")
 			else:
-				mediaType = "series"  # fallback to 'series'
-		elif not mediaType:
-			mediaType = "series"  # fallback to 'series'
-		for index, provider in enumerate(providers):
-			if provider[1]:  # provider is active?
-				providerName = provider[0].getName()
-				if index:  # further calls of remaining providers
-					if mediaType == "multi":  # 'multi' is only known in TMDB
-						mediaType = "series"  # fallback to 'series'
-						print(f"{MODULE_NAME}MediaType 'multi' is not supported in {providerName}-search. Continue with '{mediaType}'...")
-				if year == "":
-					year = None
-				errMsg, providerDict = provider[0].getInfo(title, mediaType=mediaType, year=year)
-				normDict = provider[0].createNormalized(providerDict)
-				foundInfo = "found infos" if normDict.get(providerName) else "found nothing"
-				print(f"{MODULE_NAME}Searching for title '{title}' in {providerName} as '{mediaType}'... {foundInfo}")
-				if not index:  # very first call of provider (is forced TMDB in case of 'multi')
-					mediaType = normDict.get("mediatype", "") or mediaType
-					if not mediaType:
-						mediaType = "series"  # fallback to 'series'
-						print(f"{MODULE_NAME}MediaType was missing in {providerName}-search. Continue with '{mediaType}'...")
-				if errMsg:
-					print(f"{MODULE_NAME}ERROR in module 'gatherProvidersInfo': {errMsg}")
-					return errMsg, {}
-				if normDict:
-					normDicts.update(normDict)
-					if normDict.get(providerName, []):  # disable this two lines in order to actvate full search over all providers
-						break  # premature termination on first result
-		return errMsg, normDicts
+				error = "missing personal API-Key for provider 'fanart'"
+				self.start_errors.append(error)
+				write_log(f"{MODULE_NAME} ERROR in module 'E2MDBProviders:start': {error}")
+		else:
+			self.artwork_provider.stop()
+		return "; ".join(self.start_errors)
 
-	def assembleFinalResult(self, normDicts, title, desc="", short_desc="", ext_desc=""):
-		errMsg, finalDict = "", {}
-		missingKeys, missingIds = self.allKeys[:], self.allProvIds[:]
-		abort = False
-		for provider in dict.fromkeys(self.seriesSearchOrder + self.movieSearchOrder):  # use all active provider parser
-			if abort:
+	def get_movie_details(self, pvr_name, movieId):
+		err_msg, movie_dict = "", {}
+		provider = self.get_desired_provider(pvr_name)
+		if provider:
+			err_msg, movie_dict = provider.get_movie_details(movieId)
+			if err_msg:
+				write_log(err_msg)
+		return err_msg, movie_dict
+
+	def get_series_details_index(self, pvr_name, series_id):
+		err_msg, series_dict, episode_index = "", {}, {}
+		provider = self.get_desired_provider(pvr_name)
+		if provider:
+			err_msg, series_dict, episode_index = provider.get_series_details_index(series_id)
+		return err_msg, series_dict, episode_index
+
+	def find_season_episode(self, pvr_name, episode_index, episode_name, plain_season_episode=""):
+		season_episode = ()
+		for name, active in self.series_search_order.items():
+			if name == pvr_name and active:
+				provider = self.providers_dict.get(pvr_name)
+				season_episode = provider.find_season_episode(episode_index, episode_name, plain_season_episode)  # result e.g. ('1-2', '283766', 'Die Warnung')
 				break
-			if provider[1]:  # provider is active?
-				providerName = provider[0].getName()
-				for providerEntry in normDicts.get(providerName, []):
-					if abort:
-						break
-					newTitleDict = providerEntry.get("title", {})
-					newTitleText = newTitleDict.get("text", "")
-					compareTitle = title.replace("–", "").replace("-", "").lower()
-					compareNewTitle = newTitleText.replace("–", "").replace("-", "").lower()
-					if compareTitle in compareNewTitle:  # entry is a qualified source
-						titleDict = finalDict.get("title", {})
-						if titleDict:
-							if titleDict.get("language", "")[:2] != self.language[:2] and newTitleDict.get("language", "")[:2] == self.language[:2]:
-								finalDict["title"] = newTitleDict
-						else:
-							finalDict["title"] = newTitleDict
-						newDescDict = providerEntry.get("description", {})
-						newDescText = newDescDict.get("text", "")
-						if len(newDescText) > 49:  # ignore short descriptions e.g. 'deutscher Spielfilm'
-							finalDescDict = finalDict.get("description", {})  # for future diff-comparison
-							if finalDescDict:
-								if newDescDict.get("language", "")[:2] == self.language[:2] and len(newDescText) > len(finalDescDict.get("text", "")):
-									finalDict["description"] = newDescDict
-							else:
-								finalDict["description"] = newDescDict
-						for missingKey in missingKeys[:]:  # fill-up finalDict
-							item = providerEntry.get(missingKey, "")
-							if item:
-								finalDict[missingKey] = item
-								missingKeys.remove(missingKey)
-						for missingId in missingIds[:]:
-							item = providerEntry.get("providerIds", {}).get(missingId, "")
-							if item:
-								if not finalDict.get("providerIds"):
-									finalDict["providerIds"] = {}
-								finalDict["providerIds"][missingId] = item
-								missingIds.remove(missingId)
-						if not missingKeys and not missingIds:
-							abort = True  # premature termination when normDicts is complete
-							break
-						abort = True  # premature termination when normDicts is complete
-						if finalDict:
-							finalDict["source"] = providerName
-							break
-		return errMsg, finalDict
+		return season_episode
+
+	def get_season_details(self, pvr_name, series_dict, season_no):  # 'series_id' and 'season_no' is only required by TMDB, they don't accept 'season_id'
+		err_msg, season_dict = "", {}
+		provider = self.get_desired_provider(pvr_name)
+		if provider:
+			err_msg, season_dict = provider.get_season_details(series_dict, season_no)
+			if err_msg:
+				write_log(err_msg)
+		return err_msg, season_dict
+
+	def get_episode_details(self, pvr_name, series_id, episode_id, season_no, episode_no):
+		err_msg, episode_dict = "", {}
+		provider = self.get_desired_provider(pvr_name)
+		if provider:
+			err_msg, episode_dict = provider.get_episode_details(series_id, episode_id, season_no, episode_no)
+			if err_msg:
+				write_log(err_msg)
+		return err_msg, episode_dict
+
+	def get_asset_details(self, pvr_name, asset_id, category, season_no="", episode_no=""):  # get asset infos acc. provider, Id and category
+		# TVDB and OMDB uses ids for "series", "season", "episode", "movie", although ODB does not support either 'series' or 'episodes'
+		# TMDB uses ids for movies only, for "series", "season", "episode" TMDB uses series_id+season_no+episode_no only
+		err_msg, asset_dict = "", {}
+		provider = self.get_desired_provider(pvr_name)
+		if provider:
+			err_msg, asset_dict = provider.get_asset_details(category, asset_id, season_no=season_no, episode_no=episode_no)
+			if err_msg:
+				write_log(err_msg)
+		return err_msg, asset_dict
+
+	def get_fanart_artwork(self, final_dict):
+		"""Return FanArt artwork matching the already selected media item."""
+		if not self.artwork_provider.is_active() or not final_dict:
+			return "", {}
+		provider_ids = dict(final_dict.get("provider_ids", {}) or {})
+		media_type = final_dict.get("media_type", "")
+		if media_type == "series" and final_dict.get("series_id") and not provider_ids.get("tvdb") and final_dict.get("provider") == "tvdb":
+			provider_ids["tvdb"] = final_dict.get("series_id")
+		season_no = final_dict.get("season_no", "")
+		err_msg, artwork_dict = self.artwork_provider.get_e2mdb_artwork(provider_ids, media_type, season_no)
+		if err_msg and "No FanArt artwork found" not in str(err_msg):
+			write_log(f"{MODULE_NAME} FanArt artwork fill skipped: {err_msg}")
+		return err_msg, artwork_dict
+
+	def get_desired_provider(self, pvr_name):
+		search_order = self.series_search_order or self.movie_search_order or {}
+		for name, active in search_order.items():
+			if name == pvr_name and active:
+				return self.providers_dict.get(pvr_name)
+		return self.providers_dict.get(pvr_name) if pvr_name in self.providers_dict else None
+
+	def get_active_provider_order(self, source_order, special_first=False, manga_only=False):
+		"""Return an ordered provider map without forcing TMDB ahead of the configured order."""
+		ordered = {}
+		special_providers = ("anime", "kitsu")
+		if special_first:
+			for name in special_providers:
+				active = bool(self.series_search_order.get(name) or self.movie_search_order.get(name))
+				if active:
+					ordered[name] = True
+		if manga_only:
+			return {name: bool(active and name in self.ready_providers) for name, active in ordered.items()}
+		for name, active in (source_order or {}).items():
+			if name in special_providers:
+				if not special_first and active:
+					ordered[name] = bool(active)
+				continue
+			ordered[name] = bool(active)
+		return {name: bool(active and name in self.ready_providers) for name, active in ordered.items()}
+
+	def get_provider_media_types(self, pvr_name, estimated_type):
+		"""Map the requested media family to provider search modes.
+
+		Series and movie scans are intentionally strict here: a confirmed series no
+		longer searches movie endpoints, and a confirmed movie no longer searches
+		series endpoints. Mixed searches still use both families.
+		"""
+		is_special_provider = pvr_name in ("anime", "kitsu")
+		match estimated_type:
+			case "anime":
+				return ["anime"] if is_special_provider else (["series", "movie"] if pvr_name != "tmdb" else ["multi"])
+			case "anime_series":
+				return ["series"]
+			case "anime_movie":
+				return ["movie"]
+			case "manga" | "manga_series" | "manga_movie":
+				return ["manga"] if is_special_provider else []
+			case "multi":
+				return ["multi"] if pvr_name == "tmdb" else ["series", "movie"]
+			case "series":
+				return ["series"]
+			case "movie":
+				return ["movie"]
+			case _:
+				return ["multi"] if pvr_name == "tmdb" else ["series", "movie"]
+
+	def gather_providers_info(self, title, estimated_type, year):
+		norm_dicts = []
+		self.last_search_errors = []
+		estimated_type = str(estimated_type or "multi")
+		anime_or_manga = estimated_type in ("anime", "manga", "anime_series", "anime_movie", "manga_series", "manga_movie")
+		manga_only = estimated_type in ("manga", "manga_series", "manga_movie")
+		if estimated_type in ("movie", "anime_movie", "manga_movie"):
+			base_order = self.movie_search_order.copy()
+		elif estimated_type == "multi":
+			base_order = self.series_search_order.copy()
+		else:
+			base_order = self.series_search_order.copy()
+		search_order_dict = self.get_active_provider_order(base_order, special_first=anime_or_manga, manga_only=manga_only)
+		write_log(f"{MODULE_NAME} Gathering data for title '{title}' as '{estimated_type}' using providers: {', '.join([name for name, active in search_order_dict.items() if active]) or 'none'}")
+		for pvr_name, active in search_order_dict.items():  # go through all active providers
+			if not active:
+				continue
+			provider = self.providers_dict.get(pvr_name)
+			media_types = self.get_provider_media_types(pvr_name, estimated_type)
+			for media_type in media_types:
+				if provider:
+					try:
+						err_msg, pvr_dicts = provider.get_result_dicts(title, media_type=media_type, year=year if year else None)
+					except Exception as err:
+						err_msg, pvr_dicts = str(err), {}
+					if err_msg:
+						self.last_search_errors.append("%s: %s" % (pvr_name, err_msg))
+						write_log(err_msg)
+						continue
+					write_log(f"{MODULE_NAME} - '{pvr_name}' search result as '{media_type}': {'found infos' if pvr_dicts else 'found nothing'}")
+					if pvr_dicts:
+						for item in pvr_dicts:
+							if isinstance(item, dict):
+								item["_provider_priority"] = list(search_order_dict.keys()).index(pvr_name)
+						norm_dicts += pvr_dicts
+		return norm_dicts
 
 
-e2mdbproviders = e2MDBproviders()
-
-"""
-class e2MDBProvider():
-	def __init__(self):
-		pass
-
-	def getInfo(self, title, year=None, description=None, season=None, episode=None):
-		raise NotImplementedError("This method should be overridden by subclasses")
-"""
+providers = E2MDBProviders()
 
 
 def main(argv):  # shell interface
-	normFile, finalFile, seriesFile, title, language, mediaType, year = "", "", "", "", "", "", ""
-	finalDict = {}
-	helpstring = "providers v0.1: try 'python providers.py -h' for more information"
+	title, language, media_type, year, api_keys = "the+blacklist", "en-US", "", "", {}
+	helpstring = "E2MDBProviders v0.1: try 'python E2MDBProviders.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "n:f:q:l:m:sh", ["normalized=", "finalresult=", "query=", "language=", "mediatype=", "seriesinfo"])
+		opts, args = getopt(argv, "q:l:m:a:h", ["query=", "language=", "media_type=", "api_keys=", "help"])
 	except GetoptError as error:
-		print(f"Error: {error}\n{helpstring}")
+		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
 	for opt, arg in opts:
 		opt = opt.lower().strip()
 		arg = arg.strip().strip()
 		if not opts or opt == "-h":
-			print("Usage 'providers v0.1': python providers.py [option...] <data>\n"
-			"Example: python providers.py -q Titanic -n normalized.json\n"
+			write_log("Usage 'E2MDBProviders v0.1': python E2MDBProviders.py [option...] <data>\n"
+			"Example: python E2MDBProviders.py -q the+blacklist -l de-DE -m series -a \"{'tmdb': 'APIkey', 'tvdb': 'APIkey', 'omdb': 'APIkey', 'imdb': ''}\"\n"
 			"-q, --query <options>\t\tget result list\n"
 			"-l, --language <options>\tset language formatted like 'en-US'\n"
-			"-m, --mediatype <options>\tset media type 'multi', 'movie' or 'series' (default 'multi')\n"
-			"-n, --normalized <filename>\tfile output of single normalized result, formatted as JSON\n"
-			"-f, --finalresult <filename>\tfile output of normalized single final result, formatted as JSON\n"
-			"-s, --seriesinfo\tfile output of all seasons and episodes of a series, formatted as JSON\n")
+			"-m, --media_type <options>\tset media type 'multi', 'movie', 'series', 'anime' or 'manga' (default 'multi')\n"
+			"-a, --api_keys <api_keys>\tyour personal API-Keys e.g. \"{'tmdb': '123', 'tvdb': '456', 'omdb': '789'}\"")
 			exit()
 		elif opt in ("-q", "--query"):
 			title = arg.replace("+", " ").strip()
-		elif opt in ("-n", "--normalized"):
-			normFile = arg
-		elif opt in ("-f", "--finalresult"):
-			finalFile = arg
-		elif opt in ("-s", "--seriesinfo"):
-			seriesFile = ".json"
 		elif opt in ("-l", "--language"):
 			language = arg.replace("_", "-")
-		elif opt in ("-m", "--mediatype"):
-			mediaType = arg
-		if not mediaType:
+		elif opt in ("-m", "--media_type"):
+			media_type = arg
+		elif opt in ("-a", "--api_keys"):
+			api_keys = loads(arg.replace("'", "\""))
+		if not media_type:
 			found = search(r"\(\d{4}\)", title)  # search for e.g. '(1997)'
 			if found:
 				found = found.group(0)
 				title = title.replace(found, "")[::-1].replace(found, "").replace("+", " ", 1)[::-1].strip()  # replace one '+' from right side
-				mediaType, year = "movie", found.replace("(", "").replace(")", "").strip()
+				media_type, year = "movie", found.replace("(", "").replace(")", "").strip()
 			else:
-				mediaType = "multi"  # set fallback
-	if title and language:
-		e2mdbproviders.start(language)
-		errMsg, normDicts, finalDict = e2mdbproviders.getInfo(title, mediaType=mediaType, year=year)
-		if errMsg:
-			exit(2)
-		if normDicts and normFile:
-			with open(normFile, "w") as file:
-				dump(normDicts, file)
-			print(f"All results normalized JSON file '{normFile}' was successfully created.")
-		if finalDict and finalFile:
-			with open(finalFile, "w") as file:
-				dump(finalDict, file)
-			print(f"All results original JSON file '{finalFile}' was successfully created.")
-		if finalDict and seriesFile:
-			finalProvider = finalDict.get("source", "")
-			if finalProvider:
-				seriesId = str(finalDict.get("providerIds", {}).get(finalProvider, 0))  # e.g. '597'
-				mediaType = finalDict.get("mediaType", "")  # e.g. 'movie' or 'series'
-				if seriesId and mediaType == "series":  # special episode search for series
-					seriesFile = f"{finalProvider}_{seriesId}{seriesFile}"
-					if isfile(seriesFile):
-						errMsg, seriesIndex = e2mdbproviders.readSeriesIndex(finalProvider, seriesFile)
-						if errMsg:
-							remove(seriesFile)
-						else:
-							print(f"Series index file '{seriesFile}' was successfully loaded from cache.")
-					else:
-						print("Download series info index...")
-						errMsg, seriesIndex = e2mdbproviders.getSeriesIndex(finalProvider, seriesId)
-						if errMsg:
-							print(f"Error creating series info: {errMsg}")
-						elif seriesIndex and len(seriesIndex) > 1:
-							errMsg = e2mdbproviders.writeSeriesIndex(finalProvider, seriesFile, seriesIndex)
-							if errMsg:
-								print(f"ERROR: Series info index file '{seriesFile}' was not created.")
-							else:
-								print(f"Series info index file '{seriesFile}' was successfully created.")
+				media_type = "multi"  # set fallback
+	if title and api_keys:
+		series_search_order = {"tvdb": True, "tmdb": True, "tvmaze": True, "anime": True, "kitsu": True, "omdb": True, "imdb": True}
+		movie_search_order = {"tmdb": True, "imdb": True, "anime": True, "kitsu": True, "tvdb": True, "omdb": True}
+		if not language:
+			language = "en-US"
+			write_log("ERROR getting data: 'Language' is missing, using 'en_US' instead.")
+		providers.start(language, api_keys, series_search_order, movie_search_order)
+		norm_dicts = providers.gather_providers_info(title, media_type, year)
+		if norm_dicts:
+			file_name = "e2MDB_norm_dicts.json"
+			with open(file_name, "w") as file:
+				dump(norm_dicts, file)
+			write_log(f"All results normalized JSON file '{file_name}' was successfully created.")
 	else:
-		errMsg = "'Title' or 'language' is missing"
-		print("ERROR getting data:", errMsg)
+		write_log("ERROR getting data: 'Title' or the dict 'api_keys' is missing.")
 
 
 if __name__ == "__main__":

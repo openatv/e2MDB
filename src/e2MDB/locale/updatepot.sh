@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to generate po files outside of the normal build process
-#  
+#
 # Pre-requisite:
 # The following tools must be installed on your system and accessible from path
 # gawk, find, xgettext, sed, python, msguniq, msgmerge, msgattrib, msgfmt, msginit
@@ -10,7 +10,7 @@
 # Author: Pr2 for OpenPLi Team
 # Version: 1.1
 #
-# Retrieve languages from Makefile.am LANGS variable for backward compatibility
+# Retrieve languages from the Makefile.am LANGS variable.
 #
 localgsed="sed"
 findoptions=""
@@ -79,7 +79,7 @@ cat e2MDB-py.pot e2MDB-xml.pot | msguniq -s --no-wrap --no-location -o e2MDB.pot
 #$localgsed -i -e'/POT-Creation/d' enigma2.pot
 
 for lang in "${languages[@]}" ; do
-	if [ -f $lang.po ]; then 
+	if [ -f $lang.po ]; then
 		printf "Updating existing translation file $lang.po\n"
 		msgmerge --backup=none --no-wrap --no-location -s -U $lang.po $plugin.pot && touch $lang.po
 		msgattrib --no-wrap --no-obsolete $lang.po -o $lang.po
