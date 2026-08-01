@@ -41,18 +41,20 @@ DEFAULT_SERIES_ORDER = {
 	"tvdb": True,
 	"tmdb": True,
 	"tvmaze": False,
+	"cinemeta": False,
 	"anime": False,
 	"kitsu": False,
 	"omdb": True,
-	"imdb": False,
+	# "imdb": False,  # IMDB provider disabled, keep provider/IMDB.py in place
 }
 DEFAULT_MOVIE_ORDER = {
 	"tmdb": True,
-	"imdb": False,
+	"cinemeta": False,
 	"anime": False,
 	"kitsu": False,
 	"tvdb": True,
 	"omdb": True,
+	# "imdb": False,  # IMDB provider disabled, keep provider/IMDB.py in place
 }
 
 
@@ -289,7 +291,7 @@ class BackendProviderEnricher:
 			"tmdb": provider_settings.get("tmdb_api_key", ""),
 			"tvdb": provider_settings.get("tvdb_api_key", ""),
 			"omdb": provider_settings.get("omdb_api_key", ""),
-			"imdb": provider_settings.get("imdb_api_key", ""),
+			# "imdb": provider_settings.get("imdb_api_key", ""),  # IMDB provider disabled, keep provider/IMDB.py in place
 			"fanart": artwork_settings.get("fanart_api_key", ""),
 			"fanart_active": bool(artwork_settings.get("fanart_enabled", False)),
 		}
@@ -301,9 +303,10 @@ class BackendProviderEnricher:
 		movie_order["tvdb"] = bool(provider_settings.get("tvdb_enabled", True))
 		series_order["omdb"] = bool(provider_settings.get("omdb_enabled", False))
 		movie_order["omdb"] = bool(provider_settings.get("omdb_enabled", False))
-		series_order["imdb"] = bool(provider_settings.get("imdb_enabled", False))
-		movie_order["imdb"] = bool(provider_settings.get("imdb_enabled", False))
+		# "imdb" intentionally left out of series_order/movie_order: IMDB provider disabled, keep provider/IMDB.py in place
 		series_order["tvmaze"] = bool(provider_settings.get("tvmaze_enabled", False))
+		series_order["cinemeta"] = bool(provider_settings.get("cinemeta_enabled", False))
+		movie_order["cinemeta"] = bool(provider_settings.get("cinemeta_enabled", False))
 		series_order["anime"] = bool(provider_settings.get("anime_enabled", False))
 		movie_order["anime"] = bool(provider_settings.get("anime_enabled", False))
 		series_order["kitsu"] = bool(provider_settings.get("kitsu_enabled", False))

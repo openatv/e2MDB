@@ -1196,8 +1196,9 @@ class E2MDBScanner(E2MDBHelper):
 			"tmdb": config.plugins.e2mdb.tmdbapikey.value or tmdb,
 			"tvdb": config.plugins.e2mdb.tvdbapikey.value or tvdb,
 			"omdb": config.plugins.e2mdb.omdbapikey.value or omdb,
-			"imdb": "",
+			# "imdb": "",  # IMDB provider disabled, keep provider/IMDB.py in place
 			"tvmaze": "",
+			"cinemeta": "",
 			"anime": "",
 			"kitsu": "",
 			"fanart": config.plugins.e2mdb.fanartapikey.value,
@@ -1207,18 +1208,20 @@ class E2MDBScanner(E2MDBHelper):
 			"tvdb": config.plugins.e2mdb.tvdbactive.value,
 			"tmdb": config.plugins.e2mdb.tmdbactive.value,
 			"tvmaze": config.plugins.e2mdb.tvmazeactive.value,
+			"cinemeta": config.plugins.e2mdb.cinemetaactive.value,
 			"anime": config.plugins.e2mdb.animeactive.value,
 			"kitsu": config.plugins.e2mdb.kitsuactive.value,
 			"omdb": config.plugins.e2mdb.omdbactive.value,
-			"imdb": config.plugins.e2mdb.imdbactive.value
+			# "imdb": config.plugins.e2mdb.imdbactive.value,  # IMDB provider disabled, keep provider/IMDB.py in place
 		}
 		movie_search_order = {
 			"tmdb": config.plugins.e2mdb.tmdbactive.value,
+			"cinemeta": config.plugins.e2mdb.cinemetaactive.value,
 			"anime": config.plugins.e2mdb.animeactive.value,
 			"kitsu": config.plugins.e2mdb.kitsuactive.value,
 			"omdb": config.plugins.e2mdb.omdbactive.value,
 			"tvdb": config.plugins.e2mdb.tvdbactive.value,
-			"imdb": config.plugins.e2mdb.imdbactive.value
+			# "imdb": config.plugins.e2mdb.imdbactive.value,  # IMDB provider disabled, keep provider/IMDB.py in place
 		}
 		return providers.start(self.language, api_keys, series_search_order, movie_search_order)  # start all providers with default language
 
