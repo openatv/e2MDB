@@ -79,20 +79,7 @@ def _describe_source(source):
 		meta = {}
 	service = _get_service_from_source(source)
 	event = _get_event_from_source(source)
-	return "id=%s class=%s service='%s' event_id=%s begin=%s title='%s' meta_source_key='%s' meta_cover='%s' meta_backdrop='%s' meta_image='%s' empty=%s clear_reason='%s'" % (
-		id(source),
-		source.__class__.__name__,
-		_service_ref_to_string(service),
-		_safe_event_id(event),
-		_safe_event_begin(event),
-		_safe_event_title(event),
-		(meta or {}).get("source_key", "") if isinstance(meta, dict) else "",
-		(meta or {}).get("cover_path", "") if isinstance(meta, dict) else "",
-		(meta or {}).get("backdrop_path", "") if isinstance(meta, dict) else "",
-		(meta or {}).get("image_path", "") if isinstance(meta, dict) else "",
-		(meta or {}).get("e2mdb_empty", "") if isinstance(meta, dict) else "",
-		(meta or {}).get("e2mdb_clear_reason", "") if isinstance(meta, dict) else "",
-	)
+	return f"id={id(source)} class={source.__class__.__name__} service='{_service_ref_to_string(service)}' event_id={_safe_event_id(event)} begin={_safe_event_begin(event)} title='{_safe_event_title(event)}' meta_source_key='{(meta or {}).get("source_key", "") if isinstance(meta, dict) else ""}' meta_cover='{(meta or {}).get("cover_path", "") if isinstance(meta, dict) else ""}' meta_backdrop='{(meta or {}).get("backdrop_path", "") if isinstance(meta, dict) else ""}' meta_image='{(meta or {}).get("image_path", "") if isinstance(meta, dict) else ""}' empty={(meta or {}).get("e2mdb_empty", "") if isinstance(meta, dict) else ""} clear_reason='{(meta or {}).get("e2mdb_clear_reason", "") if isinstance(meta, dict) else ""}'"
 
 
 def _enabled():
@@ -248,7 +235,7 @@ def _service_cache_paths(media_path):
 		helper = E2MDBHelper()
 		return helper.get_reduced_org_hash(media_path), helper.get_primary_datapath(media_path)
 	except Exception as err:
-		_debug("SERVICE DB helper failed path='%s' error=%s" % (media_path, err))
+		_debug(f"SERVICE DB helper failed path='{media_path}' error={err}")
 		return "", ""
 
 
@@ -282,7 +269,7 @@ def _find_media_metadata_by_path(media_path):
 			if row:
 				return hash_id, json_path, row, resultsdb.get_media_display_data(hash_id) or {}
 	except Exception as err:
-		_debug("SERVICE DB hash lookup failed path='%s' hash='%s' error=%s" % (media_path, hash_id, err))
+		_debug(f"SERVICE DB hash lookup failed path='{media_path}' hash='{hash_id}' error={err}")
 
 	try:
 		folder = media_path.rsplit("/", 1)[0] if "/" in media_path else ""
@@ -304,7 +291,7 @@ def _find_media_metadata_by_path(media_path):
 				data = resultsdb.get_media_display_data(hash_id) if hash_id else {}
 				return hash_id, json_path, db_row, data or {}
 	except Exception as err:
-		_debug("SERVICE DB path lookup failed path='%s' error=%s" % (media_path, err))
+		_debug(f"SERVICE DB path lookup failed path='{media_path}' error={err}")
 	return hash_id, json_path, {}, {}
 
 
@@ -325,13 +312,13 @@ def _update_source_meta_from_service_path(source, service, reason="refresh", not
 	hash_id, json_path, db_row, data = _find_media_metadata_by_path(media_path)
 	if not db_row or not _media_row_has_display_metadata(db_row):
 		if log_miss:
-			_debug("SERVICE DB miss reason=%s service='%s' path='%s' hash='%s'" % (reason, _service_ref_to_string(service), media_path, hash_id or ""))
+			_debug(f"SERVICE DB miss reason={reason} service='{_service_ref_to_string(service)}' path='{media_path}' hash='{hash_id or ""}'")
 		return False
 
 	title = _service_path_title(media_path, data)
 	event_row = dict(db_row)
 	event_row.update({
-		"source_key": "media:%s" % (hash_id or media_path),
+		"source_key": f"media:{hash_id or media_path}",
 		"title": title,
 		"search_title": title,
 		"short_desc": data.get("episode_name") or data.get("tagline") or "",
@@ -342,7 +329,7 @@ def _update_source_meta_from_service_path(source, service, reason="refresh", not
 	meta = build_epg_skin_data(candidate=None, event_row=event_row)
 	try:
 		meta.update({
-			"source_key": "media:%s" % (hash_id or media_path),
+			"source_key": f"media:{hash_id or media_path}",
 			"service_ref": _service_ref_to_string(service),
 			"event_id": 0,
 			"begin_time": 0,
@@ -354,22 +341,14 @@ def _update_source_meta_from_service_path(source, service, reason="refresh", not
 		source.setMeta(meta)
 		register_meta_source(meta.get("source_key") or "", source)
 	except Exception as err:
-		_debug("SERVICE DB setMeta failed reason=%s path='%s' error=%s" % (reason, media_path, err))
+		_debug(f"SERVICE DB setMeta failed reason={reason} path='{media_path}' error={err}")
 		return False
 
 	key_id = id(source)
 	last_key = _MetaState.last_keys.get(key_id)
 	if last_key != meta.get("source_key"):
 		_MetaState.last_keys[key_id] = meta.get("source_key")
-		_log("SERVICE DB HIT reason=%s source_key=%s service='%s' path='%s' debug_json='%s' title='%s' cover='%s'" % (
-			reason,
-			meta.get("source_key") or "",
-			_service_ref_to_string(service),
-			media_path,
-			json_path,
-			title,
-			meta.get("cover_path") or "",
-		), force=True)
+		_log(f"SERVICE DB HIT reason={reason} source_key={meta.get("source_key") or ""} service='{_service_ref_to_string(service)}' path='{media_path}' debug_json='{json_path}' title='{title}' cover='{meta.get("cover_path") or ""}'", force=True)
 	if notify:
 		try:
 			source.changed((source.CHANGED_ALL,))
@@ -387,7 +366,7 @@ def _queue_needed(existing, now, candidate_search_title=""):
 	if status in ("matched", "done") and json_path and (expires_at <= 0 or expires_at > now):
 		missing_images = _actionable_missing_images(existing)
 		if missing_images:
-			return True, "fresh-missing-images:%s" % ",".join(missing_images)
+			return True, f"fresh-missing-images:{",".join(missing_images)}"
 		return False, "fresh-provider-data"
 	if status == "no_match" and expires_at > now:
 		stored_search_title = existing.get("search_title") or ""
@@ -485,7 +464,7 @@ def _get_provider_asset_meta(source_key):
 				"asset_confidence": row[8] or 0,
 			}
 	except Exception as err:
-		_debug("ASSET fallback failed source_key=%s error=%s" % (source_key, err))
+		_debug(f"ASSET fallback failed source_key={source_key} error={err}")
 	return {}
 
 
@@ -508,15 +487,7 @@ def _apply_provider_asset_fallback(meta, source_key, reason=""):
 	if not meta.get("media_type") and asset.get("asset_media_type"):
 		meta["media_type"] = asset.get("asset_media_type") or ""
 	if changed:
-		_log("ASSET FALLBACK reason=%s source_key=%s fields=%s cover='%s' backdrop='%s' provider=%s provider_id=%s" % (
-			reason,
-			source_key,
-			",".join(changed),
-			meta.get("cover_path") or "",
-			meta.get("backdrop_path") or "",
-			asset.get("provider") or "",
-			asset.get("provider_id") or "",
-		), force=True)
+		_log(f"ASSET FALLBACK reason={reason} source_key={source_key} fields={",".join(changed)} cover='{meta.get("cover_path") or ""}' backdrop='{meta.get("backdrop_path") or ""}' provider={asset.get("provider") or ""} provider_id={asset.get("provider_id") or ""}", force=True)
 	return meta
 
 
@@ -584,16 +555,9 @@ def _promote_event_next_to_ad_hoc(source, candidate, event_row=None, reason="com
 			"state": "pending" if state != "running" else state,
 		})
 	except Exception as err:
-		_log("EVENT_NEXT PROMOTE queue update failed source_key=%s error=%s" % (candidate.source_key, err), force=True)
+		_log(f"EVENT_NEXT PROMOTE queue update failed source_key={candidate.source_key} error={err}", force=True)
 		return False
-	_log("EVENT_NEXT PROMOTE source_key=%s old_reason=%s state=%s priority=%s title='%s' trigger=%s" % (
-		candidate.source_key,
-		queue_item.get("reason") or "",
-		state,
-		priority,
-		candidate.title,
-		reason or "",
-	), force=True)
+	_log(f"EVENT_NEXT PROMOTE source_key={candidate.source_key} old_reason={queue_item.get("reason") or ""} state={state} priority={priority} title='{candidate.title}' trigger={reason or ""}", force=True)
 	return _request_ad_hoc(source, candidate, reason="promoted-event-next-now")
 
 
@@ -606,10 +570,10 @@ def _request_ad_hoc(source, candidate, reason="component-meta"):
 	if is_epg_worker_paused_for_open_epg():
 		return False
 	if not _is_now_source(source):
-		_log("ADHOC SKIP source_key=%s reason=not-now-source trigger=%s" % (candidate.source_key, reason))
+		_log(f"ADHOC SKIP source_key={candidate.source_key} reason=not-now-source trigger={reason}")
 		return False
 	if not _is_ad_hoc_reason(reason):
-		_log("ADHOC SKIP source_key=%s reason=unsupported-trigger trigger=%s" % (candidate.source_key, reason))
+		_log(f"ADHOC SKIP source_key={candidate.source_key} reason=unsupported-trigger trigger={reason}")
 		return False
 
 	# Important: skins may use session.Event_Now while the first update happened on screen['Event_Now'].
@@ -618,37 +582,30 @@ def _request_ad_hoc(source, candidate, reason="component-meta"):
 
 	queue_item = resultsdb.get_fetch_queue_item(candidate.source_key)
 	if queue_item and (queue_item.get("state") or "") == "running":
-		_log("ADHOC ATTACH source_key=%s reason=already-running trigger=%s source_id=%s" % (candidate.source_key, reason, id(source)))
+		_log(f"ADHOC ATTACH source_key={candidate.source_key} reason=already-running trigger={reason} source_id={id(source)}")
 		return False
 	now = int(time())
 	last = int(_MetaState.ad_hoc_last_request.get(candidate.source_key) or 0)
 	if candidate.source_key in _MetaState.ad_hoc_running and now - last < 30:
-		_log("ADHOC ATTACH source_key=%s reason=already-requested trigger=%s source_id=%s" % (candidate.source_key, reason, id(source)))
+		_log(f"ADHOC ATTACH source_key={candidate.source_key} reason=already-requested trigger={reason} source_id={id(source)}")
 		return False
 
 	_MetaState.ad_hoc_running.add(candidate.source_key)
 	_MetaState.ad_hoc_last_request[candidate.source_key] = now
-	_queue_event(candidate, priority=COMPONENT_META_ADHOC_PRIORITY, reason="%s-adhoc" % (reason or "component-meta"))
+	_queue_event(candidate, priority=COMPONENT_META_ADHOC_PRIORITY, reason=f"{reason or "component-meta"}-adhoc")
 	try:
 		from .E2MDBBackendLiveBridge import request_backend_live_epg_processing
 		started = request_backend_live_epg_processing(candidate.source_key, callback=None, priority=COMPONENT_META_ADHOC_PRIORITY, reason=reason)
 		_MetaState.ad_hoc_running.discard(candidate.source_key)
 		_MetaState.ad_hoc_sources.pop(candidate.source_key, None)
-		_log("ADHOC BACKEND WAKE source_key=%s started=%s priority=%s trigger=%s title='%s' source_id=%s" % (
-			candidate.source_key,
-			started,
-			COMPONENT_META_ADHOC_PRIORITY,
-			reason,
-			candidate.title,
-			id(source),
-		), force=True)
+		_log(f"ADHOC BACKEND WAKE source_key={candidate.source_key} started={started} priority={COMPONENT_META_ADHOC_PRIORITY} trigger={reason} title='{candidate.title}' source_id={id(source)}", force=True)
 		if not started:
 			# Keep it upgraded in queue. No callback will happen, so allow another request later.
 			_MetaState.ad_hoc_running.discard(candidate.source_key)
 		return bool(started)
 	except Exception as err:
 		_MetaState.ad_hoc_running.discard(candidate.source_key)
-		_log("ADHOC REQUEST failed source_key=%s error=%s" % (candidate.source_key, err), force=True)
+		_log(f"ADHOC REQUEST failed source_key={candidate.source_key} error={err}", force=True)
 		return False
 
 
@@ -686,24 +643,24 @@ def _clear_source_meta(source, reason="clear", notify=True):
 			setattr(source, "_e2mdb_meta_generation", _source_generation(source) + 1)
 		except Exception:
 			pass
-		_debug("CLEAR before reason=%s %s" % (reason, _describe_source(source)))
+		_debug(f"CLEAR before reason={reason} {_describe_source(source)}")
 		source.setMeta(_empty_meta(reason))
 	except Exception as err:
-		_debug("CLEAR failed reason=%s error=%s" % (reason, err))
+		_debug(f"CLEAR failed reason={reason} error={err}")
 		return False
 	if notify:
 		try:
 			source.changed((source.CHANGED_ALL,))
-			_debug("CLEAR notify reason=%s %s" % (reason, _describe_source(source)))
+			_debug(f"CLEAR notify reason={reason} {_describe_source(source)}")
 		except Exception as err:
-			_debug("CLEAR notify failed reason=%s error=%s" % (reason, err))
+			_debug(f"CLEAR notify failed reason={reason} error={err}")
 	return True
 
 
 def _update_source_meta_now(source, reason="refresh", notify=True):
-	_debug("UPDATE_NOW start reason=%s %s" % (reason, _describe_source(source)))
+	_debug(f"UPDATE_NOW start reason={reason} {_describe_source(source)}")
 	result = update_source_meta(source, reason=reason, notify=notify)
-	_debug("UPDATE_NOW end reason=%s result=%s %s" % (reason, result, _describe_source(source)))
+	_debug(f"UPDATE_NOW end reason={reason} result={result} {_describe_source(source)}")
 	return result
 
 
@@ -726,7 +683,7 @@ def _set_open_epg_cache_only_meta(source, service, event, reason="refresh", noti
 		source.setMeta(meta)
 		return True
 	except Exception as err:
-		_debug("CACHE_ONLY meta failed reason=%s error=%s" % (reason, err))
+		_debug(f"CACHE_ONLY meta failed reason={reason} error={err}")
 		return False
 
 
@@ -752,7 +709,7 @@ def update_source_meta(source, reason="refresh", notify=False):
 	service = _get_service_from_source(source)
 	usable, skip_reason = _is_usable_service(service)
 	if not usable:
-		_debug("UPDATE skip reason=%s %s" % (skip_reason, _describe_source(source)))
+		_debug(f"UPDATE skip reason={skip_reason} {_describe_source(source)}")
 		try:
 			source.setMeta(_empty_meta(f"skip-{skip_reason}"))
 		except Exception:
@@ -774,7 +731,7 @@ def update_source_meta(source, reason="refresh", notify=False):
 
 	# Prefer the normal scanner cache for MoviePlayer/local files when it exists.
 	# Live/EPG services simply fall through to the event-based path below.
-	if _update_source_meta_from_service_path(source, service, reason="%s-service-cache" % (reason or "refresh"), notify=notify, log_miss=False):
+	if _update_source_meta_from_service_path(source, service, reason=f"{reason or "refresh"}-service-cache", notify=notify, log_miss=False):
 		return True
 
 	if not event:
@@ -784,7 +741,7 @@ def update_source_meta(source, reason="refresh", notify=False):
 		# an event exists.
 		if _update_source_meta_from_service_path(source, service, reason=reason, notify=notify):
 			return True
-		_debug("UPDATE skip reason=no-event %s" % _describe_source(source))
+		_debug(f"UPDATE skip reason=no-event {_describe_source(source)}")
 		try:
 			source.setMeta(_empty_meta("skip-no-event"))
 		except Exception:
@@ -794,10 +751,9 @@ def update_source_meta(source, reason="refresh", notify=False):
 	adapter = E2MDBLiveEPG()
 	candidate = adapter.event_to_candidate(service, event, service_name=_service_name(service), source_type=adapter.SOURCE_EPG)
 	if not candidate.source_key or not candidate.title:
-		_debug("UPDATE skip reason=no-candidate service='%s' title='%s'" % (_service_ref_to_string(service), _safe_event_title(event)))
+		_debug(f"UPDATE skip reason=no-candidate service='{_service_ref_to_string(service)}' title='{_safe_event_title(event)}'")
 		return False
-	_debug("UPDATE candidate reason=%s source_key=%s service='%s' event_id=%s begin=%s title='%s' search_title='%s'" % (
-		reason, candidate.source_key, candidate.service_ref, candidate.event_id, candidate.begin_time, candidate.title, candidate.search_title))
+	_debug(f"UPDATE candidate reason={reason} source_key={candidate.source_key} service='{candidate.service_ref}' event_id={candidate.event_id} begin={candidate.begin_time} title='{candidate.title}' search_title='{candidate.search_title}'")
 
 	now = int(time())
 	if is_epg_worker_paused_for_open_epg():
@@ -874,17 +830,7 @@ def update_source_meta(source, reason="refresh", notify=False):
 
 	meta = build_epg_skin_data(candidate=candidate, event_row=existing or {})
 	meta = _apply_provider_asset_fallback(meta, candidate.source_key, reason=reason)
-	_debug("UPDATE meta reason=%s source_key=%s status=%s json='%s' cover='%s' backdrop='%s' image='%s' titlelogo='%s' provider='%s'" % (
-		reason,
-		candidate.source_key,
-		(existing or {}).get("status") or "unknown",
-		(existing or {}).get("json_path") or "",
-		meta.get("cover_path") or "",
-		meta.get("backdrop_path") or "",
-		meta.get("image_path") or "",
-		meta.get("titlelogo_path") or "",
-		meta.get("provider") or "",
-	))
+	_debug(f"UPDATE meta reason={reason} source_key={candidate.source_key} status={(existing or {}).get("status") or "unknown"} json='{(existing or {}).get("json_path") or ""}' cover='{meta.get("cover_path") or ""}' backdrop='{meta.get("backdrop_path") or ""}' image='{meta.get("image_path") or ""}' titlelogo='{meta.get("titlelogo_path") or ""}' provider='{meta.get("provider") or ""}'")
 	try:
 		meta.update({
 			"service_ref": candidate.service_ref,
@@ -903,14 +849,7 @@ def update_source_meta(source, reason="refresh", notify=False):
 	last_key = _MetaState.last_keys.get(key_id)
 	if last_key != candidate.source_key:
 		_MetaState.last_keys[key_id] = candidate.source_key
-		_log("UPDATE reason=%s source_key=%s service='%s' title='%s' status=%s cover='%s'" % (
-			reason,
-			candidate.source_key,
-			_service_ref_to_string(service),
-			candidate.title,
-			(existing or {}).get("status") or "unknown",
-			meta.get("cover_path") or "",
-		))
+		_log(f"UPDATE reason={reason} source_key={candidate.source_key} service='{_service_ref_to_string(service)}' title='{candidate.title}' status={(existing or {}).get("status") or "unknown"} cover='{meta.get("cover_path") or ""}'")
 
 	if notify:
 		try:
@@ -930,10 +869,10 @@ def _eventinfo_refresh(self):
 
 
 def _eventinfo_update_source(self, ref):
-	_debug("EVENTINFO updateSource begin ref='%s' %s" % (_service_ref_to_string(ref), _describe_source(self)))
+	_debug(f"EVENTINFO updateSource begin ref='{_service_ref_to_string(ref)}' {_describe_source(self)}")
 	_clear_source_meta(self, reason="eventinfo-updateSource-preclear", notify=True)
 	_old_eventinfo_update_source(self, ref)
-	_debug("EVENTINFO updateSource after-old ref='%s' %s" % (_service_ref_to_string(ref), _describe_source(self)))
+	_debug(f"EVENTINFO updateSource after-old ref='{_service_ref_to_string(ref)}' {_describe_source(self)}")
 	_update_source_meta_now(self, reason="eventinfo-updateSource", notify=True)
 
 
@@ -942,10 +881,10 @@ def _serviceevent_refresh(self):
 
 
 def _serviceevent_new_service(self, ref, event=None):
-	_debug("SERVICEEVENT newService begin ref='%s' event='%s' %s" % (_service_ref_to_string(ref), _safe_event_title(event), _describe_source(self)))
+	_debug(f"SERVICEEVENT newService begin ref='{_service_ref_to_string(ref)}' event='{_safe_event_title(event)}' {_describe_source(self)}")
 	_clear_source_meta(self, reason="serviceevent-newService-preclear", notify=True)
 	_old_serviceevent_new_service(self, ref, event)
-	_debug("SERVICEEVENT newService after-old ref='%s' %s" % (_service_ref_to_string(ref), _describe_source(self)))
+	_debug(f"SERVICEEVENT newService after-old ref='{_service_ref_to_string(ref)}' {_describe_source(self)}")
 	_update_source_meta_now(self, reason="serviceevent-newService", notify=True)
 
 
@@ -987,7 +926,7 @@ def _clear_infobar_event_sources(screen, reason="infobar-service-preclear"):
 		if _clear_source_meta(source, reason=reason, notify=True):
 			cleared.append(name)
 	if cleared:
-		_log("INFOBAR sources cleared reason=%s aliases=%s" % (reason, ",".join(cleared)))
+		_log(f"INFOBAR sources cleared reason={reason} aliases={",".join(cleared)}")
 	return cleared
 
 
@@ -1057,9 +996,9 @@ def _install_infobar_event_sources(screen):
 				_clear_source_meta(source, reason="infobar-source-init-clear", notify=True)
 				_update_source_meta_now(source, reason=f"infobar-source-init-{name}", notify=True)
 			except Exception as err:
-				_debug("INFOBAR source init failed name=%s error=%s" % (name, err))
+				_debug(f"INFOBAR source init failed name={name} error={err}")
 		if attached:
-			_log("INFOBAR sources attached aliases=%s" % ",".join(attached), force=True)
+			_log(f"INFOBAR sources attached aliases={",".join(attached)}", force=True)
 		_install_infobar_service_tracker(screen)
 		return True
 	except Exception as err:
@@ -1117,7 +1056,7 @@ def install_component_meta_hooks():
 			SourceServiceList.refreshData = _servicelist_refresh
 #		InfoBar.__init__ = _infobar_init  # TODO maybe not needed
 		_hooks_installed = True
-		_log("HOOK installed mode=component-meta-event-transition-adhoc eventinfo-aliases=Event_Now,Event_Next serviceListMeta=%s old-infobar-hook-not-required" % service_list_ready, force=True)
+		_log(f"HOOK installed mode=component-meta-event-transition-adhoc eventinfo-aliases=Event_Now,Event_Next serviceListMeta={service_list_ready} old-infobar-hook-not-required", force=True)
 		return True
 	except Exception as err:
 		_log(f"HOOK failed error={err}", force=True)

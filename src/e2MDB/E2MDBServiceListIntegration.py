@@ -43,7 +43,7 @@ class E2MDBServiceListEventPixmapProvider:
 			event_number = 1 if next_event else 0
 			pixmap = buildE2MDBServiceListPixmapFromValues(service_ref, begin_time=begin_time, duration=duration, title=title, short_desc=short_description, extended_desc=extended_description, size=size, event_number=event_number)
 		except Exception as err:
-			_log("PROVIDER_ERROR service='%s' begin=%s duration=%s title='%s' next=%s error=%s" % (service_ref, begin_time, duration, title, next_event, err), force=True)
+			_log(f"PROVIDER_ERROR service='{service_ref}' begin={begin_time} duration={duration} title='{title}' next={next_event} error={err}", force=True)
 			pixmap = None
 		return pixmap
 
@@ -65,7 +65,7 @@ def install_service_list_event_pixmap_provider():
 		_log("PROVIDER_INSTALLED mode=core-extension-point", force=True)
 		return True
 	except Exception as err:
-		_log("PROVIDER_INSTALL_ERROR error=%s" % err, force=True)
+		_log(f"PROVIDER_INSTALL_ERROR error={err}", force=True)
 		return False
 
 

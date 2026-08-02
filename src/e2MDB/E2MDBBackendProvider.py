@@ -215,7 +215,7 @@ class BackendGoogleTranslator:
 			"q": text,
 		})
 		request = Request(
-			"%s?%s" % (GOOGLE_TRANSLATE_URL, params),
+			f"{GOOGLE_TRANSLATE_URL}?{params}",
 			headers={
 				"User-Agent": "e2MDB-backend/1.0",
 				"Accept": "application/json,text/plain,*/*",
@@ -252,7 +252,7 @@ class _LiveFallbackCandidate:
 		self.begin_time = safe_int(item.get("begin_time"), 0)
 		self.event_end = safe_int(item.get("event_end"), 0)
 		self.duration = max(0, self.event_end - self.begin_time) if self.begin_time and self.event_end else 0
-		self.virtual_path = str(item.get("path") or ("live://%s" % self.source_key))
+		self.virtual_path = str(item.get("path") or (f"live://{self.source_key}"))
 
 class BackendProviderEnricher:
 	def __init__(self, settings=None):
@@ -318,7 +318,7 @@ class BackendProviderEnricher:
 		if self.started:
 			return ""
 		if providers is None:
-			self.error = "provider import failed: %s" % PROVIDER_IMPORT_ERROR
+			self.error = f"provider import failed: {PROVIDER_IMPORT_ERROR}"
 			return self.error
 		return self._switch_provider_language(self.provider_language)
 
@@ -333,7 +333,7 @@ class BackendProviderEnricher:
 			self.series_cache = {}
 			return self.error
 		except Exception as err:
-			self.error = "provider start failed: %s" % err
+			self.error = f"provider start failed: {err}"
 			return self.error
 
 	def candidate_titles(self, item):
@@ -494,7 +494,7 @@ class BackendProviderEnricher:
 			desc = str(item.get("description") or "")
 			short_desc = str(item.get("short_desc") or item.get("description") or "")
 			episode_name_text = short_desc or desc
-			plain = "%s-%s" % (season_no, episode_no) if (season_no and episode_no) else ""
+			plain = f"{season_no}-{episode_no}" if (season_no and episode_no) else ""
 			if plain or episode_name_text:
 				episode_id = ""
 				found = ()
@@ -518,7 +518,7 @@ class BackendProviderEnricher:
 							if value not in (None, "", [], {}):
 								english_best[key] = value
 		else:
-			return [], "unsupported tmdb media type '%s'" % best_media_type
+			return [], f"unsupported tmdb media type '{best_media_type}'"
 		return self._copy_missing_english_metadata_texts(best, english_best), err_msg or ""
 
 	def _is_series_type(self, media_type):
@@ -560,7 +560,7 @@ class BackendProviderEnricher:
 		series_id = str(series_id or "").strip()
 		if not (provider_name and series_id):
 			return "missing provider/series id", {}, {}
-		cache_key = "%s:%s:%s" % (self.provider_language, provider_name, series_id)
+		cache_key = f"{self.provider_language}:{provider_name}:{series_id}"
 		if cache_key in self.series_cache:
 			return self.series_cache[cache_key]
 		try:
@@ -581,8 +581,8 @@ class BackendProviderEnricher:
 			if value:
 				return str(value)
 		for key in ("cover", "poster", "backdrop"):
-			if str(episode_details.get("%s_src" % key) or "").strip().lower() == "episode":
-				value = episode_details.get("%s_url" % key)
+			if str(episode_details.get(f"{key}_src") or "").strip().lower() == "episode":
+				value = episode_details.get(f"{key}_url")
 				if value:
 					return str(value)
 		return ""
@@ -612,15 +612,15 @@ class BackendProviderEnricher:
 		prefer = self._artwork_mode() == "prefer"
 		changed = []
 		for pic_type in ("cover", "backdrop", "titlelogo"):
-			url_key = "%s_url" % pic_type
-			src_key = "%s_src" % pic_type
-			provider_key = "%s_provider" % pic_type
+			url_key = f"{pic_type}_url"
+			src_key = f"{pic_type}_src"
+			provider_key = f"{pic_type}_provider"
 			new_url = fanart_dict.get(url_key)
 			if new_url and (prefer or not best.get(url_key)):
 				best[url_key] = new_url
 				best[provider_key] = fanart_dict.get(src_key) or "fanart"
 				best[src_key] = "fanart"
-				best.pop("%s_path" % pic_type, None)
+				best.pop(f"{pic_type}_path", None)
 				changed.append(pic_type)
 				if pic_type == "cover" and best.get("media_type") == "series" and (prefer or not best.get("series_cover_url")):
 					best["series_cover_url"] = new_url
@@ -744,7 +744,7 @@ class BackendProviderEnricher:
 			best["image_src"] = provider_name
 			best["image_provider"] = provider_name
 			if fallback.get("source_url"):
-				best["%s_url" % provider_name] = fallback.get("source_url")
+				best[f"{provider_name}_url"] = fallback.get("source_url")
 			provider_ids = best.get("provider_ids") if isinstance(best.get("provider_ids"), dict) else {}
 			fallback_ids = fallback.get("provider_ids") if isinstance(fallback.get("provider_ids"), dict) else {}
 			if fallback_ids.get(provider_name):
@@ -767,7 +767,7 @@ class BackendProviderEnricher:
 		# explicit S/E tag still resolve the episode by matching the EIT/META description
 		# text against the provider's episode index.
 		episode_name_text = short_desc or desc
-		plain = "%s-%s" % (season_no, episode_no) if (season_no and episode_no) else ""
+		plain = f"{season_no}-{episode_no}" if (season_no and episode_no) else ""
 		if not plain and not episode_name_text:
 			return best
 		err_msg, series_details, episode_index = self._get_series_context(provider_name, series_id)
@@ -796,7 +796,7 @@ class BackendProviderEnricher:
 		if not isinstance(episode_details, dict):
 			episode_details = {}
 		series_title = first_non_empty(series_details, "title", "original_title", "name") or first_non_empty(best, "title", "original_title") or item.get("series_title") or item.get("provider_title") or ""
-		episode_name = first_non_empty(episode_details, "episode_name", "title", "name") or episode_index_name or ("Episode %s" % episode_no)
+		episode_name = first_non_empty(episode_details, "episode_name", "title", "name") or episode_index_name or (f"Episode {episode_no}")
 		series_cover_url = self._series_artwork_url(best, series_details)
 		series_backdrop_url = first_non_empty(series_details, "backdrop_url", "fanart_url") or first_non_empty(best, "backdrop_url", "fanart_url")
 		episode_image_url = self._episode_artwork_url(episode_details)
@@ -843,8 +843,8 @@ class BackendProviderEnricher:
 			merged["image_src"] = "episode"
 		for key in ("titlelogo_url", "logo_url"):
 			series_value = series_details.get(key) if isinstance(series_details, dict) else ""
-			if series_value and not merged.get("series_%s" % key):
-				merged["series_%s" % key] = series_value
+			if series_value and not merged.get(f"series_{key}"):
+				merged[f"series_{key}"] = series_value
 		return merged
 
 	def _gather_provider_matches(self, item, media_type, year, searched, language):
@@ -861,7 +861,7 @@ class BackendProviderEnricher:
 				if search_errors:
 					last_error = "; ".join(str(error) for error in search_errors if error)
 			except Exception as err:
-				last_error = "%s\n%s" % (err, format_exc())
+				last_error = f"{err}\n{format_exc()}"
 		return matches, last_error
 
 	def _deduplicate_matches(self, matches):
@@ -998,7 +998,7 @@ class BackendProviderEnricher:
 				data = response.read(20 * 1024 * 1024)
 			if not data:
 				return ""
-			tmp_path = "%s.tmp" % target_path
+			tmp_path = f"{target_path}.tmp"
 			with open(tmp_path, "wb") as handle:
 				handle.write(data)
 			from os import rename
@@ -1032,7 +1032,7 @@ class BackendProviderEnricher:
 		# recording's own path, e.g. cache_root/image/5/59bda...jpg
 		org_hash = md5(self._reduced_org_path(org_path).encode()).hexdigest()
 		ext = self._artwork_image_extension(url)
-		return join(self.cache_root, pic_type, org_hash[0], "%s.%s" % (org_hash, ext))
+		return join(self.cache_root, pic_type, org_hash[0], f"{org_hash}.{ext}")
 
 	def _secondary_artwork_path(self, provider_name, provider_id, pic_type, url):
 		# Series-level artwork: keyed by provider+series id, e.g.
@@ -1040,7 +1040,7 @@ class BackendProviderEnricher:
 		provider_name = str(provider_name or "unknown").strip().lower() or "unknown"
 		provider_id = str(provider_id or "").strip()
 		ext = self._artwork_image_extension(url)
-		return join(self.cache_root, "series", provider_name, provider_id, "%s.%s" % (pic_type, ext))
+		return join(self.cache_root, "series", provider_name, provider_id, f"{pic_type}.{ext}")
 
 	def _series_artwork_target(self, item, best, pic_type, url):
 		provider_name = str(best.get("provider") or "").strip().lower()
@@ -1057,9 +1057,9 @@ class BackendProviderEnricher:
 		# of that season.
 		provider_name = str(provider_name or "unknown").strip().lower() or "unknown"
 		provider_id = str(provider_id or "").strip()
-		season_part = "S%02d" % safe_int(season_no, 0)
+		season_part = f"S{safe_int(season_no, 0):02d}"
 		ext = self._artwork_image_extension(url)
-		return join(self.cache_root, "seasons", provider_name, provider_id, season_part, "%s.%s" % (pic_type, ext))
+		return join(self.cache_root, "seasons", provider_name, provider_id, season_part, f"{pic_type}.{ext}")
 
 	def _season_poster_url(self, best, season_no):
 		seasons = best.get("seasons") if isinstance(best.get("seasons"), list) else []
@@ -1193,6 +1193,6 @@ class BackendProviderEnricher:
 			# episode of the same series instead of downloaded again per recording.
 			path = self._download_if_missing(url, self._series_artwork_target(item, best, pic_type, url))
 			if path:
-				result["%s_path" % result_name] = path
-				result["%s_url" % result_name] = url
+				result[f"{result_name}_path"] = path
+				result[f"{result_name}_url"] = url
 		return result

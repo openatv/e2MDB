@@ -85,7 +85,7 @@ class E2MDBBackendJobSchedulerTask:
 			try:
 				callback(bool(success))
 			except Exception as err:
-				write_log(self.MODULE_NAME, "CALLBACK failed task=%s error=%s" % (self.name, err), level="error")
+				write_log(self.MODULE_NAME, f"CALLBACK failed task={self.name} error={err}", level="error")
 
 	def _start_backend_job(self):
 		options = self._options()
@@ -102,7 +102,7 @@ class E2MDBBackendJobSchedulerTask:
 			return False
 		with self.lock:
 			if self.running:
-				write_log(self.MODULE_NAME, "START refused task=%s reason=already-running job=%s" % (self.name, self.job_id), level="error")
+				write_log(self.MODULE_NAME, f"START refused task={self.name} reason=already-running job={self.job_id}", level="error")
 				return False
 			self.callback = callback
 			self.entry = entry
@@ -111,9 +111,9 @@ class E2MDBBackendJobSchedulerTask:
 			self.job_id = ""
 			self.last_log_key = None
 			self.last_start_log = 0
-		self._log_timer(10, "e2MDB %s timer started." % self.name)
-		write_log(self.MODULE_NAME, "TIMER start task=%s type=%s" % (self.name, self.job_type))
-		self.worker_thread = Thread(target=self._run_lifecycle, name="e2mdb-scheduler-%s" % self.job_type)
+		self._log_timer(10, f"e2MDB {self.name} timer started.")
+		write_log(self.MODULE_NAME, f"TIMER start task={self.name} type={self.job_type}")
+		self.worker_thread = Thread(target=self._run_lifecycle, name=f"e2mdb-scheduler-{self.job_type}")
 		self.worker_thread.daemon = True
 		self.worker_thread.start()
 		return True
@@ -124,15 +124,15 @@ class E2MDBBackendJobSchedulerTask:
 				return False
 			self.cancel_requested = True
 			job_id = self.job_id
-		write_log(self.MODULE_NAME, "STOP requested task=%s job=%s" % (self.name, job_id))
-		self._log_timer(20, "e2MDB %s cancel requested." % self.name)
+		write_log(self.MODULE_NAME, f"STOP requested task={self.name} job={job_id}")
+		self._log_timer(20, f"e2MDB {self.name} cancel requested.")
 		if not job_id:
 			self._finish(False)
 			return True
 		try:
 			backend_request("stop_job", timeout=2.0, source="openatv-functiontimer-cancel")
 		except Exception as err:
-			write_log(self.MODULE_NAME, "STOP backend request failed task=%s error=%s" % (self.name, err), level="error")
+			write_log(self.MODULE_NAME, f"STOP backend request failed task={self.name} error={err}", level="error")
 		return True
 
 	def _sleep_retry(self, deadline, retry_after_seconds=None):
@@ -172,21 +172,21 @@ class E2MDBBackendJobSchedulerTask:
 			except Exception as err:
 				deadline = self._retry_deadline()
 				if deadline > int(time()):
-					self._log_timer(20, "e2MDB %s backend not reachable; retrying until %s." % (self.name, self._retry_window_text(deadline)))
-					write_log(self.MODULE_NAME, "START retry task=%s reason=backend-unreachable error=%s" % (self.name, err), level="error")
+					self._log_timer(20, f"e2MDB {self.name} backend not reachable; retrying until {self._retry_window_text(deadline)}.")
+					write_log(self.MODULE_NAME, f"START retry task={self.name} reason=backend-unreachable error={err}", level="error")
 					if self._sleep_retry(deadline):
 						continue
 				else:
-					write_log(self.MODULE_NAME, "START failed task=%s error=%s" % (self.name, err), level="error")
-				self._log_timer(30, "e2MDB %s could not contact backend: %s" % (self.name, err))
+					write_log(self.MODULE_NAME, f"START failed task={self.name} error={err}", level="error")
+				self._log_timer(30, f"e2MDB {self.name} could not contact backend: {err}")
 				self._finish(False)
 				return False
 			job = response.get("job") if isinstance(response, dict) else None
 			if isinstance(response, dict) and response.get("success") and isinstance(job, dict) and not response.get("deferred"):
 				with self.lock:
 					self.job_id = str(job.get("id") or "")
-				self._log_timer(10, "e2MDB %s backend job started: %s" % (self.name, self.job_id))
-				write_log(self.MODULE_NAME, "START task=%s job=%s type=%s" % (self.name, self.job_id, self.job_type))
+				self._log_timer(10, f"e2MDB {self.name} backend job started: {self.job_id}")
+				write_log(self.MODULE_NAME, f"START task={self.name} job={self.job_id} type={self.job_type}")
 				return True
 			error = response.get("error", "backend did not accept job") if isinstance(response, dict) else "invalid backend response"
 			deadline = self._retry_deadline()
@@ -194,12 +194,12 @@ class E2MDBBackendJobSchedulerTask:
 				now = int(time())
 				if now - self.last_start_log >= START_RETRY_INTERVAL_SECONDS - 1:
 					self.last_start_log = now
-					self._log_timer(20, "e2MDB %s backend busy; retrying until %s." % (self.name, self._retry_window_text(deadline)))
-				write_log(self.MODULE_NAME, "START retry task=%s reason=backend-busy until=%s" % (self.name, self._retry_window_text(deadline)))
+					self._log_timer(20, f"e2MDB {self.name} backend busy; retrying until {self._retry_window_text(deadline)}.")
+				write_log(self.MODULE_NAME, f"START retry task={self.name} reason=backend-busy until={self._retry_window_text(deadline)}")
 				if self._sleep_retry(deadline, retry_after_seconds=response.get("retry_after_seconds", START_RETRY_INTERVAL_SECONDS)):
 					continue
-			self._log_timer(30, "e2MDB %s could not start: %s" % (self.name, error))
-			write_log(self.MODULE_NAME, "START refused task=%s error=%s" % (self.name, error), level="error")
+			self._log_timer(30, f"e2MDB {self.name} could not start: {error}")
+			write_log(self.MODULE_NAME, f"START refused task={self.name} error={error}", level="error")
 			self._finish(False)
 			return False
 
@@ -226,8 +226,8 @@ class E2MDBBackendJobSchedulerTask:
 		total = int(job.get("total") or 0)
 		message = str(job.get("message") or phase)
 		if total > 0:
-			return "%s%% - %s (%s/%s)" % (percent, message, current, total)
-		return "%s%% - %s" % (percent, message)
+			return f"{percent}% - {message} ({current}/{total})"
+		return f"{percent}% - {message}"
 
 	def _log_progress(self, job):
 		state = str(job.get("state") or "").lower()
@@ -239,7 +239,7 @@ class E2MDBBackendJobSchedulerTask:
 		if key == self.last_log_key:
 			return
 		self.last_log_key = key
-		self._log_timer(20, "e2MDB %s: %s" % (self.name, self._format_progress(job)))
+		self._log_timer(20, f"e2MDB {self.name}: {self._format_progress(job)}")
 
 	def _poll_backend(self):
 		status_errors = 0
@@ -258,9 +258,9 @@ class E2MDBBackendJobSchedulerTask:
 				status_errors = 0
 			except Exception as err:
 				status_errors += 1
-				write_log(self.MODULE_NAME, "STATUS failed task=%s job=%s error=%s" % (self.name, job_id, err), level="error")
+				write_log(self.MODULE_NAME, f"STATUS failed task={self.name} job={job_id} error={err}", level="error")
 				if status_errors >= self.MAX_STATUS_ERRORS:
-					self._log_timer(30, "e2MDB %s failed: backend status timeout." % self.name)
+					self._log_timer(30, f"e2MDB {self.name} failed: backend status timeout.")
 					self._finish(False)
 					return
 				sleep(self.POLL_INTERVAL_SECONDS)
@@ -268,11 +268,11 @@ class E2MDBBackendJobSchedulerTask:
 			self._log_progress(job)
 			state = str(job.get("state") or "").lower()
 			if state in TERMINAL_SUCCESS_STATES:
-				self._log_timer(10, "e2MDB %s finished successfully." % self.name)
+				self._log_timer(10, f"e2MDB {self.name} finished successfully.")
 				self._finish(not cancel_requested)
 				return
 			if state in TERMINAL_FAILURE_STATES:
-				self._log_timer(30, "e2MDB %s failed: %s" % (self.name, job.get("message") or state))
+				self._log_timer(30, f"e2MDB {self.name} failed: {job.get("message") or state}")
 				self._finish(False)
 				return
 			if cancel_requested:

@@ -453,7 +453,7 @@ class E2MDBEPGSelectionBridge:
 		if status in ("matched", "done") and json_path and (expires_at <= 0 or expires_at > now):
 			missing_images = _actionable_missing_images(existing)
 			if missing_images:
-				return True, "fresh-missing-images:%s" % ",".join(missing_images)
+				return True, f"fresh-missing-images:{",".join(missing_images)}"
 			return False, "fresh-provider-data"
 		if status == "no_match" and expires_at > now:
 			stored_search_title = existing.get("search_title") or ""
@@ -471,11 +471,7 @@ class E2MDBEPGSelectionBridge:
 		reason = reason or "selection"
 		if is_epg_worker_paused_for_open_epg():
 			self.queue_skip_count += 1
-			self.log("QUEUE SKIP source_key=%s reason=epg-screen-open requested_reason=%s priority=%s" % (
-				candidate.source_key,
-				reason,
-				priority,
-			))
+			self.log(f"QUEUE SKIP source_key={candidate.source_key} reason=epg-screen-open requested_reason={reason} priority={priority}")
 			return False
 		# Never revive a queue item when the EPG event already has fresh provider/no-match data.
 		# This can happen during GraphicalEPG open/selection duplicate callbacks.
@@ -484,12 +480,7 @@ class E2MDBEPGSelectionBridge:
 			queue_needed, queue_reason = self._queue_needed(existing_event, int(time()))
 			if not queue_needed:
 				self.queue_skip_count += 1
-				self.log("QUEUE SKIP source_key=%s reason=%s event_status=%s requested_priority=%s" % (
-					candidate.source_key,
-					queue_reason,
-					existing_event.get("status") or "unknown",
-					priority,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} reason={queue_reason} event_status={existing_event.get("status") or "unknown"} requested_priority={priority}")
 				return True
 		existing_queue = resultsdb.get_fetch_queue_item(candidate.source_key)
 		if existing_queue:
@@ -497,22 +488,11 @@ class E2MDBEPGSelectionBridge:
 			existing_state = existing_queue.get("state") or "pending"
 			if existing_state == "pending" and existing_priority >= priority:
 				self.queue_skip_count += 1
-				self.log("QUEUE SKIP source_key=%s existing_state=%s existing_priority=%s requested_priority=%s reason=%s" % (
-					candidate.source_key,
-					existing_state,
-					existing_priority,
-					priority,
-					reason,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} existing_state={existing_state} existing_priority={existing_priority} requested_priority={priority} reason={reason}")
 				return True
 		elif self.queue_upsert_count >= EPG_QUEUE_LIMIT:
 			self.queue_limit_skip_count += 1
-			self.log("QUEUE LIMIT source_key=%s limit=%s reason=%s title='%s'" % (
-				candidate.source_key,
-				EPG_QUEUE_LIMIT,
-				reason,
-				candidate.title,
-			))
+			self.log(f"QUEUE LIMIT source_key={candidate.source_key} limit={EPG_QUEUE_LIMIT} reason={reason} title='{candidate.title}'")
 			return False
 
 		ok = resultsdb.upsert_fetch_queue({
@@ -535,13 +515,7 @@ class E2MDBEPGSelectionBridge:
 				self.queue_update_count += 1
 			else:
 				self.queue_upsert_count += 1
-		self.log("QUEUE %s source_key=%s priority=%s reason=%s title='%s'" % (
-			action if ok else "FAILED",
-			candidate.source_key,
-			priority,
-			reason,
-			candidate.title,
-		))
+		self.log(f"QUEUE {action if ok else "FAILED"} source_key={candidate.source_key} priority={priority} reason={reason} title='{candidate.title}'")
 		return ok
 
 	def _mark_provider_skipped(self, candidate, status, reason, detail="", existing=False):
@@ -564,15 +538,7 @@ class E2MDBEPGSelectionBridge:
 		if queue_item:
 			resultsdb.update_fetch_queue_state(candidate.source_key, status, last_error=f"{reason}:{detail or ''}")
 		self.provider_skip_count += 1
-		self.log("PROVIDER SKIP source_key=%s status=%s reason=%s detail='%s' expires='%s' title='%s' search_title='%s'" % (
-			candidate.source_key,
-			status,
-			reason,
-			detail or "",
-			self._format_time(expires_at),
-			candidate.title,
-			getattr(candidate, "search_title", candidate.title),
-		))
+		self.log(f"PROVIDER SKIP source_key={candidate.source_key} status={status} reason={reason} detail='{detail or ""}' expires='{self._format_time(expires_at)}' title='{candidate.title}' search_title='{getattr(candidate, "search_title", candidate.title)}'")
 		return True
 
 	def register_open(self):
@@ -602,17 +568,7 @@ class E2MDBEPGSelectionBridge:
 			count = set_epg_screen_active(False)
 		else:
 			count = active_epg_screen_count()
-		self.log("CLOSE summary seen=%s inserts=%s hits=%s provider_skips=%s queue_new=%s queue_updates=%s queue_skips=%s queue_limit_skips=%s activeScreens=%s" % (
-			len(self.events_seen),
-			self.db_insert_count,
-			self.db_hit_count,
-			self.provider_skip_count,
-			self.queue_upsert_count,
-			self.queue_update_count,
-			self.queue_skip_count,
-			self.queue_limit_skip_count,
-			count,
-		))
+		self.log(f"CLOSE summary seen={len(self.events_seen)} inserts={self.db_insert_count} hits={self.db_hit_count} provider_skips={self.provider_skip_count} queue_new={self.queue_upsert_count} queue_updates={self.queue_update_count} queue_skips={self.queue_skip_count} queue_limit_skips={self.queue_limit_skip_count} activeScreens={count}")
 
 	def _apply_epg_preview(self, candidate=None, event_row=None, reason="selection", event=None, service=None):
 		"""Update optional e2MDB skin sources on any OpenATV EPGSelection screen."""
@@ -654,16 +610,11 @@ class E2MDBEPGSelectionBridge:
 		try:
 			existing = resultsdb.get_epg_event_readonly(candidate.source_key)
 		except Exception as err:
-			self.log("CACHE-ONLY DB lookup failed source_key=%s reason=%s error=%s" % (candidate.source_key, reason, err))
+			self.log(f"CACHE-ONLY DB lookup failed source_key={candidate.source_key} reason={reason} error={err}")
 		self._apply_epg_preview(candidate, existing, reason=reason, event=event, service=service)
 		if candidate.source_key != self.last_source_key:
 			self.last_source_key = candidate.source_key
-			self.log("CACHE-ONLY source_key=%s reason=epg-screen-open selection_reason=%s status=%s title='%s'" % (
-				candidate.source_key,
-				reason,
-				(existing or {}).get("status") or "missing",
-				candidate.title,
-			))
+			self.log(f"CACHE-ONLY source_key={candidate.source_key} reason=epg-screen-open selection_reason={reason} status={(existing or {}).get("status") or "missing"} title='{candidate.title}'")
 		return True
 
 	def handle_selection(self, reason="selection"):
@@ -710,16 +661,7 @@ class E2MDBEPGSelectionBridge:
 		self.last_processed_source_key = candidate.source_key
 		self.last_processed_time = now
 
-		self.log("EVENT source_key=%s list=%s reason=%s service='%s' begin='%s' duration=%s title='%s' search_title='%s'" % (
-			candidate.source_key,
-			list_name,
-			reason,
-			self._short_ref(candidate.service_ref),
-			self._format_time(candidate.begin_time),
-			candidate.duration,
-			candidate.title,
-			getattr(candidate, "search_title", candidate.title),
-		))
+		self.log(f"EVENT source_key={candidate.source_key} list={list_name} reason={reason} service='{self._short_ref(candidate.service_ref)}' begin='{self._format_time(candidate.begin_time)}' duration={candidate.duration} title='{candidate.title}' search_title='{getattr(candidate, "search_title", candidate.title)}'")
 
 		skip_status, skip_reason, skip_detail = self.adapter.epg_provider_skip_reason(candidate)
 
@@ -739,20 +681,8 @@ class E2MDBEPGSelectionBridge:
 			if queue_reason == "improved-search-title":
 				resultsdb.update_epg_event_status(candidate.source_key, "unknown", confidence=0.0, json_path="", expires_at=candidate.expires_at)
 				existing = resultsdb.get_epg_event(candidate.source_key) or existing
-				self.log("DB RESET source_key=%s reason=improved-search-title old_search_title='%s' new_search_title='%s'" % (
-					candidate.source_key,
-					existing.get("search_title") or "",
-					candidate_search_title,
-				))
-			self.log("DB HIT id=%s status=%s json='%s' expires='%s' search_title='%s' queue_needed=%s queue_reason=%s" % (
-				existing.get("id"),
-				existing.get("status") or "unknown",
-				existing.get("json_path") or "",
-				self._format_time(existing.get("expires_at") or 0),
-				candidate_search_title,
-				queue_needed,
-				queue_reason,
-			))
+				self.log(f"DB RESET source_key={candidate.source_key} reason=improved-search-title old_search_title='{existing.get("search_title") or ""}' new_search_title='{candidate_search_title}'")
+			self.log(f"DB HIT id={existing.get("id")} status={existing.get("status") or "unknown"} json='{existing.get("json_path") or ""}' expires='{self._format_time(existing.get("expires_at") or 0)}' search_title='{candidate_search_title}' queue_needed={queue_needed} queue_reason={queue_reason}")
 			if queue_needed:
 				self._queue_event(candidate, priority=PRIORITY_EPG_OPEN if reason == "open" else PRIORITY_EPG_SELECTION, reason=queue_reason)
 			else:
@@ -769,12 +699,7 @@ class E2MDBEPGSelectionBridge:
 
 		event_id = resultsdb.upsert_epg_event(candidate.as_dict())
 		self.db_insert_count += 1
-		self.log("DB INSERT id=%s source_key=%s expires='%s' service_name='%s'" % (
-			event_id,
-			candidate.source_key,
-			self._format_time(candidate.expires_at),
-			candidate.service_name,
-		))
+		self.log(f"DB INSERT id={event_id} source_key={candidate.source_key} expires='{self._format_time(candidate.expires_at)}' service_name='{candidate.service_name}'")
 		existing = resultsdb.get_epg_event(candidate.source_key)
 		self._apply_epg_preview(candidate, existing, reason=reason, event=event, service=service)
 		self._queue_event(candidate, priority=PRIORITY_EPG_OPEN if reason == "open" else PRIORITY_EPG_SELECTION, reason=reason)
@@ -790,11 +715,7 @@ def _patched_epg_selection_init(self, *args, **kwargs):
 	try:
 		self._e2mdb_epg_bridge = E2MDBEPGSelectionBridge(self)
 		self._e2mdb_epg_bridge.register_open()
-		E2MDBEPGLogMixin.log("OPEN type=%s skin=%s metaEnabled=%s" % (
-			getattr(self, "type", "?"),
-			getattr(self, "skinName", ""),
-			config.plugins.e2mdb.epgMetaEnabled.value,
-		))
+		E2MDBEPGLogMixin.log(f"OPEN type={getattr(self, "type", "?")} skin={getattr(self, "skinName", "")} metaEnabled={config.plugins.e2mdb.epgMetaEnabled.value}")
 		if hasattr(self, "onLayoutFinish"):
 			# Screen.createGUIScreen() calls exec() for non-bound callbacks.
 			# Keep this as a bound method to avoid crashing during skin creation.
@@ -840,11 +761,7 @@ def install_epg_selection_hooks():
 				reset_count = resultsdb.reset_running_queue()
 			except Exception as db_error:
 				E2MDBEPGLogMixin.log(f"HOOK installed; queue reset failed: {db_error}", force=True)
-		E2MDBEPGLogMixin.log("HOOK installed; metaEnabled=%s db_path='%s' reset_running_queue=%s" % (
-			config.plugins.e2mdb.epgMetaEnabled.value,
-			getattr(resultsdb, "db_path", None),
-			reset_count,
-		), force=True)
+		E2MDBEPGLogMixin.log(f"HOOK installed; metaEnabled={config.plugins.e2mdb.epgMetaEnabled.value} db_path='{getattr(resultsdb, "db_path", None)}' reset_running_queue={reset_count}", force=True)
 		return True
 	except Exception as e:
 		E2MDBEPGLogMixin.log(f"ERROR installing EPGSelection hook: {e}")

@@ -75,7 +75,7 @@ def atomic_write_json(path, payload):
 	folder = dirname(path)
 	if folder and not exists(folder):
 		makedirs(folder)
-	tmp_path = "%s.tmp" % path
+	tmp_path = f"{path}.tmp"
 	with open(tmp_path, "w", encoding="utf-8") as handle:
 		dump(payload, handle, indent=2, sort_keys=True)
 		handle.write("\n")
@@ -98,7 +98,7 @@ def read_json(path, default=None):
 
 
 def log(message):
-	line = "[e2mdbd] %s" % message
+	line = f"[e2mdbd] {message}"
 	try:
 		print(line)
 		stdout.flush()
@@ -198,7 +198,7 @@ class StatusStore:
 		try:
 			atomic_write_json(STATUS_FILE, self.payload)
 		except Exception as err:
-			log("status write failed: %s" % err)
+			log(f"status write failed: {err}")
 
 
 class JobManager:
@@ -286,7 +286,7 @@ class JobManager:
 			return bool(self.media_waiting_until > int(time()))
 
 	def _new_job_locked(self, job_type, source, job_options):
-		job_id = "%s-%s" % (job_type, uuid4().hex[:12])
+		job_id = f"{job_type}-{uuid4().hex[:12]}"
 		scheduler_job_id = str(job_options.get("scheduler_job_id") or "").strip()
 		scheduler_job_name = str(job_options.get("scheduler_job_name") or scheduler_job_id).strip()
 		job = {
@@ -461,7 +461,7 @@ class JobManager:
 	def run_database_maintenance(self, vacuum=False, analyze=True, reindex=False):
 		if self.database:
 			return self.database.maintenance(vacuum=vacuum, analyze=analyze, reindex=reindex)
-		return {"success": False, "error": "database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR}
+		return {"success": False, "error": f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}"}
 
 	def read_recording_catalog(self):
 		payload = read_json(self._recordings_catalog_path(), {"version": 1, "updated": 0, "items": []})
@@ -616,7 +616,7 @@ class JobManager:
 			atomic_write_json(GUI_COMMAND_FILE, command)
 			return {"success": True, "queued": True, "command": command, "message": "queued for Enigma2 GUI bridge"}
 		except Exception as err:
-			return {"success": False, "error": "unable to queue GUI command: %s" % err}
+			return {"success": False, "error": f"unable to queue GUI command: {err}"}
 
 	def handle_web_results_action(self, args):
 		action = str(args.get("action") or "")
@@ -658,7 +658,7 @@ class JobManager:
 			return self.queue_gui_command("stop", args)
 		if action == "preview":
 			return {"success": False, "error": "Preview generation is not implemented in the backend daemon yet."}
-		return {"success": False, "error": "unknown action: %s" % action}
+		return {"success": False, "error": f"unknown action: {action}"}
 
 	def _compact_media_status(self, include_cache=True):
 		if not self.database:
@@ -763,7 +763,7 @@ class JobManager:
 			payload["items"] = items[:self.history_limit]
 			atomic_write_json(job_history_path, payload)
 		except Exception as err:
-			log("job history write failed: %s" % err)
+			log(f"job history write failed: {err}")
 
 	def _send_scheduler(self, connection, status="RUNNING", progress=0, message="", **extra):
 		if not connection:
@@ -777,7 +777,7 @@ class JobManager:
 		try:
 			connection.sendall((dumps(payload, sort_keys=True) + "\n").encode("utf-8"))
 		except Exception as err:
-			log("scheduler send failed: %s" % err)
+			log(f"scheduler send failed: {err}")
 
 	def _update_job(self, scheduler_connection=None, send_scheduler=True, **changes):
 		with self.lock:
@@ -814,7 +814,7 @@ class JobManager:
 			try:
 				atomic_write_json(LAST_REFRESH_REPORT_FILE, self._refresh_report_from_job(job, media_summary=job.get("diagnostics")))
 			except Exception as err:
-				log("refresh report write failed: %s" % err)
+				log(f"refresh report write failed: {err}")
 		self._append_job_history(job)
 		self._send_scheduler(scheduler_connection, status=status, progress=100 if success else 0, message=message or state)
 		try:
@@ -849,9 +849,9 @@ class JobManager:
 					elif current_type == "sqlite_maintenance":
 						self._run_sqlite_maintenance_job(current_connection, current_options)
 					else:
-						raise RuntimeError("unsupported job type: %s" % current_type)
+						raise RuntimeError(f"unsupported job type: {current_type}")
 				except Exception as err:
-					log("job failed: %s\n%s" % (err, format_exc()))
+					log(f"job failed: {err}\n{format_exc()}")
 					self._finish_job(success=False, scheduler_connection=current_connection, message=str(err))
 
 				# A Live/EPG request accepted while media was busy is a real handoff,
@@ -882,18 +882,11 @@ class JobManager:
 				if not deferred:
 					if pending_settings_reload:
 						reload_result = self._reload_settings_now()
-						log("deferred settings reload completed success=%s error=%s" % (
-							bool(reload_result.get("success")),
-							reload_result.get("error") or "",
-						))
+						log(f"deferred settings reload completed success={bool(reload_result.get("success"))} error={reload_result.get("error") or ""}")
 						with self.lock:
 							self.active_job = False
 					break
-				log("deferred Live/EPG handoff started generation=%s requests=%s limit=%s" % (
-					deferred.get("generation", 0),
-					deferred.get("request_count", 0),
-					current_options.get("limit", 0),
-				))
+				log(f"deferred Live/EPG handoff started generation={deferred.get("generation", 0)} requests={deferred.get("request_count", 0)} limit={current_options.get("limit", 0)}")
 		finally:
 			# Release the logical worker slot before waking the poller. The old code
 			# relied on Thread.is_alive(), so the wake raced with the finishing thread.
@@ -904,7 +897,7 @@ class JobManager:
 
 	def _require_metadata_scanner(self):
 		if not self.metadata_scanner:
-			raise RuntimeError("E2MDBScanner backend metadata scanner unavailable: %s" % BACKEND_METADATA_SCANNER_IMPORT_ERROR)
+			raise RuntimeError(f"E2MDBScanner backend metadata scanner unavailable: {BACKEND_METADATA_SCANNER_IMPORT_ERROR}")
 		return self.metadata_scanner
 
 	def _normalize_scan_paths(self, paths_payload):
@@ -1044,7 +1037,7 @@ class JobManager:
 			try:
 				existing_index = self.database.recording_index(paths=scan_paths)
 			except Exception as err:
-				log("recording index lookup failed, falling back to normal scan: %s" % err)
+				log(f"recording index lookup failed, falling back to normal scan: {err}")
 				existing_index = {}
 		path_status = self._scan_path_diagnostics(
 			scan_paths,
@@ -1130,17 +1123,11 @@ class JobManager:
 			recording = scanner.scan_media_file(media_path, path_item)
 			if scanner_only_debug:
 				mode = path_item.get("mode") if isinstance(path_item, dict) else None
-				log("[e2MDB.flag] path='%s' mode=%s (%s) recursive=%s" % (
-					media_path, mode, scanner.path_mode_label(mode), path_item.get("recursive") if isinstance(path_item, dict) else None
-				))
-				log("[e2MDB.flag] parser: title='%s' source_type=%s estimated_media_type=%s media_family=%s series_title='%s' movie_title='%s' season=%s episode=%s year=%s parse_error='%s'" % (
-					recording.get("title"), recording.get("source_type"), recording.get("estimated_media_type"), recording.get("media_family"),
-					recording.get("series_title"), recording.get("movie_title"), recording.get("season_no"), recording.get("episode_no"),
-					recording.get("year"), recording.get("parse_error")
-				))
+				log(f"[e2MDB.flag] path='{media_path}' mode={mode} ({scanner.path_mode_label(mode)}) recursive={path_item.get("recursive") if isinstance(path_item, dict) else None}")
+				log(f"[e2MDB.flag] parser: title='{recording.get("title")}' source_type={recording.get("source_type")} estimated_media_type={recording.get("estimated_media_type")} media_family={recording.get("media_family")} series_title='{recording.get("series_title")}' movie_title='{recording.get("movie_title")}' season={recording.get("season_no")} episode={recording.get("episode_no")} year={recording.get("year")} parse_error='{recording.get("parse_error")}'")
 				if self.provider_enricher:
 					candidates = self.provider_enricher.candidate_titles(recording)
-					log("[e2MDB.flag] search candidates: %s" % candidates)
+					log(f"[e2MDB.flag] search candidates: {candidates}")
 			if recording.get("source_type") == "recording":
 				ts_count += 1
 			else:
@@ -1200,7 +1187,7 @@ class JobManager:
 			atomic_write_json(SCAN_STATE_FILE, summary)
 			atomic_write_json(join(RUNTIME_DIR, "last_recording_scan.json"), payload)
 		except Exception as err:
-			log("recording catalog write failed: %s" % err)
+			log(f"recording catalog write failed: {err}")
 		db_result = {}
 		if self.database:
 			self._media_live_epg_checkpoint(reason="recording-scan-before-db-import", force=True)
@@ -1223,12 +1210,12 @@ class JobManager:
 				summary["database"] = db_result
 				atomic_write_json(SCAN_STATE_FILE, summary)
 			except Exception as err:
-				log("recording database import failed: %s" % err)
+				log(f"recording database import failed: {err}")
 				raise
 			self._media_live_epg_checkpoint(reason="recording-scan-after-db-import", force=True)
-		message = "Media path scan completed: %s supported media files (%s TS recordings, %s media files), %s scanned, %s unchanged skipped, %s errors" % (total, ts_count, media_count, len(recordings), skipped_existing, error_count)
+		message = f"Media path scan completed: {total} supported media files ({ts_count} TS recordings, {media_count} media files), {len(recordings)} scanned, {skipped_existing} unchanged skipped, {error_count} errors"
 		if db_result:
-			message += ", SQLite imported: %s" % db_result.get("inserted_or_updated", 0)
+			message += f", SQLite imported: {db_result.get("inserted_or_updated", 0)}"
 		if finish:
 			self._finish_job(success=True, scheduler_connection=scheduler_connection, message=message)
 		else:
@@ -1248,9 +1235,9 @@ class JobManager:
 
 	def _run_metadata_enrich(self, scheduler_connection=None, options=None, finish=True):
 		if not self.database:
-			raise RuntimeError("database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR)
+			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
 		if not self.provider_enricher:
-			raise RuntimeError("provider enricher unavailable: %s" % BACKEND_PROVIDER_IMPORT_ERROR)
+			raise RuntimeError(f"provider enricher unavailable: {BACKEND_PROVIDER_IMPORT_ERROR}")
 		options = options if isinstance(options, dict) else {}
 		multi_phase = bool(options.get("multi_phase")) or not finish
 		limit = safe_int(options.get("limit"), safe_int(self.settings.get("provider", {}).get("job_limit"), 100))
@@ -1328,7 +1315,7 @@ class JobManager:
 			try:
 				result = self.provider_enricher.search_item(item)
 				if provider_debug:
-					log("[e2MDB.flag] provider result for '%s': %s" % (item.get("path"), result))
+					log(f"[e2MDB.flag] provider result for '{item.get("path")}': {result}")
 				self.database.upsert_provider_result(item, result)
 				best = result.get("best") if isinstance(result.get("best"), dict) else {}
 				detail = {
@@ -1367,7 +1354,7 @@ class JobManager:
 					"error": str(err),
 					"matches": 0,
 				})
-				log("provider enrichment failed for '%s': %s" % (item.get("path"), err))
+				log(f"provider enrichment failed for '{item.get("path")}': {err}")
 			self._media_live_epg_checkpoint(reason="metadata-enrich-after-item")
 			if index % 5 == 0:
 				sleep(0.01)
@@ -1393,7 +1380,7 @@ class JobManager:
 			"errors": error_count,
 			"items": details[:200],
 		})
-		message = "Provider enrichment completed: %s ok, %s no match, %s errors" % (ok_count, no_match_count, error_count)
+		message = f"Provider enrichment completed: {ok_count} ok, {no_match_count} no match, {error_count} errors"
 		if finish:
 			self._finish_job(success=True, scheduler_connection=scheduler_connection, message=message)
 		else:
@@ -1411,7 +1398,7 @@ class JobManager:
 		return {
 			"id": source_key,
 			"source_key": source_key,
-			"path": "live://%s" % source_key,
+			"path": f"live://{source_key}",
 			"title": title,
 			"description": short_desc,
 			"short_desc": short_desc,
@@ -1512,7 +1499,7 @@ class JobManager:
 				if event_end and event_end < int(time()) - 300:
 					self.database.live_epg_queue_update_state(source_key, "ended_skipped", attempts=attempts, not_before=0, last_error="event-ended-before-backend-preempt")
 					finalized = True
-					send_gui_notification("live_epg_skipped", source_key, reason="backend-preempt-%s" % reason, state="ended_skipped")
+					send_gui_notification("live_epg_skipped", source_key, reason=f"backend-preempt-{reason}", state="ended_skipped")
 					no_match_count += 1
 					entry.update({"state": "ended_skipped", "success": False, "error": "event-ended-before-backend-preempt"})
 					items.append(entry)
@@ -1523,7 +1510,7 @@ class JobManager:
 					self.database.live_epg_queue_upsert_backend_result(queue_item, result)
 					self.database.live_epg_queue_update_state(source_key, "done", attempts=attempts, not_before=0, last_error="")
 					finalized = True
-					send_gui_notification("live_epg_updated", source_key, reason="backend-preempt-%s" % reason, state="done")
+					send_gui_notification("live_epg_updated", source_key, reason=f"backend-preempt-{reason}", state="done")
 					ok_count += 1
 					entry.update({"state": "done", "success": True})
 				elif self._live_provider_result_is_transient(result):
@@ -1538,7 +1525,7 @@ class JobManager:
 					self.database.live_epg_queue_upsert_backend_result(queue_item, result)
 					self.database.live_epg_queue_update_state(source_key, "no_match", attempts=attempts, not_before=0, last_error=error_text)
 					finalized = True
-					send_gui_notification("live_epg_no_match", source_key, reason="backend-preempt-%s" % reason, state="no_match", error=error_text)
+					send_gui_notification("live_epg_no_match", source_key, reason=f"backend-preempt-{reason}", state="no_match", error=error_text)
 					no_match_count += 1
 					entry.update({"state": "no_match", "success": False, "error": error_text})
 			except Exception as err:
@@ -1548,9 +1535,9 @@ class JobManager:
 					released = self.database.live_epg_queue_release_running(source_key, attempts=attempts, not_before=not_before, last_error=str(err))
 					finalized = bool(released.get("updated"))
 				except Exception as release_err:
-					log("live epg preempt claim recovery failed source_key=%s: %s" % (source_key, release_err))
+					log(f"live epg preempt claim recovery failed source_key={source_key}: {release_err}")
 				entry.update({"state": "pending", "success": False, "error": str(err)})
-				log("live epg preempt worker failed source_key=%s: %s" % (source_key, err))
+				log(f"live epg preempt worker failed source_key={source_key}: {err}")
 			items.append(entry)
 		payload = {
 			"success": True,
@@ -1569,15 +1556,15 @@ class JobManager:
 				self.status_store.update(live_epg_preempt=payload)
 			except Exception:
 				pass
-			log("live epg preempt processed=%s done=%s no_match=%s errors=%s reason=%s min_priority=%s" % (processed, ok_count, no_match_count, error_count, reason, min_priority))
+			log(f"live epg preempt processed={processed} done={ok_count} no_match={no_match_count} errors={error_count} reason={reason} min_priority={min_priority}")
 		return payload
 
 	def _run_live_epg_worker(self, scheduler_connection=None, options=None):
 		"""Process Live/EPG queue rows in the backend daemon."""
 		if not self.database:
-			raise RuntimeError("database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR)
+			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
 		if not self.provider_enricher:
-			raise RuntimeError("provider enricher unavailable: %s" % BACKEND_PROVIDER_IMPORT_ERROR)
+			raise RuntimeError(f"provider enricher unavailable: {BACKEND_PROVIDER_IMPORT_ERROR}")
 		options = options if isinstance(options, dict) else {}
 		limit = safe_int(options.get("limit"), 25)
 		if limit <= 0:
@@ -1615,9 +1602,9 @@ class JobManager:
 					try:
 						self.database.live_epg_queue_release_running(source_key, attempts=attempts, not_before=not_before, last_error=str(err))
 					except Exception as release_err:
-						log("live epg expired claim recovery failed source_key='%s': %s" % (source_key, release_err))
+						log(f"live epg expired claim recovery failed source_key='{source_key}': {release_err}")
 				if self._media_waiting():
-					log("live epg worker yielding after expired item for waiting job=%s" % self.media_waiting_job)
+					log(f"live epg worker yielding after expired item for waiting job={self.media_waiting_job}")
 					break
 				continue
 			percent = int(processed * 100 / limit) if limit and limit < 100000 else 0
@@ -1662,34 +1649,34 @@ class JobManager:
 					released = self.database.live_epg_queue_release_running(source_key, attempts=attempts, not_before=not_before, last_error=str(err))
 					finalized = bool(released.get("updated"))
 				except Exception as release_err:
-					log("live epg backend claim recovery failed source_key='%s': %s" % (source_key, release_err))
-				log("live epg backend worker failed source_key='%s': %s" % (source_key, err))
+					log(f"live epg backend claim recovery failed source_key='{source_key}': {release_err}")
+				log(f"live epg backend worker failed source_key='{source_key}': {err}")
 			if self._media_waiting():
-				log("live epg worker yielding after item for waiting job=%s" % self.media_waiting_job)
+				log(f"live epg worker yielding after item for waiting job={self.media_waiting_job}")
 				break
 			if processed % 5 == 0:
 				sleep(0.01)
 		if self.stop_event.is_set():
 			self._finish_job(success=False, scheduler_connection=scheduler_connection, message="Live/EPG worker aborted")
 			return
-		message = "Live/EPG queue worker completed: %s done, %s no match/skipped, %s errors" % (ok_count, no_match_count, error_count)
+		message = f"Live/EPG queue worker completed: {ok_count} done, {no_match_count} no match/skipped, {error_count} errors"
 		self._finish_job(success=True, scheduler_connection=scheduler_connection, message=message)
 
 
 	def _run_live_epg_cleanup_job(self, scheduler_connection=None, options=None):
 		if not self.database:
-			raise RuntimeError("database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR)
+			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
 		options = options if isinstance(options, dict) else {}
 		dry_run = str(options.get("dry_run") or "").lower() in ("1", "true", "yes", "on")
 		reason = str(options.get("reason") or "backend-job")
 		self._update_job(scheduler_connection, state="running", phase="cleanup_prepare", current=0, total=0, percent=0, message="Preparing Live/EPG cleanup")
 		result = self.database.run_live_epg_cleanup(reason=reason, force=True, dry_run=dry_run)
-		message = "Live/EPG cleanup completed: events=%s queue=%s cache=%s" % (result.get("events", 0), result.get("queue", 0), result.get("cache_deleted", 0))
+		message = f"Live/EPG cleanup completed: events={result.get("events", 0)} queue={result.get("queue", 0)} cache={result.get("cache_deleted", 0)}"
 		self._finish_job(success=bool(result.get("success", True)), scheduler_connection=scheduler_connection, message=message)
 
 	def _run_sqlite_maintenance_job(self, scheduler_connection=None, options=None):
 		if not self.database:
-			raise RuntimeError("database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR)
+			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
 		options = options if isinstance(options, dict) else {}
 		cleanup_settings = self.settings.get("cleanup", {}) if isinstance(self.settings.get("cleanup", {}), dict) else {}
 		vacuum = str(options.get("vacuum") if "vacuum" in options else cleanup_settings.get("sqlite_vacuum", True)).lower() in ("1", "true", "yes", "on")
@@ -1697,7 +1684,7 @@ class JobManager:
 		analyze = str(options.get("analyze") if "analyze" in options else True).lower() not in ("0", "false", "no", "off")
 		self._update_job(scheduler_connection, state="running", phase="sqlite_maintenance", current=0, total=0, percent=0, message="Running SQLite maintenance")
 		result = self.database.maintenance(vacuum=vacuum, analyze=analyze, reindex=reindex)
-		message = "SQLite maintenance completed: saved=%s bytes" % result.get("size_saved", 0)
+		message = f"SQLite maintenance completed: saved={result.get("size_saved", 0)} bytes"
 		self._finish_job(success=bool(result.get("success", True)), scheduler_connection=scheduler_connection, message=message)
 
 	def get_live_worker_status(self):
@@ -1757,17 +1744,17 @@ class JobManager:
 			if BackendDatabase:
 				self.database = BackendDatabase(settings)
 		except Exception as err:
-			return {"success": False, "error": "database reload failed: %s" % err}
+			return {"success": False, "error": f"database reload failed: {err}"}
 		try:
 			self.provider_enricher = BackendProviderEnricher(settings) if BackendProviderEnricher else None
 		except Exception as err:
-			return {"success": False, "error": "provider reload failed: %s" % err}
+			return {"success": False, "error": f"provider reload failed: {err}"}
 		try:
 			self.metadata_scanner = E2MDBBackendMetadataScanner() if E2MDBBackendMetadataScanner else None
 			if self.metadata_scanner and hasattr(self.metadata_scanner, "configure"):
 				self.metadata_scanner.configure(settings)
 		except Exception as err:
-			return {"success": False, "error": "scanner reload failed: %s" % err}
+			return {"success": False, "error": f"scanner reload failed: {err}"}
 		return {"success": True, "settings": settings, "database_path": getattr(self.database, "db_path", "")}
 
 	def reload_settings(self):
@@ -1813,7 +1800,7 @@ class CommandSocketServer(Thread):
 		self.server.bind(COMMAND_SOCKET)
 		self.server.listen(8)
 		self.server.settimeout(1.0)
-		log("command socket listening on %s" % COMMAND_SOCKET)
+		log(f"command socket listening on {COMMAND_SOCKET}")
 		while not self.stop_event.is_set():
 			try:
 				connection, _address = self.server.accept()
@@ -1821,7 +1808,7 @@ class CommandSocketServer(Thread):
 				continue
 			except Exception as err:
 				if not self.stop_event.is_set():
-					log("command accept failed: %s" % err)
+					log(f"command accept failed: {err}")
 				continue
 			Thread(target=self.handle_client, args=(connection,), daemon=True).start()
 		try:
@@ -1903,11 +1890,11 @@ class CommandSocketServer(Thread):
 		if command == "database_status":
 			if self.job_manager.database:
 				return self.job_manager.database.status()
-			return {"success": False, "error": "database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR}
+			return {"success": False, "error": f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}"}
 		if command == "database_schema":
 			if self.job_manager.database:
 				return self.job_manager.database.schema()
-			return {"success": False, "error": "database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR}
+			return {"success": False, "error": f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}"}
 		if command == "database_maintenance":
 			return self.job_manager.run_database_maintenance(
 				vacuum=bool(request.get("vacuum", False)),
@@ -2119,7 +2106,7 @@ class LiveEPGAutoWorker(Thread):
 					if response.get("success") and not response.get("deferred"):
 						self.last_run = int(time())
 						self.last_error = ""
-						self._publish(enabled=True, pending=pending, message="started batch limit %d" % limit, idle_interval=interval, active_wait=active_wait)
+						self._publish(enabled=True, pending=pending, message=f"started batch limit {limit}", idle_interval=interval, active_wait=active_wait)
 					else:
 						self.last_error = str(response.get("error") or response.get("message") or "start skipped")
 						self._publish(enabled=True, pending=pending, message="start skipped", idle_interval=interval, active_wait=active_wait)
@@ -2133,7 +2120,7 @@ class LiveEPGAutoWorker(Thread):
 					self._wait(wait_seconds)
 			except Exception as err:
 				self.last_error = str(err)
-				log("live epg auto worker failed: %s" % err)
+				log(f"live epg auto worker failed: {err}")
 				self._publish(enabled=True, pending=0, message="error", idle_interval=10, active_wait=1)
 				self._wait(10)
 
@@ -2151,7 +2138,7 @@ class TwistedWebServer(Thread):
 			from twisted.internet import reactor
 			from twisted.web import resource, server, static
 		except Exception as err:
-			log("twisted web disabled: %s" % err)
+			log(f"twisted web disabled: {err}")
 			return
 
 		status_store = self.status_store
@@ -2302,7 +2289,7 @@ class TwistedWebServer(Thread):
 						args = self._args(request)
 						payload = job_manager.run_refresh_job(overrides=args)
 					elif self.endpoint == "database/status":
-						payload = job_manager.database.status() if job_manager.database else {"success": False, "error": "database unavailable: %s" % BACKEND_DATABASE_IMPORT_ERROR}
+						payload = job_manager.database.status() if job_manager.database else {"success": False, "error": f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}"}
 					elif self.endpoint == "database/maintenance":
 						args = request.args or {}
 						vacuum = args.get(b"vacuum", [b"0"])[0].decode("utf-8", "replace") in ("1", "true", "yes")
@@ -2511,7 +2498,7 @@ class TwistedWebServer(Thread):
 		host = str(webserver.get("host") or "0.0.0.0")
 		port = configured_web_port(webserver)
 		reactor.listenTCP(port, server.Site(root), interface=host)
-		log("twisted web listening on %s:%s" % (host, port))
+		log(f"twisted web listening on {host}:{port}")
 		reactor.run(installSignalHandlers=False)
 
 
@@ -2552,7 +2539,7 @@ def ensure_default_files():
 		try:
 			atomic_write_json(recordings_file, {"version": 1, "updated": 0, "total": 0, "items": []})
 		except Exception as err:
-			log("recording catalog default write failed: %s" % err)
+			log(f"recording catalog default write failed: {err}")
 	if not isfile(SCAN_STATE_FILE):
 		atomic_write_json(SCAN_STATE_FILE, {"version": 1, "updated": 0, "total": 0, "errors": 0, "paths": []})
 	if not isfile(PROVIDER_STATE_FILE):
@@ -2562,7 +2549,7 @@ def ensure_default_files():
 		try:
 			atomic_write_json(job_history_file, {"version": 1, "updated": 0, "items": []})
 		except Exception as err:
-			log("job history default write failed: %s" % err)
+			log(f"job history default write failed: {err}")
 
 
 def main():
@@ -2574,11 +2561,11 @@ def main():
 	if BackendDatabase:
 		try:
 			database = BackendDatabase(settings)
-			log("database ready path=%s" % database.db_path)
+			log(f"database ready path={database.db_path}")
 		except Exception as err:
-			log("database disabled: %s" % err)
+			log(f"database disabled: {err}")
 	else:
-		log("database disabled: %s" % BACKEND_DATABASE_IMPORT_ERROR)
+		log(f"database disabled: {BACKEND_DATABASE_IMPORT_ERROR}")
 	job_manager = JobManager(status_store, database=database, settings=settings)
 	command_server = CommandSocketServer(job_manager, status_store, stop_event)
 	web_server = TwistedWebServer(job_manager, status_store, stop_event)
@@ -2586,7 +2573,7 @@ def main():
 	command_server.start()
 	live_auto_worker.start()
 	web_server.start()
-	log("started pid=%s" % getpid())
+	log(f"started pid={getpid()}")
 	try:
 		while not stop_event.is_set():
 			sleep(1.0)

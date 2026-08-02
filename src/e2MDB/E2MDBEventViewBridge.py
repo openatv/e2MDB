@@ -72,14 +72,7 @@ class E2MDBEventViewBridge:
 			skin_data = build_epg_skin_data(candidate=candidate, event_row=row or {})
 			apply_epg_skin_data(self.screen, skin_data)
 			self.update_count += 1
-			self.log("SKIN UPDATE source_key=%s reason=%s title='%s' cover='%s' backdrop='%s' image='%s'" % (
-				skin_data.get("source_key") or getattr(candidate, "source_key", ""),
-				reason,
-				skin_data.get("title") or "",
-				skin_data.get("cover_path") or "",
-				skin_data.get("backdrop_path") or "",
-				skin_data.get("image_path") or "",
-			))
+			self.log(f"SKIN UPDATE source_key={skin_data.get("source_key") or getattr(candidate, "source_key", "")} reason={reason} title='{skin_data.get("title") or ""}' cover='{skin_data.get("cover_path") or ""}' backdrop='{skin_data.get("backdrop_path") or ""}' image='{skin_data.get("image_path") or ""}'")
 			return True
 		except Exception as err:
 			self.log(f"SKIN UPDATE failed reason={reason} error={err}", force=True)
@@ -101,7 +94,7 @@ class E2MDBEventViewBridge:
 		if status in ("matched", "done") and json_path and (expires_at <= 0 or expires_at > now):
 			missing_images = _actionable_missing_images(existing)
 			if missing_images:
-				return True, "fresh-missing-images:%s" % ",".join(missing_images)
+				return True, f"fresh-missing-images:{",".join(missing_images)}"
 			return False, "fresh-provider-data"
 		if status == "no_match" and expires_at > now:
 			stored_search_title = existing.get("search_title") or ""
@@ -133,15 +126,7 @@ class E2MDBEventViewBridge:
 		if queue_item:
 			resultsdb.update_fetch_queue_state(candidate.source_key, status, last_error=f"{reason}:{detail or ''}")
 		self.skip_count += 1
-		self.log("PROVIDER SKIP source_key=%s status=%s reason=%s detail='%s' expires='%s' title='%s' search_title='%s'" % (
-			candidate.source_key,
-			status,
-			reason,
-			detail or "",
-			self._format_time(expires_at),
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"PROVIDER SKIP source_key={candidate.source_key} status={status} reason={reason} detail='{detail or ""}' expires='{self._format_time(expires_at)}' title='{candidate.title}' search_title='{candidate.search_title}'")
 
 	def _request_ad_hoc(self, candidate, reason="eventview"):
 		if candidate.source_key in self.ad_hoc_running:
@@ -154,12 +139,7 @@ class E2MDBEventViewBridge:
 			self.ad_hoc_running.discard(candidate.source_key)
 			if ok:
 				self.ad_hoc_count += 1
-				self.log("ADHOC BACKEND WAKE source_key=%s reason=%s title='%s' search_title='%s'" % (
-					candidate.source_key,
-					reason,
-					candidate.title,
-					candidate.search_title,
-				), force=True)
+				self.log(f"ADHOC BACKEND WAKE source_key={candidate.source_key} reason={reason} title='{candidate.title}' search_title='{candidate.search_title}'", force=True)
 			else:
 				self.log(f"ADHOC QUEUED source_key={candidate.source_key} reason={reason} title='{candidate.title}'")
 			return ok
@@ -179,13 +159,7 @@ class E2MDBEventViewBridge:
 		if not row:
 			self.log(f"ADHOC FINISH source_key={source_key} result={result} error={error or ''} row=missing", force=True)
 			return
-		self.log("ADHOC FINISH source_key=%s result=%s status=%s json='%s' error=%s" % (
-			source_key,
-			result,
-			row.get("status") or "unknown",
-			row.get("json_path") or "",
-			error or "",
-		), force=True)
+		self.log(f"ADHOC FINISH source_key={source_key} result={result} status={row.get("status") or "unknown"} json='{row.get("json_path") or ""}' error={error or ""}", force=True)
 		try:
 			event = self._event()
 			service_ref = self._service_ref()
@@ -199,11 +173,7 @@ class E2MDBEventViewBridge:
 		if existing_event:
 			queue_needed, queue_reason = self._queue_needed(existing_event, int(time()), candidate.search_title)
 			if not queue_needed:
-				self.log("QUEUE SKIP source_key=%s reason=%s event_status=%s" % (
-					candidate.source_key,
-					queue_reason,
-					existing_event.get("status") or "unknown",
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} reason={queue_reason} event_status={existing_event.get("status") or "unknown"}")
 				return True
 
 		existing_queue = resultsdb.get_fetch_queue_item(candidate.source_key)
@@ -211,13 +181,7 @@ class E2MDBEventViewBridge:
 			existing_priority = int(existing_queue.get("priority") or 0)
 			existing_state = existing_queue.get("state") or "pending"
 			if existing_state == "pending" and existing_priority >= int(priority or 0):
-				self.log("QUEUE SKIP source_key=%s existing_state=%s existing_priority=%s requested_priority=%s reason=%s" % (
-					candidate.source_key,
-					existing_state,
-					existing_priority,
-					priority,
-					reason,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} existing_state={existing_state} existing_priority={existing_priority} requested_priority={priority} reason={reason}")
 				return True
 
 		ok = resultsdb.upsert_fetch_queue({
@@ -234,14 +198,7 @@ class E2MDBEventViewBridge:
 		})
 		if ok:
 			self.queue_count += 1
-		self.log("QUEUE %s source_key=%s priority=%s reason=%s title='%s' search_title='%s'" % (
-			"UPSERT" if ok else "FAILED",
-			candidate.source_key,
-			priority,
-			reason,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"QUEUE {"UPSERT" if ok else "FAILED"} source_key={candidate.source_key} priority={priority} reason={reason} title='{candidate.title}' search_title='{candidate.search_title}'")
 		return ok
 
 	def update(self, reason="eventview"):
@@ -270,15 +227,7 @@ class E2MDBEventViewBridge:
 		self.last_source_key = candidate.source_key
 		self.last_processed_time = now
 
-		self.log("EVENT source_key=%s reason=%s service='%s' begin='%s' duration=%s title='%s' search_title='%s'" % (
-			candidate.source_key,
-			reason,
-			candidate.service_ref,
-			self._format_time(candidate.begin_time),
-			candidate.duration,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"EVENT source_key={candidate.source_key} reason={reason} service='{candidate.service_ref}' begin='{self._format_time(candidate.begin_time)}' duration={candidate.duration} title='{candidate.title}' search_title='{candidate.search_title}'")
 
 		existing = resultsdb.get_epg_event(candidate.source_key)
 		skip_status, skip_reason, skip_detail = self.adapter.epg_provider_skip_reason(candidate)
@@ -300,20 +249,8 @@ class E2MDBEventViewBridge:
 					"json_path": "",
 					"expires_at": candidate.expires_at,
 				})
-				self.log("DB RESET source_key=%s reason=improved-search-title old_search_title='%s' new_search_title='%s'" % (
-					candidate.source_key,
-					existing.get("search_title") or "",
-					candidate.search_title,
-				))
-			self.log("DB HIT id=%s status=%s json='%s' expires='%s' search_title='%s' queue_needed=%s queue_reason=%s" % (
-				row.get("id"),
-				row.get("status") or "unknown",
-				row.get("json_path") or "",
-				self._format_time(row.get("expires_at") or 0),
-				row.get("search_title") or candidate.search_title,
-				queue_needed,
-				queue_reason,
-			))
+				self.log(f"DB RESET source_key={candidate.source_key} reason=improved-search-title old_search_title='{existing.get("search_title") or ""}' new_search_title='{candidate.search_title}'")
+			self.log(f"DB HIT id={row.get("id")} status={row.get("status") or "unknown"} json='{row.get("json_path") or ""}' expires='{self._format_time(row.get("expires_at") or 0)}' search_title='{row.get("search_title") or candidate.search_title}' queue_needed={queue_needed} queue_reason={queue_reason}")
 			self._apply_row_to_skin(candidate, row, reason=reason)
 			if queue_needed:
 				queued = self._queue_event(candidate, priority=PRIORITY_EVENTVIEW, reason=queue_reason)
@@ -328,12 +265,7 @@ class E2MDBEventViewBridge:
 		event_id = resultsdb.upsert_epg_event(candidate.as_dict())
 		row = resultsdb.get_epg_event(candidate.source_key)
 		self._apply_row_to_skin(candidate, row, reason=reason)
-		self.log("DB INSERT id=%s source_key=%s expires='%s' service_name='%s'" % (
-			event_id,
-			candidate.source_key,
-			self._format_time(candidate.expires_at),
-			candidate.service_name,
-		))
+		self.log(f"DB INSERT id={event_id} source_key={candidate.source_key} expires='{self._format_time(candidate.expires_at)}' service_name='{candidate.service_name}'")
 		queued = self._queue_event(candidate, priority=PRIORITY_EVENTVIEW, reason=reason)
 		if queued:
 			self._request_ad_hoc(candidate, reason=reason)
@@ -394,9 +326,7 @@ def install_event_view_hooks():
 		EventViewBase.setEvent = _patched_event_view_base_set_event
 		EventViewBase.setService = _patched_event_view_base_set_service
 		_event_view_hooks_installed = True
-		write_log("[e2MDB][EVENTVIEW] HOOK installed; metaEnabled=%s" % (
-			config.plugins.e2mdb.epgMetaEnabled.value,
-		))
+		write_log(f"[e2MDB][EVENTVIEW] HOOK installed; metaEnabled={config.plugins.e2mdb.epgMetaEnabled.value}")
 		return True
 	except Exception as err:
 		write_log(f"[e2MDB][EVENTVIEW] ERROR installing EventView hook: {err}")

@@ -53,7 +53,7 @@ def _event_description_without_title(event):
 	if short and extended and extended.replace("\n", "") == short.replace("\n", ""):
 		return extended
 	if short and extended:
-		return "%s\n%s" % (short, extended)
+		return f"{short}\n{extended}"
 	return short or extended or name
 
 

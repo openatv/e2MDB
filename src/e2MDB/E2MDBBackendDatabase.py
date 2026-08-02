@@ -75,7 +75,7 @@ class BackendDatabase:
 		conn = connect(self.db_path, timeout=max(1.0, float(self.busy_timeout_ms) / 1000.0))
 		conn.row_factory = Row
 		conn.execute("PRAGMA foreign_keys=ON")
-		conn.execute("PRAGMA busy_timeout=%d" % self.busy_timeout_ms)
+		conn.execute(f"PRAGMA busy_timeout={self.busy_timeout_ms}")
 		if self.journal_mode == "wal" and not self._journal_mode_ready:
 			try:
 				mode_row = conn.execute("PRAGMA journal_mode=WAL").fetchone()
@@ -496,13 +496,13 @@ class BackendDatabase:
 			if not path:
 				continue
 			recursive = bool(item.get("recursive", True))
-			path_col = "%s%s" % (prefix, column_path)
-			folder_col = "%s%s" % (prefix, column_folder)
+			path_col = f"{prefix}{column_path}"
+			folder_col = f"{prefix}{column_folder}"
 			if recursive:
-				clauses.append("(%s = ? OR %s LIKE ?)" % (path_col, path_col))
-				params.extend([path, "%s/%%" % path])
+				clauses.append(f"({path_col} = ? OR {path_col} LIKE ?)")
+				params.extend([path, f"{path}/%"])
 			else:
-				clauses.append("(%s = ? OR %s = ?)" % (path_col, folder_col))
+				clauses.append(f"({path_col} = ? OR {folder_col} = ?)")
 				params.extend([path, path])
 		if not clauses:
 			return "", []
@@ -622,8 +622,8 @@ class BackendDatabase:
 				params = []
 				if query_norm:
 					where_sql = "WHERE search_text_norm LIKE ? OR lower(path) LIKE ?"
-					params = ["%%%s%%" % query_norm, "%%%s%%" % str(query or "").lower()]
-				total_row = conn.execute("SELECT COUNT(*) AS total FROM e2mdb_recordings %s" % where_sql, params).fetchone()
+					params = [f"%{query_norm}%", f"%{str(query or "").lower()}%"]
+				total_row = conn.execute(f"SELECT COUNT(*) AS total FROM e2mdb_recordings {where_sql}", params).fetchone()
 				total = int(total_row["total"] if total_row else 0)
 				rows = conn.execute("""
 					SELECT payload_json FROM e2mdb_recordings
@@ -704,7 +704,7 @@ class BackendDatabase:
 					where.append("(" + " OR ".join(missing) + ")")
 				if query_norm:
 					where.append("(r.search_text_norm LIKE ? OR lower(r.path) LIKE ?)")
-					params.extend(["%%%s%%" % query_norm, "%%%s%%" % str(query or "").lower()])
+					params.extend([f"%{query_norm}%", f"%{str(query or "").lower()}%"])
 				path_sql, path_params = self._path_filter_sql(paths, column_path="path", column_folder="folder", prefix="r.")
 				if path_sql:
 					where.append(path_sql)
@@ -908,8 +908,8 @@ class BackendDatabase:
 			where.append("COALESCE(m.browser_ready, '0') = '1'")
 		if query_norm:
 			where.append("(m.search_string_norm LIKE ? OR r.search_text_norm LIKE ? OR lower(m.file_path) LIKE ? OR lower(COALESCE(m.series_title, '')) LIKE ? OR lower(COALESCE(m.provider_title, '')) LIKE ? OR lower(m.metadata_title) LIKE ?)")
-			query_plain = "%%%s%%" % str(query or "").lower()
-			params.extend(["%%%s%%" % query_norm, "%%%s%%" % query_norm, query_plain, query_plain, query_plain, query_plain])
+			query_plain = f"%{str(query or "").lower()}%"
+			params.extend([f"%{query_norm}%", f"%{query_norm}%", query_plain, query_plain, query_plain, query_plain])
 		if media_type and media_type != "all":
 			if media_type in ("movie", "series"):
 				where.append("(lower(COALESCE(NULLIF(m.metadata_media_type, ''), m.provider_media_type, '')) = ? OR COALESCE(NULLIF(m.metadata_media_type, ''), m.provider_media_type, '') = '' OR lower(COALESCE(NULLIF(m.metadata_media_type, ''), m.provider_media_type, '')) = 'multi')")
@@ -922,17 +922,17 @@ class BackendDatabase:
 			params.extend([year, year])
 		if genre_norm:
 			where.append("lower(COALESCE(m.metadata_genres, '')) LIKE ?")
-			params.append("%%%s%%" % genre_norm)
+			params.append(f"%{genre_norm}%")
 		if cast_norm:
 			# Cast search must be SQL-side, not a post-filter on the current page.
 			# Otherwise clicking an actor may return an empty first page even though
 			# matching rows exist later in the library. Search both the normalized name
 			# and the raw text because metadata_cast is stored as JSON.
-			cast_like_raw = "%%%s%%" % cast_text.lower()
+			cast_like_raw = f"%{cast_text.lower()}%"
 			cast_like_norm_parts = [part for part in cast_norm.split() if part]
 			if cast_like_norm_parts:
 				where.append("(" + " AND ".join(["lower(COALESCE(m.metadata_cast, '') || ' ' || COALESCE(m.provider_best_json, '')) LIKE ?" for _ in cast_like_norm_parts]) + " OR lower(COALESCE(m.metadata_cast, '') || ' ' || COALESCE(m.provider_best_json, '')) LIKE ?)")
-				params.extend(["%%%s%%" % part for part in cast_like_norm_parts])
+				params.extend([f"%{part}%" for part in cast_like_norm_parts])
 				params.append(cast_like_raw)
 			else:
 				where.append("lower(COALESCE(m.metadata_cast, '') || ' ' || COALESCE(m.provider_best_json, '')) LIKE ?")
@@ -944,9 +944,9 @@ class BackendDatabase:
 			# with S.
 			display_title_sql = "COALESCE(NULLIF(m.series_title, ''), NULLIF(m.provider_title, ''), NULLIF(m.metadata_title, ''), NULLIF(r.title, ''), m.search_string, m.file_name)"
 			if letter == "0-9":
-				where.append("substr(upper(%s), 1, 1) BETWEEN '0' AND '9'" % display_title_sql)
+				where.append(f"substr(upper({display_title_sql}), 1, 1) BETWEEN '0' AND '9'")
 			else:
-				where.append("substr(upper(%s), 1, 1) = ?" % display_title_sql)
+				where.append(f"substr(upper({display_title_sql}), 1, 1) = ?")
 				params.append(letter[:1])
 		return ("WHERE " + " AND ".join(where) if where else ""), params
 
@@ -1035,14 +1035,14 @@ class BackendDatabase:
 		provider = str(item.get("provider") or "").strip().lower()
 		provider_id = self._decode_provider_id(provider, row.get("metadata_provider_ids"))
 		if provider and provider_id:
-			return "%s|%s|%s" % (media_type, provider, provider_id)
+			return f"{media_type}|{provider}|{provider_id}"
 		if media_type == "series":
 			title_source = self._first_non_empty(item.get("series_title"), item.get("title"), item.get("name"), item.get("search_string"), item.get("file_name"), item.get("file_path"))
 			title = normalize_search_text(self._series_title_from_text(title_source))
-			return "%s|%s" % (media_type, title)
+			return f"{media_type}|{title}"
 		title = normalize_search_text(item.get("title") or item.get("name") or item.get("search_string") or item.get("file_name") or "")
 		year = str(item.get("year") or item.get("released") or "")[:4]
-		return "%s|%s|%s" % (media_type, title, year)
+		return f"{media_type}|{title}|{year}"
 
 	def _image_file_path(self, value):
 		value = str(value or "").strip()
@@ -1063,7 +1063,7 @@ class BackendDatabase:
 			return ""
 		file_path = self._image_file_path(value)
 		if file_path:
-			return "/api/artwork/file?path=%s" % quote(file_path, safe="")
+			return f"/api/artwork/file?path={quote(file_path, safe="")}"
 		value_lower = value.lower()
 		if value_lower.startswith(("http://", "https://", "data:")) or value.startswith("/api/"):
 			return value
@@ -1461,7 +1461,7 @@ class BackendDatabase:
 					provider = parts[1].strip().lower()
 					provider_id = "|".join(parts[2:]).strip()
 					where = where_ready + (" AND " if where_ready else "WHERE ") + "lower(COALESCE(NULLIF(m.metadata_media_type, ''), m.provider_media_type, m.estimated_media_type, '')) = ? AND lower(COALESCE(m.metadata_provider, '')) = ? AND COALESCE(m.metadata_provider_ids, '') LIKE ?"
-					rows = conn.execute(self._browser_select_sql(where), tuple(ready_params + [media_type, provider, "%%%s%%" % provider_id])).fetchall()
+					rows = conn.execute(self._browser_select_sql(where), tuple(ready_params + [media_type, provider, f"%{provider_id}%"])).fetchall()
 					if rows:
 						return rows
 
@@ -1478,7 +1478,7 @@ class BackendDatabase:
 						params.append(media_type)
 					for term in terms:
 						clauses.append("(m.search_string_norm LIKE ? OR r.search_text_norm LIKE ? OR lower(COALESCE(m.series_title, '')) LIKE ? OR lower(COALESCE(m.provider_title, '')) LIKE ? OR lower(COALESCE(m.metadata_title, '')) LIKE ? OR lower(COALESCE(m.file_name, '')) LIKE ?)")
-						needle = "%%%s%%" % term.lower()
+						needle = f"%{term.lower()}%"
 						params.extend([needle, needle, needle, needle, needle, needle])
 					where = where_ready
 					if clauses:
@@ -1599,7 +1599,7 @@ class BackendDatabase:
 				else:
 					info["reason"] = "file-missing"
 			except Exception as err:
-				info["reason"] = "stat-error: %s" % str(err)
+				info["reason"] = f"stat-error: {str(err)}"
 			return info
 		info.update({"kind": "relative", "reason": "relative-path"})
 		return info
@@ -1852,19 +1852,13 @@ class BackendDatabase:
 				tables = {}
 				for table in ("e2mdb_media", "e2mdb_recordings", "e2mdb_provider_matches", "e2mdb_backend_state"):
 					try:
-						tables[table] = [dict(row) for row in conn.execute("PRAGMA table_info(%s)" % table).fetchall()]
+						tables[table] = [dict(row) for row in conn.execute(f"PRAGMA table_info({table})").fetchall()]
 					except Exception as err:
 						tables[table] = [{"error": str(err)}]
 		return {"success": True, "db_path": self.db_path, "tables": tables}
 
 	def _live_epg_canonical_source_key(self, source_type, service_ref, begin_time, event_end, title_norm):
-		identity = "%s|%s|%s|%s|%s" % (
-			str(source_type or "epg"),
-			str(service_ref or ""),
-			safe_int(begin_time, 0),
-			safe_int(event_end, 0),
-			normalize_search_text(title_norm or ""),
-		)
+		identity = f"{str(source_type or "epg")}|{str(service_ref or "")}|{safe_int(begin_time, 0)}|{safe_int(event_end, 0)}|{normalize_search_text(title_norm or "")}"
 		return md5(identity.encode("utf-8")).hexdigest()
 
 	def live_epg_duplicates(self, limit=100, query="", fix=False):
@@ -1880,7 +1874,7 @@ class BackendDatabase:
 		where = ["source_type = 'epg'", "service_ref != ''", "begin_time > 0", "title != ''"]
 		params = []
 		if query:
-			like = "%%%s%%" % query
+			like = f"%{query}%"
 			where.append("(title LIKE ? OR search_title LIKE ? OR metadata_title LIKE ? OR service_ref LIKE ? OR source_key LIKE ?)")
 			params.extend([like, like, like, like, like])
 		where_sql = " WHERE " + " AND ".join(where)
@@ -1948,7 +1942,7 @@ class BackendDatabase:
 						if keeper_key != canonical:
 							target = conn.execute("SELECT id FROM e2mdb_epg_events WHERE source_key = ?", (canonical,)).fetchone()
 							if not target:
-								conn.execute("UPDATE e2mdb_epg_events SET source_key = ?, virtual_path = ?, updated_at = ? WHERE id = ?", (canonical, "live://%s" % canonical, int(time()), keeper_id))
+								conn.execute("UPDATE e2mdb_epg_events SET source_key = ?, virtual_path = ?, updated_at = ? WHERE id = ?", (canonical, f"live://{canonical}", int(time()), keeper_id))
 								old_queue = conn.execute("SELECT source_key FROM e2mdb_fetch_queue WHERE source_key = ?", (keeper_key,)).fetchone()
 								new_queue = conn.execute("SELECT source_key FROM e2mdb_fetch_queue WHERE source_key = ?", (canonical,)).fetchone()
 								if old_queue and not new_queue:
@@ -2052,7 +2046,7 @@ class BackendDatabase:
 			where.append("state = ?")
 			params.append(state)
 		if query:
-			like = "%%%s%%" % query
+			like = f"%{query}%"
 			where.append("(title LIKE ? OR search_title LIKE ? OR service_ref LIKE ? OR source_key LIKE ? OR reason LIKE ? OR last_error LIKE ?)")
 			params.extend([like, like, like, like, like, like])
 		where_sql = " WHERE " + " AND ".join(where) if where else ""
@@ -2068,7 +2062,7 @@ class BackendDatabase:
 						priority DESC, not_before ASC, updated_at DESC
 					LIMIT ?
 				""" % where_sql, tuple(params + [limit])).fetchall()
-				count_row = conn.execute("SELECT COUNT(*) AS total FROM e2mdb_fetch_queue%s" % where_sql, tuple(params)).fetchone()
+				count_row = conn.execute(f"SELECT COUNT(*) AS total FROM e2mdb_fetch_queue{where_sql}", tuple(params)).fetchone()
 				return {
 					"success": True,
 					"total": int(count_row["total"] if count_row else 0),
@@ -2185,7 +2179,7 @@ class BackendDatabase:
 			where = "1=1"
 			label = "all"
 		else:
-			return {"success": False, "error": "unknown queue clear mode: %s" % mode, "removed": 0}
+			return {"success": False, "error": f"unknown queue clear mode: {mode}", "removed": 0}
 		with self.lock:
 			with self._connect() as conn:
 				cur = conn.execute("DELETE FROM e2mdb_fetch_queue WHERE " + where)
@@ -2256,7 +2250,7 @@ class BackendDatabase:
 		params.append(source_key)
 		with self.lock:
 			with self._connect() as conn:
-				cur = conn.execute("UPDATE e2mdb_fetch_queue SET %s WHERE source_key = ?" % ", ".join(sets), tuple(params))
+				cur = conn.execute(f"UPDATE e2mdb_fetch_queue SET {", ".join(sets)} WHERE source_key = ?", tuple(params))
 				conn.commit()
 				return {"success": True, "updated": int(cur.rowcount or 0), "source_key": source_key, "state": state}
 
@@ -2480,7 +2474,7 @@ class BackendDatabase:
 			source_key, str(queue_item.get("source_type") or "epg"), str(queue_item.get("service_ref") or ""), str(queue_item.get("service_name") or ""),
 			safe_int(queue_item.get("event_id"), 0), title, normalize_search_text(title), search_title,
 			str(queue_item.get("short_desc") or ""), str(queue_item.get("extended_desc") or ""),
-			begin_time, duration, event_end, "live://%s" % source_key, metadata.get("json_path", ""), status, confidence, now, expires_at, 0, now, now
+			begin_time, duration, event_end, f"live://{source_key}", metadata.get("json_path", ""), status, confidence, now, expires_at, 0, now, now
 		))
 		conn.execute("""
 			UPDATE e2mdb_epg_events
@@ -2499,7 +2493,7 @@ class BackendDatabase:
 		))
 		asset_id = None
 		if provider_result.get("success") and metadata.get("provider") and metadata.get("provider_id"):
-			asset_key = "%s|%s|%s" % (metadata.get("media_type") or "multi", metadata.get("provider"), metadata.get("provider_id"))
+			asset_key = f"{metadata.get("media_type") or "multi"}|{metadata.get("provider")}|{metadata.get("provider_id")}"
 			artwork = metadata.get("artwork") if isinstance(metadata.get("artwork"), dict) else {}
 			best = metadata.get("best") if isinstance(metadata.get("best"), dict) else {}
 			# Do not persist provider artwork URLs/provenance in SQLite.
@@ -2560,7 +2554,7 @@ class BackendDatabase:
 			return {"success": False, "error": "missing source_key"}
 		now = int(time())
 		title = str(queue_item.get("search_title") or queue_item.get("title") or "").strip()
-		file_path = "live://%s" % source_key
+		file_path = f"live://{source_key}"
 		search_norm = normalize_search_text(" ".join([title, str(queue_item.get("service_ref") or ""), str(queue_item.get("reason") or "")]))
 		with self.lock:
 			with self._connect() as conn:
@@ -2729,7 +2723,7 @@ class BackendDatabase:
 		conn = None
 		if isfile(self.db_path):
 			try:
-				conn = connect("file:%s?mode=ro" % quote(self.db_path), uri=True, timeout=0.25)
+				conn = connect(f"file:{quote(self.db_path)}?mode=ro", uri=True, timeout=0.25)
 			except Exception:
 				conn = connect(self.db_path, timeout=0.25)
 		else:
@@ -2856,7 +2850,7 @@ class BackendDatabase:
 				counts = {}
 				for table in ("e2mdb_media", "e2mdb_recordings", "e2mdb_provider_matches", "e2mdb_backend_state"):
 					try:
-						row = conn.execute("SELECT COUNT(*) AS total FROM %s" % table).fetchone()
+						row = conn.execute(f"SELECT COUNT(*) AS total FROM {table}").fetchone()
 						counts[table] = row_int(row, "total", 0)
 					except Exception:
 						counts[table] = -1
@@ -2995,7 +2989,7 @@ class BackendDatabase:
 	def _count_table_rows(self, conn, table, where="", params=None):
 		params = params or []
 		try:
-			row = conn.execute("SELECT COUNT(*) AS total FROM %s %s" % (table, where), tuple(params)).fetchone()
+			row = conn.execute(f"SELECT COUNT(*) AS total FROM {table} {where}", tuple(params)).fetchone()
 			return int(row["total"] if row else 0)
 		except Exception:
 			return -1
@@ -3003,7 +2997,7 @@ class BackendDatabase:
 	def _sum_table_integer(self, conn, table, column, where="", params=None):
 		params = params or []
 		try:
-			row = conn.execute("SELECT COALESCE(SUM(%s), 0) AS total FROM %s %s" % (column, table, where), tuple(params)).fetchone()
+			row = conn.execute(f"SELECT COALESCE(SUM({column}), 0) AS total FROM {table} {where}", tuple(params)).fetchone()
 			return int(row["total"] if row else 0)
 		except Exception:
 			return 0
@@ -3106,11 +3100,11 @@ class BackendDatabase:
 				plain_media_files = self._count_table_rows(conn, "e2mdb_recordings", "WHERE source_type = 'media_file' AND extension != '.ts'")
 				local_episodes = self._count_table_rows(conn, "e2mdb_recordings", "WHERE CAST(COALESCE(NULLIF(season_no, ''), '0') AS INTEGER) > 0 OR CAST(COALESCE(NULLIF(episode_no, ''), '0') AS INTEGER) > 0")
 				bytes_total = self._sum_table_integer(conn, "e2mdb_recordings", "size_bytes")
-				movies = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND %s IN ('movie', 'film')" % media_type_expr)
-				series = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND (%s IN ('series', 'tv', 'tv_series', 'anime_series', 'manga_series') OR LOWER(COALESCE(media_family, '')) IN ('series', 'anime', 'manga'))" % media_type_expr)
-				anime = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND (%s LIKE 'anime%%' OR LOWER(COALESCE(media_family, '')) = 'anime')" % media_type_expr)
-				manga = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND (%s LIKE 'manga%%' OR LOWER(COALESCE(media_family, '')) = 'manga')" % media_type_expr)
-				unknown_media = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND %s IN ('', 'missing', 'multi', 'unknown')" % media_type_expr)
+				movies = self._count_table_rows(conn, "e2mdb_media", f"WHERE COALESCE(source_type, '') != 'live_epg' AND {media_type_expr} IN ('movie', 'film')")
+				series = self._count_table_rows(conn, "e2mdb_media", f"WHERE COALESCE(source_type, '') != 'live_epg' AND ({media_type_expr} IN ('series', 'tv', 'tv_series', 'anime_series', 'manga_series') OR LOWER(COALESCE(media_family, '')) IN ('series', 'anime', 'manga'))")
+				anime = self._count_table_rows(conn, "e2mdb_media", f"WHERE COALESCE(source_type, '') != 'live_epg' AND ({media_type_expr} LIKE 'anime%' OR LOWER(COALESCE(media_family, '')) = 'anime')")
+				manga = self._count_table_rows(conn, "e2mdb_media", f"WHERE COALESCE(source_type, '') != 'live_epg' AND ({media_type_expr} LIKE 'manga%' OR LOWER(COALESCE(media_family, '')) = 'manga')")
+				unknown_media = self._count_table_rows(conn, "e2mdb_media", f"WHERE COALESCE(source_type, '') != 'live_epg' AND {media_type_expr} IN ('', 'missing', 'multi', 'unknown')")
 				missing_metadata = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND (COALESCE(metadata_title, '') = '' OR provider_lookup_status IS NULL OR provider_lookup_status = '' OR provider_lookup_status = 'error')")
 				with_artwork = self._count_table_rows(conn, "e2mdb_media", self._media_artwork_where())
 				missing_artwork = self._count_table_rows(conn, "e2mdb_media", "WHERE COALESCE(source_type, '') != 'live_epg' AND COALESCE(browser_ready, '0') = '1' AND NOT (COALESCE(metadata_cover_path, '') != '' OR COALESCE(metadata_backdrop_path, '') != '' OR COALESCE(metadata_logo_path, '') != '' OR COALESCE(metadata_image_path, '') != '' OR COALESCE(artwork_poster_path, '') != '' OR COALESCE(artwork_backdrop_path, '') != '' OR COALESCE(artwork_logo_path, '') != '' OR COALESCE(artwork_series_poster_path, '') != '' OR COALESCE(artwork_series_backdrop_path, '') != '' OR COALESCE(artwork_episode_path, '') != '' OR COALESCE(metadata_series_cover_path, '') != '' OR COALESCE(metadata_episode_image_path, '') != '')")
@@ -3153,7 +3147,7 @@ class BackendDatabase:
 		warnings = []
 		path_status = scan_state.get("path_status") if isinstance(scan_state.get("path_status"), dict) else {}
 		if path_status.get("invalid_count", 0):
-			warnings.append("Some configured scan paths are invalid or unavailable: %s" % path_status.get("invalid_count", 0))
+			warnings.append(f"Some configured scan paths are invalid or unavailable: {path_status.get("invalid_count", 0)}")
 		if recordings_total == 0:
 			if path_status.get("valid_count", 0) == 0 and path_status:
 				warnings.append("No valid scan path is available. Check /etc/enigma2/e2mdb/settings.json and mounted media paths.")
@@ -3164,11 +3158,11 @@ class BackendDatabase:
 		if media_total > 0 and browser_ready == 0:
 			warnings.append("Media rows exist, but nothing is browser-ready yet. Provider enrichment has not completed successfully.")
 		if provider_error > 0:
-			warnings.append("Provider lookup errors exist: %s" % provider_error)
+			warnings.append(f"Provider lookup errors exist: {provider_error}")
 		if missing_metadata > 0:
-			warnings.append("Some media rows are missing metadata: %s" % missing_metadata)
+			warnings.append(f"Some media rows are missing metadata: {missing_metadata}")
 		if browser_ready > 0 and missing_artwork > 0:
-			warnings.append("Some browser-ready rows have no artwork path: %s" % missing_artwork)
+			warnings.append(f"Some browser-ready rows have no artwork path: {missing_artwork}")
 		return {
 			"success": True,
 			"version": 1,
@@ -3786,10 +3780,10 @@ class BackendDatabase:
 		for table, where_clause, _note in operations:
 			try:
 				if dry_run:
-					row = conn.execute("SELECT COUNT(*) AS total FROM %s %s" % (table, where_clause)).fetchone()
+					row = conn.execute(f"SELECT COUNT(*) AS total FROM {table} {where_clause}").fetchone()
 					stats["db_rows"] = int(stats.get("db_rows", 0)) + int(row["total"] if row else 0)
 				else:
-					cur = conn.execute("DELETE FROM %s %s" % (table, where_clause))
+					cur = conn.execute(f"DELETE FROM {table} {where_clause}")
 					stats["db_rows"] = int(stats.get("db_rows", 0)) + int(cur.rowcount or 0)
 			except Exception:
 				pass
@@ -3833,7 +3827,7 @@ class BackendDatabase:
 		cache_base = normpath(self._cache_root())
 		stats["cache_root"] = cache_base
 		if not self._is_safe_cache_base(cache_base):
-			return {"success": False, "error": "unsafe cache path: %s" % cache_base, "stats": stats}
+			return {"success": False, "error": f"unsafe cache path: {cache_base}", "stats": stats}
 		if not isdir(cache_base) and not dry_run:
 			makedirs(cache_base)
 		with self.lock:
@@ -3858,7 +3852,7 @@ class BackendDatabase:
 			elif action == "database_only":
 				self._remove_database_files_for_cleanup(cache_base, stats, dry_run=dry_run)
 			else:
-				return {"success": False, "error": "unknown cleanup action: %s" % action, "stats": stats}
+				return {"success": False, "error": f"unknown cleanup action: {action}", "stats": stats}
 			if action == "all_with_db":
 				self._remove_database_files_for_cleanup(cache_base, stats, dry_run=dry_run)
 			if not dry_run:

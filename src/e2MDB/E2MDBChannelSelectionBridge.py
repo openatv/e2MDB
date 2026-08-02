@@ -97,7 +97,7 @@ class E2MDBChannelSelectionBridge:
 			from .E2MDBServiceListPreview import registerE2MDBServiceListRefreshCallback
 			registerE2MDBServiceListRefreshCallback(self.service_list_refresh_callback)
 		except Exception as err:
-			self.log("SERVICELIST refresh callback registration failed error=%s" % err, force=True)
+			self.log(f"SERVICELIST refresh callback registration failed error={err}", force=True)
 
 	def log(self, message, force=False):
 		write_log(self.MODULE_NAME, message)
@@ -190,7 +190,7 @@ class E2MDBChannelSelectionBridge:
 		try:
 			self.update(reason=reason)
 		except Exception as err:
-			self.log("DEFERRED selection update failed reason=%s error=%s" % (reason, err), force=True)
+			self.log(f"DEFERRED selection update failed reason={reason} error={err}", force=True)
 		if self.preview_refresh_pending and not self.closed:
 			try:
 				self.preview_refresh_timer.start(CHANNEL_PREVIEW_REFRESH_DELAY_MS, True)
@@ -245,12 +245,7 @@ class E2MDBChannelSelectionBridge:
 					break
 				except Exception:
 					pass
-		self.log("SERVICELIST_REFRESH source_key=%s reason=%s refreshed=%s debounce_ms=%s" % (
-			source_key,
-			reason,
-			refreshed,
-			CHANNEL_PREVIEW_REFRESH_DELAY_MS,
-		))
+		self.log(f"SERVICELIST_REFRESH source_key={source_key} reason={reason} refreshed={refreshed} debounce_ms={CHANNEL_PREVIEW_REFRESH_DELAY_MS}")
 
 	def _service_ref_to_string(self, ref):
 		try:
@@ -334,7 +329,7 @@ class E2MDBChannelSelectionBridge:
 		if status in ("matched", "done") and json_path and (expires_at <= 0 or expires_at > now):
 			missing_images = _actionable_missing_images(existing)
 			if missing_images:
-				return True, "fresh-missing-images:%s" % ",".join(missing_images)
+				return True, f"fresh-missing-images:{",".join(missing_images)}"
 			return False, "fresh-provider-data"
 		if status == "no_match" and expires_at > now:
 			stored_search_title = existing.get("search_title") or ""
@@ -366,15 +361,7 @@ class E2MDBChannelSelectionBridge:
 		if queue_item:
 			resultsdb.update_fetch_queue_state(candidate.source_key, status, last_error=f"{reason}:{detail or ''}")
 		self.provider_skip_count += 1
-		self.log("PROVIDER SKIP source_key=%s status=%s reason=%s detail='%s' expires='%s' title='%s' search_title='%s'" % (
-			candidate.source_key,
-			status,
-			reason,
-			detail or "",
-			self._format_time(expires_at),
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"PROVIDER SKIP source_key={candidate.source_key} status={status} reason={reason} detail='{detail or ""}' expires='{self._format_time(expires_at)}' title='{candidate.title}' search_title='{candidate.search_title}'")
 
 	def _queue_event(self, candidate, priority=PRIORITY_CHANNEL_SELECTION, reason="channel-selection", ignore_limit=False):
 		priority = int(priority or PRIORITY_CHANNEL_SELECTION)
@@ -385,12 +372,7 @@ class E2MDBChannelSelectionBridge:
 			queue_needed, queue_reason = self._queue_needed(existing_event, int(time()), candidate.search_title)
 			if not queue_needed:
 				self.queue_skip_count += 1
-				self.log("QUEUE SKIP source_key=%s reason=%s event_status=%s requested_priority=%s" % (
-					candidate.source_key,
-					queue_reason,
-					existing_event.get("status") or "unknown",
-					priority,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} reason={queue_reason} event_status={existing_event.get("status") or "unknown"} requested_priority={priority}")
 				return True
 
 		existing_queue = resultsdb.get_fetch_queue_item(candidate.source_key)
@@ -399,22 +381,11 @@ class E2MDBChannelSelectionBridge:
 			existing_state = existing_queue.get("state") or "pending"
 			if existing_state == "pending" and existing_priority >= priority:
 				self.queue_skip_count += 1
-				self.log("QUEUE SKIP source_key=%s existing_state=%s existing_priority=%s requested_priority=%s reason=%s" % (
-					candidate.source_key,
-					existing_state,
-					existing_priority,
-					priority,
-					reason,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} existing_state={existing_state} existing_priority={existing_priority} requested_priority={priority} reason={reason}")
 				return True
 		elif not ignore_limit and self.queue_new_count >= CHANNEL_QUEUE_LIMIT:
 			self.queue_limit_skip_count += 1
-			self.log("QUEUE LIMIT source_key=%s limit=%s reason=%s title='%s'" % (
-				candidate.source_key,
-				CHANNEL_QUEUE_LIMIT,
-				reason,
-				candidate.title,
-			))
+			self.log(f"QUEUE LIMIT source_key={candidate.source_key} limit={CHANNEL_QUEUE_LIMIT} reason={reason} title='{candidate.title}'")
 			return False
 
 		ok = resultsdb.upsert_fetch_queue({
@@ -434,14 +405,7 @@ class E2MDBChannelSelectionBridge:
 				self.queue_update_count += 1
 			else:
 				self.queue_new_count += 1
-		self.log("QUEUE %s source_key=%s priority=%s reason=%s title='%s' search_title='%s'" % (
-			"UPDATE" if existing_queue and ok else ("UPSERT" if ok else "FAILED"),
-			candidate.source_key,
-			priority,
-			reason,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"QUEUE {"UPDATE" if existing_queue and ok else ("UPSERT" if ok else "FAILED")} source_key={candidate.source_key} priority={priority} reason={reason} title='{candidate.title}' search_title='{candidate.search_title}'")
 		return ok
 
 	def _preview_prefetch_enabled(self):
@@ -516,7 +480,7 @@ class E2MDBChannelSelectionBridge:
 			block = current_index // max(1, visible_count)
 		except Exception:
 			block = 0
-		return "%s:%s" % (block, visible_count)
+		return f"{block}:{visible_count}"
 
 	def _schedule_visible_window_prefetch(self, reason="selection"):
 		if self.closed or not self._enabled() or not self._preview_prefetch_enabled():
@@ -538,11 +502,11 @@ class E2MDBChannelSelectionBridge:
 			# scrolling only schedules work; the background prefetch starts after pause.
 			self.visible_prefetch_pending = True
 			self.visible_prefetch_timer.start(CHANNEL_VISIBLE_PREFETCH_DELAY_MS, True)
-			self.log("VISIBLE_PREFETCH_SCHEDULE reason=%s block=%s delay_ms=%s interval=%s" % (self.visible_prefetch_reason, block_key or "-", CHANNEL_VISIBLE_PREFETCH_DELAY_MS, CHANNEL_VISIBLE_PREFETCH_INTERVAL))
+			self.log(f"VISIBLE_PREFETCH_SCHEDULE reason={self.visible_prefetch_reason} block={block_key or "-"} delay_ms={CHANNEL_VISIBLE_PREFETCH_DELAY_MS} interval={CHANNEL_VISIBLE_PREFETCH_INTERVAL}")
 			return True
 		except Exception as err:
 			self.visible_prefetch_pending = False
-			self.log("VISIBLE_PREFETCH_SCHEDULE failed reason=%s error=%s" % (reason, err), force=True)
+			self.log(f"VISIBLE_PREFETCH_SCHEDULE failed reason={reason} error={err}", force=True)
 		return False
 
 	def _run_visible_window_prefetch(self):
@@ -553,9 +517,9 @@ class E2MDBChannelSelectionBridge:
 		block_key = self.visible_prefetch_block_key or ""
 		self.visible_prefetch_pending = False
 		try:
-			self._prefetch_window_events(reason="background-%s" % reason)
+			self._prefetch_window_events(reason=f"background-{reason}")
 		except Exception as err:
-			self.log("VISIBLE_PREFETCH failed reason=%s block=%s error=%s" % (reason, block_key or "-", err), force=True)
+			self.log(f"VISIBLE_PREFETCH failed reason={reason} block={block_key or "-"} error={err}", force=True)
 
 	def _schedule_prefetch_queue_plan(self, queue_plan, reason="selection", selected=False):
 		"""Serialize SQLite queue writes outside the Enigma2 render/main thread."""
@@ -592,9 +556,9 @@ class E2MDBChannelSelectionBridge:
 				if wake_pending:
 					try:
 						from .E2MDBBackendLiveBridge import poke_backend_live_epg_worker
-						poke_backend_live_epg_worker(reason="servicelist-%s" % wake_reason, limit=max(1, min(25, wake_pending)))
+						poke_backend_live_epg_worker(reason=f"servicelist-{wake_reason}", limit=max(1, min(25, wake_pending)))
 					except Exception as err:
-						self.log("PREFETCH_WRITER worker poke failed reason=%s error=%s" % (wake_reason, err), force=True)
+						self.log(f"PREFETCH_WRITER worker poke failed reason={wake_reason} error={err}", force=True)
 				return
 			if self.closed:
 				continue
@@ -617,11 +581,7 @@ class E2MDBChannelSelectionBridge:
 						if entry.get("selected"):
 							self.persisted_selected_source_key = candidate.source_key
 				except Exception as err:
-					self.log("PREFETCH_WRITER failed source_key=%s reason=%s error=%s" % (
-						getattr(candidate, "source_key", ""),
-						reason_text,
-						err,
-					), force=True)
+					self.log(f"PREFETCH_WRITER failed source_key={getattr(candidate, "source_key", "")} reason={reason_text} error={err}", force=True)
 				if not entry.get("selected"):
 					with self.prefetch_write_lock:
 						selected_waiting = any(item.get("selected") for item in self.prefetch_write_pending)
@@ -650,17 +610,11 @@ class E2MDBChannelSelectionBridge:
 			if wake_pending and not yielded_to_selected:
 				try:
 					from .E2MDBBackendLiveBridge import poke_backend_live_epg_worker
-					poke_backend_live_epg_worker(reason="servicelist-%s" % wake_reason, limit=max(1, min(25, wake_pending)))
+					poke_backend_live_epg_worker(reason=f"servicelist-{wake_reason}", limit=max(1, min(25, wake_pending)))
 				except Exception as err:
-					self.log("PREFETCH_WRITER worker poke failed reason=%s error=%s" % (wake_reason, err), force=True)
+					self.log(f"PREFETCH_WRITER worker poke failed reason={wake_reason} error={err}", force=True)
 				wake_pending = 0
-			self.log("PREFETCH_WRITER_DONE reason=%s selected=%s planned=%s queued_or_satisfied=%s yielded_to_selected=%s" % (
-				reason,
-				entry.get("selected"),
-				len(queue_plan),
-				queued,
-				yielded_to_selected,
-			))
+			self.log(f"PREFETCH_WRITER_DONE reason={reason} selected={entry.get("selected")} planned={len(queue_plan)} queued_or_satisfied={queued} yielded_to_selected={yielded_to_selected}")
 
 	def _get_cached_event_row(self, source_key):
 		if not source_key:
@@ -703,7 +657,7 @@ class E2MDBChannelSelectionBridge:
 		try:
 			row = resultsdb.get_epg_event_readonly(source_key) or {}
 		except Exception as err:
-			self.log("DB READONLY error source_key=%s error=%s" % (source_key, err), force=True)
+			self.log(f"DB READONLY error source_key={source_key} error={err}", force=True)
 			row = {}
 		self._set_cached_event_row(source_key, row)
 		return row, "db"
@@ -716,11 +670,11 @@ class E2MDBChannelSelectionBridge:
 		self.last_background_trigger_time = now
 		try:
 			from .E2MDBBackendLiveBridge import poke_backend_live_epg_worker
-			poke_backend_live_epg_worker(reason="channel-selection-%s" % reason)
-			self.log("BACKGROUND_TRIGGER reason=%s interval=%s" % (reason, CHANNEL_BACKGROUND_TRIGGER_INTERVAL))
+			poke_backend_live_epg_worker(reason=f"channel-selection-{reason}")
+			self.log(f"BACKGROUND_TRIGGER reason={reason} interval={CHANNEL_BACKGROUND_TRIGGER_INTERVAL}")
 			return True
 		except Exception as err:
-			self.log("BACKGROUND_TRIGGER failed reason=%s error=%s" % (reason, err), force=True)
+			self.log(f"BACKGROUND_TRIGGER failed reason={reason} error={err}", force=True)
 		return False
 
 	def _row_has_landscape_preview(self, row):
@@ -754,7 +708,7 @@ class E2MDBChannelSelectionBridge:
 		expires_at = int(row.get("expires_at") or 0)
 		now = int(time())
 		if status in ("no_match", "ignored", "short_skipped", "ended_skipped", "skipped") and (not expires_at or expires_at > now):
-			return False, "fresh-terminal-%s" % status
+			return False, f"fresh-terminal-{status}"
 		if status in ("matched", "done") and (row.get("json_path") or "") and (not expires_at or expires_at > now):
 			# Existing provider data without a landscape preview is not complete enough for
 			# the ServiceList/InfoBar image use case.  Do not suppress the visible-window
@@ -762,7 +716,7 @@ class E2MDBChannelSelectionBridge:
 			# the worker can backfill them from the stored JSON without a full provider
 			# lookup if possible.
 			return True, "fresh-missing-landscape-preview"
-		return True, "needs-provider-data-%s" % status
+		return True, f"needs-provider-data-{status}"
 
 	def _epg_tuple_to_candidate(self, ref, row, service_name=""):
 		try:
@@ -863,21 +817,17 @@ class E2MDBChannelSelectionBridge:
 			if not resultsdb.get_epg_event(candidate.source_key):
 				resultsdb.upsert_epg_event(candidate.as_dict())
 		except Exception as err:
-			self.log("PREFETCH upsert event failed source_key=%s error=%s" % (candidate.source_key, err), force=True)
+			self.log(f"PREFETCH upsert event failed source_key={candidate.source_key} error={err}", force=True)
 			return False
-		queued = self._queue_event(candidate, priority=priority, reason="servicelist-%s-%s" % (reason_text, need_reason), ignore_limit=ignore_limit)
+		queued = self._queue_event(candidate, priority=priority, reason=f"servicelist-{reason_text}-{need_reason}", ignore_limit=ignore_limit)
 		if immediate:
 			try:
 				from .E2MDBBackendLiveBridge import request_backend_live_epg_processing
 				request_backend_live_epg_processing(candidate.source_key, callback=None, priority=priority, reason="servicelist-prefetch")
 				if promote_from_next:
-					self.log("PREFETCH PROMOTE next-now source_key=%s priority=%s title='%s'" % (
-						candidate.source_key,
-						priority,
-						candidate.title,
-					), force=True)
+					self.log(f"PREFETCH PROMOTE next-now source_key={candidate.source_key} priority={priority} title='{candidate.title}'", force=True)
 			except Exception as err:
-				self.log("PREFETCH ad-hoc failed source_key=%s error=%s" % (candidate.source_key, err), force=True)
+				self.log(f"PREFETCH ad-hoc failed source_key={candidate.source_key} error={err}", force=True)
 		return queued
 
 	def _prefetch_window_events(self, reason="selection"):
@@ -935,7 +885,7 @@ class E2MDBChannelSelectionBridge:
 
 		def candidate_debug_text(candidate):
 			try:
-				return "%s@%s" % (candidate.title, self._format_time(candidate.begin_time))
+				return f"{candidate.title}@{self._format_time(candidate.begin_time)}"
 			except Exception:
 				try:
 					return str(candidate.title or "")
@@ -948,7 +898,7 @@ class E2MDBChannelSelectionBridge:
 				try:
 					ref = service_value if hasattr(service_value, "toString") else eServiceReference(str(service_value))
 				except Exception as err:
-					self.log("VISIBLE_PREFETCH_AUDIT block=%s index=%s action=skip reason=bad-ref error=%s" % (block_name, slot_index, err))
+					self.log(f"VISIBLE_PREFETCH_AUDIT block={block_name} index={slot_index} action=skip reason=bad-ref error={err}")
 					continue
 				try:
 					ref_string = ref.toString()
@@ -956,25 +906,25 @@ class E2MDBChannelSelectionBridge:
 					ref_string = str(ref or "")
 				service_name = self._service_name(ref)
 				if ref_string in seen_refs:
-					self.log("VISIBLE_PREFETCH_AUDIT block=%s index=%s action=skip reason=duplicate service='%s' service_name='%s'" % (block_name, slot_index, ref_string, service_name))
+					self.log(f"VISIBLE_PREFETCH_AUDIT block={block_name} index={slot_index} action=skip reason=duplicate service='{ref_string}' service_name='{service_name}'")
 					continue
 				seen_refs.add(ref_string)
 				usable, skip_reason = self._is_usable_service(ref)
 				if not usable:
-					self.log("VISIBLE_PREFETCH_AUDIT block=%s index=%s action=skip reason=%s service='%s' service_name='%s'" % (block_name, slot_index, skip_reason, ref_string, service_name))
+					self.log(f"VISIBLE_PREFETCH_AUDIT block={block_name} index={slot_index} action=skip reason={skip_reason} service='{ref_string}' service_name='{service_name}'")
 					continue
 				try:
 					candidates = self._prefetch_service_candidates(epgg, ref, service_name=service_name)
 				except Exception as err:
-					self.log("VISIBLE_PREFETCH_AUDIT block=%s index=%s action=skip reason=candidate-error service='%s' service_name='%s' error=%s" % (block_name, slot_index, ref_string, service_name, err), force=True)
+					self.log(f"VISIBLE_PREFETCH_AUDIT block={block_name} index={slot_index} action=skip reason=candidate-error service='{ref_string}' service_name='{service_name}' error={err}", force=True)
 					candidates = []
 				if candidates:
 					now_text = candidate_debug_text(candidates[0]) if len(candidates) > 0 else ""
 					next_text = candidate_debug_text(candidates[1]) if len(candidates) > 1 else ""
-					self.log("VISIBLE_PREFETCH_AUDIT block=%s index=%s action=candidate events=%s service='%s' service_name='%s' now='%s' next='%s'" % (block_name, slot_index, len(candidates), ref_string, service_name, now_text, next_text))
+					self.log(f"VISIBLE_PREFETCH_AUDIT block={block_name} index={slot_index} action=candidate events={len(candidates)} service='{ref_string}' service_name='{service_name}' now='{now_text}' next='{next_text}'")
 					items.append(candidates[:2])
 				else:
-					self.log("VISIBLE_PREFETCH_AUDIT block=%s index=%s action=skip reason=no-now-next service='%s' service_name='%s'" % (block_name, slot_index, ref_string, service_name))
+					self.log(f"VISIBLE_PREFETCH_AUDIT block={block_name} index={slot_index} action=skip reason=no-now-next service='{ref_string}' service_name='{service_name}'")
 			return items
 
 		seen_refs = set()
@@ -991,7 +941,7 @@ class E2MDBChannelSelectionBridge:
 
 		def plan_entries(block_candidates, event_offset, priority, reason_suffix):
 			return [
-				(candidates[event_offset], priority, "%s-%s" % (reason, reason_suffix))
+				(candidates[event_offset], priority, f"{reason}-{reason_suffix}")
 				for candidates in block_candidates
 				if len(candidates) > event_offset
 			]
@@ -1005,7 +955,7 @@ class E2MDBChannelSelectionBridge:
 			if entry[0].source_key != self.last_source_key:
 				visible_now_plan.append(entry)
 			elif not selected_persisted:
-				selected_retry_plan.append((entry[0], PRIORITY_ADHOC_NOW, "%s-selected-retry" % entry[2]))
+				selected_retry_plan.append((entry[0], PRIORITY_ADHOC_NOW, f"{entry[2]}-selected-retry"))
 		reserve_now_plan = (
 			plan_entries(right_reserve_candidates, 0, priority_right_now, "right-reserve-now")
 			+ plan_entries(left_reserve_candidates, 0, priority_left_now, "left-reserve-now")
@@ -1039,27 +989,8 @@ class E2MDBChannelSelectionBridge:
 
 		# Candidate discovery stays on the Enigma2 main loop, but all SQLite writes
 		# and socket wakeups are serialized by the background queue writer.
-		scheduled = self._schedule_prefetch_queue_plan(queue_plan, reason="visible-%s" % reason, selected=False)
-		self.log("VISIBLE_PREFETCH_SCHEDULED reason=%s current=%s left_reserve=%s:%s visible=%s:%s right_reserve=%s:%s services=%s visible_count=%s candidates_visible=%s candidates_right=%s candidates_left=%s plan=%s selected_persisted=%s selected_retry=%s next_reserved=%s scheduled=%s" % (
-			reason,
-			current_index,
-			left_reserve_start,
-			left_reserve_end,
-			visible_start,
-			visible_end,
-			right_reserve_start,
-			right_reserve_end,
-			len(services),
-			visible_size,
-			len(visible_candidates),
-			len(right_reserve_candidates),
-			len(left_reserve_candidates),
-			len(queue_plan),
-			selected_persisted,
-			bool(selected_retry_plan),
-			next_quota,
-			scheduled,
-		))
+		scheduled = self._schedule_prefetch_queue_plan(queue_plan, reason=f"visible-{reason}", selected=False)
+		self.log(f"VISIBLE_PREFETCH_SCHEDULED reason={reason} current={current_index} left_reserve={left_reserve_start}:{left_reserve_end} visible={visible_start}:{visible_end} right_reserve={right_reserve_start}:{right_reserve_end} services={len(services)} visible_count={visible_size} candidates_visible={len(visible_candidates)} candidates_right={len(right_reserve_candidates)} candidates_left={len(left_reserve_candidates)} plan={len(queue_plan)} selected_persisted={selected_persisted} selected_retry={bool(selected_retry_plan)} next_reserved={next_quota} scheduled={scheduled}")
 
 	def _apply_selection_meta(self, candidate, event_row=None, event=None, service=None, reason="selection"):
 		try:
@@ -1070,7 +1001,7 @@ class E2MDBChannelSelectionBridge:
 			_apply_standard_epg_meta(self.screen, event=event, service=service, candidate=candidate, event_row=event_row or {}, reason=reason)
 			return True
 		except Exception as err:
-			self.log("META apply failed source_key=%s reason=%s error=%s" % (getattr(candidate, "source_key", ""), reason, err), force=True)
+			self.log(f"META apply failed source_key={getattr(candidate, "source_key", "")} reason={reason} error={err}", force=True)
 			return False
 
 	def update(self, reason="selection"):
@@ -1122,24 +1053,13 @@ class E2MDBChannelSelectionBridge:
 		# on selection changes. Background/prefill jobs should be started outside the list
 		# render/scroll path.
 
-		self.log("SELECTION source_key=%s reason=%s eventSource=%s rowSource=%s service='%s' service_name='%s' begin='%s' duration=%s title='%s' search_title='%s'" % (
-			candidate.source_key,
-			reason,
-			event_source,
-			row_source,
-			candidate.service_ref,
-			candidate.service_name,
-			self._format_time(candidate.begin_time),
-			candidate.duration,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"SELECTION source_key={candidate.source_key} reason={reason} eventSource={event_source} rowSource={row_source} service='{candidate.service_ref}' service_name='{candidate.service_name}' begin='{self._format_time(candidate.begin_time)}' duration={candidate.duration} title='{candidate.title}' search_title='{candidate.search_title}'")
 
 		# The 350-ms selection debounce has expired. Queue the stable selected event
 		# first at ad-hoc priority, but keep every SQLite write off the GUI thread.
 		self._schedule_prefetch_queue_plan(
-			[(candidate, PRIORITY_ADHOC_NOW, "servicelist-%s-selected-now" % (reason or "selection"))],
-			reason="selected-%s" % (reason or "selection"),
+			[(candidate, PRIORITY_ADHOC_NOW, f"servicelist-{reason or "selection"}-selected-now")],
+			reason=f"selected-{reason or "selection"}",
 			selected=True,
 		)
 		# The wider visible now/next window follows later and at lower priorities.
@@ -1169,17 +1089,7 @@ class E2MDBChannelSelectionBridge:
 		except Exception:
 			pass
 		_unregister_standard_epg_sources(self.screen)
-		self.log("CLOSE summary seen=%s inserts=%s hits=%s queue_new=%s queue_updates=%s queue_skips=%s queue_limit_skips=%s provider_skips=%s skips=%s" % (
-			len(self.seen_keys),
-			self.insert_count,
-			self.hit_count,
-			self.queue_new_count,
-			self.queue_update_count,
-			self.queue_skip_count,
-			self.queue_limit_skip_count,
-			self.provider_skip_count,
-			self.skip_count,
-		))
+		self.log(f"CLOSE summary seen={len(self.seen_keys)} inserts={self.insert_count} hits={self.hit_count} queue_new={self.queue_new_count} queue_updates={self.queue_update_count} queue_skips={self.queue_skip_count} queue_limit_skips={self.queue_limit_skip_count} provider_skips={self.provider_skip_count} skips={self.skip_count}")
 
 
 def _attach_channel_selection_bridge(screen):
@@ -1233,11 +1143,7 @@ def install_channel_selection_hooks():
 		ChannelSelection.__init__ = _patched_channel_selection_init
 		SelectionEventInfo.updateEventInfo = _patched_selection_event_info_update
 		_channel_hooks_installed = True
-		write_log("[e2MDB][CHANNEL] HOOK installed; metaEnabled=%s enabled=%s queueEnabled=True priority=%s" % (
-			config.plugins.e2mdb.epgMetaEnabled.value,
-			getattr(config.plugins.e2mdb, "epgChannelSelectionEnabled", None).value if hasattr(config.plugins.e2mdb, "epgChannelSelectionEnabled") else True,
-			PRIORITY_CHANNEL_SELECTION,
-		))
+		write_log(f"[e2MDB][CHANNEL] HOOK installed; metaEnabled={config.plugins.e2mdb.epgMetaEnabled.value} enabled={getattr(config.plugins.e2mdb, "epgChannelSelectionEnabled", None).value if hasattr(config.plugins.e2mdb, "epgChannelSelectionEnabled") else True} queueEnabled=True priority={PRIORITY_CHANNEL_SELECTION}")
 		return True
 	except Exception as err:
 		write_log(f"[e2MDB][CHANNEL] ERROR installing ChannelSelection hook: {err}")

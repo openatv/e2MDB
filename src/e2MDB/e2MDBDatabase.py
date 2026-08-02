@@ -2860,7 +2860,7 @@ def _live_epg_get_event_readonly(self, source_key, busy_timeout_ms=0):
 		conn = connect(self.db_path, timeout=float(busy_timeout_ms) / 1000.0)
 		try:
 			conn.row_factory = Row
-			conn.execute("PRAGMA busy_timeout=%d" % busy_timeout_ms)
+			conn.execute(f"PRAGMA busy_timeout={busy_timeout_ms}")
 			conn.execute("PRAGMA query_only=ON")
 			row = conn.execute("SELECT * FROM e2mdb_epg_events WHERE source_key = ?", (source_key,)).fetchone()
 			return _live_epg_row_to_dict(row)

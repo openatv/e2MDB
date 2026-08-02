@@ -181,13 +181,7 @@ class E2MDBLiveEPG(E2MDBHelper):
 				duration_value = 0
 			if begin_value and duration_value:
 				end_value = begin_value + duration_value
-		identity = "%s|%s|%s|%s|%s" % (
-			source_type or "epg",
-			self.normalize_service_ref(service_ref),
-			begin_value,
-			end_value,
-			self.normalize_text(title),
-		)
+		identity = f"{source_type or "epg"}|{self.normalize_service_ref(service_ref)}|{begin_value}|{end_value}|{self.normalize_text(title)}"
 		return md5(identity.encode("utf-8")).hexdigest()
 
 	def virtual_path(self, source_key, title="", source_type="epg"):

@@ -125,7 +125,7 @@ class FernsehserienProvider:
 			response.raise_for_status()
 			return "", response.text
 		except exceptions.RequestException as err:
-			self._log("FETCH_MISS get_html url='%s' error=%s" % (url, err), level="warning")
+			self._log(f"FETCH_MISS get_html url='{url}' error={err}", level="warning")
 			return str(err), ""
 
 	def _clean_text(self, value):
@@ -232,8 +232,8 @@ class FernsehserienProvider:
 			begin_dt.strftime("%-d.%m.%Y") if hasattr(begin_dt, "strftime") else begin_dt.strftime("%d.%m.%Y"),
 			begin_dt.strftime("%d.%m."),
 			begin_dt.strftime("%-d.%m.") if hasattr(begin_dt, "strftime") else begin_dt.strftime("%d.%m."),
-			"%s. %s" % (weekday, begin_dt.strftime("%d.%m.%Y")),
-			"%s. %s" % (weekday, begin_dt.strftime("%-d.%m.%Y") if hasattr(begin_dt, "strftime") else begin_dt.strftime("%d.%m.%Y")),
+			f"{weekday}. {begin_dt.strftime("%d.%m.%Y")}",
+			f"{weekday}. {begin_dt.strftime("%-d.%m.%Y") if hasattr(begin_dt, "strftime") else begin_dt.strftime("%d.%m.%Y")}",
 		]
 
 	def _sendetermin_suffix(self, begin_time):
@@ -370,7 +370,7 @@ class FernsehserienProvider:
 	def _search_slug(self, title):
 		if not title:
 			return ""
-		url = "%s/suche.html?q=%s" % (self.WEBURL, quote_plus(title))
+		url = f"{self.WEBURL}/suche.html?q={quote_plus(title)}"
 		err_msg, html = self._get_html(url)
 		if err_msg or not html:
 			return ""
@@ -386,7 +386,7 @@ class FernsehserienProvider:
 			# Movie pages use /filme/<slug>. Keep the prefix so candidate URLs
 			# are built against the correct fernsehserien.de namespace.
 			if parts[0] == "filme" and len(parts) > 1 and parts[1]:
-				return "filme/%s" % parts[1]
+				return f"filme/{parts[1]}"
 			slug = parts[0]
 			if slug and slug not in ("suche.html", "news", "streaming", "serien", "filme"):
 				return slug
@@ -409,15 +409,15 @@ class FernsehserienProvider:
 			# Exact broadcast pages often contain the best landscape EPG image, e.g.
 			# /punkt-12/sendetermine/rtl/15.05.2026-12:00-Uhr.
 			if channel_slug and sendetermin_suffix and not slug.startswith("filme/"):
-				url = "%s/%s/sendetermine/%s/%s" % (self.WEBURL, slug, channel_slug, sendetermin_suffix)
+				url = f"{self.WEBURL}/{slug}/sendetermine/{channel_slug}/{sendetermin_suffix}"
 				if url not in seen:
 					seen.add(url)
-					urls.append((slug, url, "sendetermin:%s" % channel_slug))
+					urls.append((slug, url, f"sendetermin:{channel_slug}"))
 
 			# Normal series namespace.
 			if not slug.startswith("filme/"):
 				for suffix in ("spoiler-vorschau", "episodenguide", ""):
-					url = "%s/%s" % (self.WEBURL, slug)
+					url = f"{self.WEBURL}/{slug}"
 					if suffix:
 						url += "/" + suffix
 					if url not in seen:
@@ -429,10 +429,10 @@ class FernsehserienProvider:
 			# returns 404.
 			movie_slug = slug[6:] if slug.startswith("filme/") else slug
 			if movie_slug:
-				url = "%s/filme/%s" % (self.WEBURL, movie_slug)
+				url = f"{self.WEBURL}/filme/{movie_slug}"
 				if url not in seen:
 					seen.add(url)
-					urls.append(("filme/%s" % movie_slug, url, "movie"))
+					urls.append((f"filme/{movie_slug}", url, "movie"))
 		return urls
 
 	def build_final_dict(self, candidate, slug, page_url, selected):
@@ -443,7 +443,7 @@ class FernsehserienProvider:
 		except Exception:
 			pass
 		episode_number = selected.get("episode_number") or ""
-		provider_id = "%s:%s" % (slug, episode_number) if episode_number else slug
+		provider_id = f"{slug}:{episode_number}" if episode_number else slug
 		image_url = selected.get("image_url") or ""
 		media_type = "movie" if slug.startswith("filme/") or "/filme/" in page_url else "series"
 		final_dict = {
@@ -480,29 +480,19 @@ class FernsehserienProvider:
 				if url in seen_urls:
 					continue
 				seen_urls.add(url)
-				self._log("TRY slug=%s page=%s url='%s' title='%s'" % (slug, page_type, url, getattr(candidate, "title", "") or getattr(candidate, "search_title", "")))
+				self._log(f"TRY slug={slug} page={page_type} url='{url}' title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}'")
 				err_msg, html = self._get_html(url)
 				if err_msg or not html:
-					self._log("URL_MISS slug=%s page=%s reason=%s url='%s'" % (slug, page_type, err_msg or "empty-html", url), level="warning")
+					self._log(f"URL_MISS slug={slug} page={page_type} reason={err_msg or "empty-html"} url='{url}'", level="warning")
 					continue
 				selected = self._select_best_image(candidate, html)
 				if not selected.get("image_url"):
-					self._log("IMAGE_MISS slug=%s page=%s url='%s'" % (slug, page_type, url))
+					self._log(f"IMAGE_MISS slug={slug} page={page_type} url='{url}'")
 					continue
 				final_dict = self.build_final_dict(candidate, slug, url, selected)
-				self._log("MATCH slug=%s page=%s confidence=%.2f reason=%s title='%s' episode='%s' alt='%s' image='%s' source_url='%s'" % (
-					slug,
-					page_type,
-					float(selected.get("confidence") or 0.0),
-					selected.get("reason") or "",
-					getattr(candidate, "title", "") or getattr(candidate, "search_title", ""),
-					selected.get("episode_title") or "",
-					selected.get("image_alt") or "",
-					selected.get("image_url") or "",
-					url,
-				), force=True)
+				self._log(f"MATCH slug={slug} page={page_type} confidence={float(selected.get("confidence") or 0.0):.2f} reason={selected.get("reason") or ""} title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}' episode='{selected.get("episode_title") or ""}' alt='{selected.get("image_alt") or ""}' image='{selected.get("image_url") or ""}' source_url='{url}'", force=True)
 				return "", final_dict
-		self._log("NO_MATCH title='%s' slugs='%s'" % (getattr(candidate, "title", "") or getattr(candidate, "search_title", ""), ",".join(self._slugs_for_candidate(candidate))))
+		self._log(f"NO_MATCH title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}' slugs='{",".join(self._slugs_for_candidate(candidate))}'")
 		return "no-match", {}
 
 

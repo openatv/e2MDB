@@ -169,7 +169,7 @@ class E2MDBInfoBarBridge:
 		if status in ("matched", "done") and json_path and (expires_at <= 0 or expires_at > now):
 			missing_images = _actionable_missing_images(existing)
 			if missing_images:
-				return True, "fresh-missing-images:%s" % ",".join(missing_images)
+				return True, f"fresh-missing-images:{",".join(missing_images)}"
 			return False, "fresh-provider-data"
 		if status == "no_match" and expires_at > now:
 			stored_search_title = existing.get("search_title") or ""
@@ -201,15 +201,7 @@ class E2MDBInfoBarBridge:
 		if queue_item:
 			resultsdb.update_fetch_queue_state(candidate.source_key, status, last_error=f"{reason}:{detail or ''}")
 		self.provider_skip_count += 1
-		self.log("PROVIDER SKIP source_key=%s status=%s reason=%s detail='%s' expires='%s' title='%s' search_title='%s'" % (
-			candidate.source_key,
-			status,
-			reason,
-			detail or "",
-			self._format_time(expires_at),
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"PROVIDER SKIP source_key={candidate.source_key} status={status} reason={reason} detail='{detail or ""}' expires='{self._format_time(expires_at)}' title='{candidate.title}' search_title='{candidate.search_title}'")
 
 	def _queue_event(self, candidate, priority=PRIORITY_INFOBAR_NOW, reason="infobar"):
 		priority = int(priority or INFOBAR_QUEUE_PRIORITY)
@@ -220,12 +212,7 @@ class E2MDBInfoBarBridge:
 			queue_needed, queue_reason = self._queue_needed(existing_event, int(time()), candidate.search_title)
 			if not queue_needed:
 				self.queue_skip_count += 1
-				self.log("QUEUE SKIP source_key=%s reason=%s event_status=%s requested_priority=%s" % (
-					candidate.source_key,
-					queue_reason,
-					existing_event.get("status") or "unknown",
-					priority,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} reason={queue_reason} event_status={existing_event.get("status") or "unknown"} requested_priority={priority}")
 				return True
 
 		existing_queue = resultsdb.get_fetch_queue_item(candidate.source_key)
@@ -234,13 +221,7 @@ class E2MDBInfoBarBridge:
 			existing_state = existing_queue.get("state") or "pending"
 			if existing_state == "pending" and existing_priority >= priority:
 				self.queue_skip_count += 1
-				self.log("QUEUE SKIP source_key=%s existing_state=%s existing_priority=%s requested_priority=%s reason=%s" % (
-					candidate.source_key,
-					existing_state,
-					existing_priority,
-					priority,
-					reason,
-				))
+				self.log(f"QUEUE SKIP source_key={candidate.source_key} existing_state={existing_state} existing_priority={existing_priority} requested_priority={priority} reason={reason}")
 				return True
 
 		ok = resultsdb.upsert_fetch_queue({
@@ -257,14 +238,7 @@ class E2MDBInfoBarBridge:
 		})
 		if ok:
 			self.queue_count += 1
-		self.log("QUEUE %s source_key=%s priority=%s reason=%s title='%s' search_title='%s'" % (
-			"UPSERT" if ok else "FAILED",
-			candidate.source_key,
-			priority,
-			reason,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"QUEUE {"UPSERT" if ok else "FAILED"} source_key={candidate.source_key} priority={priority} reason={reason} title='{candidate.title}' search_title='{candidate.search_title}'")
 		return ok
 
 	def _request_ad_hoc(self, candidate, reason="infobar"):
@@ -277,7 +251,7 @@ class E2MDBInfoBarBridge:
 			# The normal InfoBar queue tier is 80. An explicit current-event request
 			# must promote that same row to the ad-hoc tier so media safe-points pick
 			# it before visible-window and background work.
-			self._queue_event(candidate, priority=INFOBAR_ADHOC_PRIORITY, reason="%s-adhoc" % (reason or "infobar"))
+			self._queue_event(candidate, priority=INFOBAR_ADHOC_PRIORITY, reason=f"{reason or "infobar"}-adhoc")
 			self.ad_hoc_running.add(candidate.source_key)
 			ok = request_backend_live_epg_processing(candidate.source_key, callback=None, priority=INFOBAR_ADHOC_PRIORITY, reason=reason)
 			try:
@@ -286,12 +260,7 @@ class E2MDBInfoBarBridge:
 				pass
 			if ok:
 				self.ad_hoc_count += 1
-				self.log("ADHOC REQUEST source_key=%s reason=%s title='%s' search_title='%s'" % (
-					candidate.source_key,
-					reason,
-					candidate.title,
-					candidate.search_title,
-				), force=True)
+				self.log(f"ADHOC REQUEST source_key={candidate.source_key} reason={reason} title='{candidate.title}' search_title='{candidate.search_title}'", force=True)
 			else:
 				self.log(f"ADHOC QUEUED source_key={candidate.source_key} reason={reason} title='{candidate.title}'")
 			return ok
@@ -345,16 +314,9 @@ class E2MDBInfoBarBridge:
 				"state": "pending" if state != "running" else state,
 			})
 		except Exception as err:
-			self.log("EVENT_NEXT PROMOTE queue update failed source_key=%s error=%s" % (candidate.source_key, err), force=True)
+			self.log(f"EVENT_NEXT PROMOTE queue update failed source_key={candidate.source_key} error={err}", force=True)
 			return False
-		self.log("EVENT_NEXT PROMOTE source_key=%s old_reason=%s state=%s priority=%s title='%s' trigger=%s" % (
-			candidate.source_key,
-			queue_item.get("reason") or "",
-			state,
-			priority,
-			candidate.title,
-			reason or "",
-		), force=True)
+		self.log(f"EVENT_NEXT PROMOTE source_key={candidate.source_key} old_reason={queue_item.get("reason") or ""} state={state} priority={priority} title='{candidate.title}' trigger={reason or ""}", force=True)
 		return self._request_ad_hoc(candidate, reason="promoted-event-next-now")
 
 	def _ad_hoc_finished(self, source_key, result, error=""):
@@ -368,13 +330,7 @@ class E2MDBInfoBarBridge:
 		if not row:
 			return
 		candidate = self._candidate_from_current_event()
-		self.log("ADHOC FINISH source_key=%s result=%s status=%s json='%s' error=%s" % (
-			source_key,
-			result,
-			row.get("status") or "unknown",
-			row.get("json_path") or "",
-			error or "",
-		), force=True)
+		self.log(f"ADHOC FINISH source_key={source_key} result={result} status={row.get("status") or "unknown"} json='{row.get("json_path") or ""}' error={error or ""}", force=True)
 
 	def _preview_current_event(self, reason="schedule"):
 		"""Immediately replace stale InfoBar e2MDB data while the delayed DB lookup is pending."""
@@ -399,12 +355,7 @@ class E2MDBInfoBarBridge:
 			"json_path": "",
 		}
 		self.last_preview_source_key = candidate.source_key
-		self.log("SKIN PREVIEW source_key=%s reason=%s title='%s' search_title='%s'" % (
-			candidate.source_key,
-			reason,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"SKIN PREVIEW source_key={candidate.source_key} reason={reason} title='{candidate.title}' search_title='{candidate.search_title}'")
 		return True
 
 	def _candidate_from_current_event(self):
@@ -450,17 +401,7 @@ class E2MDBInfoBarBridge:
 		self.last_source_key = candidate.source_key
 		self.last_processed_time = now
 
-		self.log("EVENT source_key=%s reason=%s eventSource=%s service='%s' service_name='%s' begin='%s' duration=%s title='%s' search_title='%s'" % (
-			candidate.source_key,
-			reason,
-			getattr(candidate, "_event_source", ""),
-			candidate.service_ref,
-			candidate.service_name,
-			self._format_time(candidate.begin_time),
-			candidate.duration,
-			candidate.title,
-			candidate.search_title,
-		))
+		self.log(f"EVENT source_key={candidate.source_key} reason={reason} eventSource={getattr(candidate, "_event_source", "")} service='{candidate.service_ref}' service_name='{candidate.service_name}' begin='{self._format_time(candidate.begin_time)}' duration={candidate.duration} title='{candidate.title}' search_title='{candidate.search_title}'")
 
 		existing = resultsdb.get_epg_event(candidate.source_key)
 		skip_status, skip_reason, skip_detail = self.adapter.epg_provider_skip_reason(candidate)
@@ -475,22 +416,10 @@ class E2MDBInfoBarBridge:
 				resultsdb.update_epg_event_search_title(candidate.source_key, candidate.search_title)
 			if queue_reason == "improved-search-title":
 				resultsdb.update_epg_event_status(candidate.source_key, "unknown", confidence=0.0, json_path="", expires_at=candidate.expires_at)
-				self.log("DB RESET source_key=%s reason=improved-search-title old_search_title='%s' new_search_title='%s'" % (
-					candidate.source_key,
-					existing.get("search_title") or "",
-					candidate.search_title,
-				))
+				self.log(f"DB RESET source_key={candidate.source_key} reason=improved-search-title old_search_title='{existing.get("search_title") or ""}' new_search_title='{candidate.search_title}'")
 			row = resultsdb.get_epg_event(candidate.source_key)
 			self.hit_count += 1
-			self.log("DB HIT id=%s status=%s json='%s' expires='%s' search_title='%s' queue_needed=%s queue_reason=%s" % (
-				row.get("id"),
-				row.get("status") or "unknown",
-				row.get("json_path") or "",
-				self._format_time(row.get("expires_at") or 0),
-				row.get("search_title") or candidate.search_title,
-				queue_needed,
-				queue_reason,
-			))
+			self.log(f"DB HIT id={row.get("id")} status={row.get("status") or "unknown"} json='{row.get("json_path") or ""}' expires='{self._format_time(row.get("expires_at") or 0)}' search_title='{row.get("search_title") or candidate.search_title}' queue_needed={queue_needed} queue_reason={queue_reason}")
 			if queue_needed:
 				self._queue_event(candidate, priority=INFOBAR_QUEUE_PRIORITY, reason=queue_reason)
 				if not self._promote_event_next_to_ad_hoc(candidate, existing=row, reason=reason):
@@ -508,12 +437,7 @@ class E2MDBInfoBarBridge:
 		event_id = resultsdb.upsert_epg_event(candidate.as_dict())
 		row = resultsdb.get_epg_event(candidate.source_key)
 		self.insert_count += 1
-		self.log("DB INSERT id=%s source_key=%s expires='%s' service_name='%s'" % (
-			event_id,
-			candidate.source_key,
-			self._format_time(candidate.expires_at),
-			candidate.service_name,
-		))
+		self.log(f"DB INSERT id={event_id} source_key={candidate.source_key} expires='{self._format_time(candidate.expires_at)}' service_name='{candidate.service_name}'")
 		self._queue_event(candidate, priority=INFOBAR_QUEUE_PRIORITY, reason=reason)
 		self._request_ad_hoc(candidate, reason=reason)
 
@@ -562,16 +486,7 @@ class E2MDBInfoBarBridge:
 			close_channel_stats_tracker()
 		except Exception:
 			pass
-		self.log("CLOSE summary inserts=%s hits=%s queue=%s queue_skips=%s provider_skips=%s updates=%s adhoc=%s skips=%s" % (
-			self.insert_count,
-			self.hit_count,
-			self.queue_count,
-			self.queue_skip_count,
-			self.provider_skip_count,
-			self.update_count,
-			self.ad_hoc_count,
-			self.skip_count,
-		))
+		self.log(f"CLOSE summary inserts={self.insert_count} hits={self.hit_count} queue={self.queue_count} queue_skips={self.queue_skip_count} provider_skips={self.provider_skip_count} updates={self.update_count} adhoc={self.ad_hoc_count} skips={self.skip_count}")
 
 
 def _attach_infobar_bridge(screen):
@@ -620,11 +535,7 @@ def install_infobar_hooks():
 		InfoBar.__init__ = _patched_infobar_init
 		InfoBar.serviceStarted = _patched_infobar_service_started
 		_infobar_hooks_installed = True
-		write_log("[e2MDB][INFOBAR] HOOK installed; metaEnabled=%s enabled=%s queueEnabled=True priority=%s delay=2s adhoc=False" % (
-			config.plugins.e2mdb.epgMetaEnabled.value,
-			getattr(config.plugins.e2mdb, "epgInfoBarEnabled", None).value if hasattr(config.plugins.e2mdb, "epgInfoBarEnabled") else True,
-			PRIORITY_INFOBAR_NOW,
-		))
+		write_log(f"[e2MDB][INFOBAR] HOOK installed; metaEnabled={config.plugins.e2mdb.epgMetaEnabled.value} enabled={getattr(config.plugins.e2mdb, "epgInfoBarEnabled", None).value if hasattr(config.plugins.e2mdb, "epgInfoBarEnabled") else True} queueEnabled=True priority={PRIORITY_INFOBAR_NOW} delay=2s adhoc=False")
 		return True
 	except Exception as err:
 		write_log(f"[e2MDB][INFOBAR] ERROR installing InfoBar hook: {err}")

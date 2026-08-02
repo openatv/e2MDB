@@ -141,9 +141,9 @@ def _apply_meta_on_mainthread(source_key, skin_data, reason="backend-notify"):
 			source.setMeta(meta)
 			updated += 1
 		except Exception as err:
-			_log("APPLY failed source_key=%s error=%s" % (source_key, err), level="error")
+			_log(f"APPLY failed source_key={source_key} error={err}", level="error")
 	if updated:
-		_log("APPLY source_key=%s updated_sources=%s reason=%s" % (source_key, updated, reason or ""))
+		_log(f"APPLY source_key={source_key} updated_sources={updated} reason={reason or ""}")
 	return updated
 
 
@@ -155,7 +155,7 @@ def _apply_notification_on_mainthread(source_key, skin_data=None, reason="backen
 		from .E2MDBServiceListPreview import notifyE2MDBServiceListUpdated
 		notifyE2MDBServiceListUpdated(source_key=source_key, reason=reason)
 	except Exception as err:
-		_log("SERVICELIST notify failed source_key=%s error=%s" % (source_key, err), level="error")
+		_log(f"SERVICELIST notify failed source_key={source_key} error={err}", level="error")
 	return updated
 
 
@@ -167,7 +167,7 @@ def _retry_fetch(source_key, reason, attempt):
 		return
 	_fetch_and_apply({
 		"source_key": retry_key,
-		"reason": "%s-retry-%s" % (reason or "backend-notify", attempt),
+		"reason": f"{reason or "backend-notify"}-retry-{attempt}",
 		"retry_attempt": attempt,
 	})
 
@@ -198,7 +198,7 @@ def _schedule_fetch_retry(source_key, reason, attempt):
 		with _retry_lock:
 			if _retry_timers.get(source_key) is timer:
 				_retry_timers.pop(source_key, None)
-		_log("RETRY start failed source_key=%s error=%s" % (source_key, err), level="error")
+		_log(f"RETRY start failed source_key={source_key} error={err}", level="error")
 		return False
 	return True
 
@@ -217,7 +217,7 @@ def _fetch_and_apply(payload):
 	if _registered_sources(source_key):
 		response = backend_request("live_result", timeout=1.25, source_key=source_key)
 		if not response or not response.get("success"):
-			_log("FETCH failed source_key=%s error=%s" % (source_key, (response or {}).get("error") or "no response"))
+			_log(f"FETCH failed source_key={source_key} error={(response or {}).get("error") or "no response"}")
 			_schedule_fetch_retry(source_key, reason, retry_attempt + 1)
 		else:
 			fetch_succeeded = True
@@ -226,7 +226,7 @@ def _fetch_and_apply(payload):
 			try:
 				skin_data = build_epg_skin_data(candidate=None, event_row=event_row)
 			except Exception as err:
-				_log("BUILD failed source_key=%s error=%s" % (source_key, err), level="error")
+				_log(f"BUILD failed source_key={source_key} error={err}", level="error")
 	# The original datagram always invalidates the ServiceList cache. A failed
 	# retry contains no new data and must not cause another full list repaint.
 	if retry_attempt and not fetch_succeeded:
@@ -239,7 +239,7 @@ def _fetch_and_apply(payload):
 		reactor.callFromThread(_apply_notification_on_mainthread, source_key, skin_data, reason)
 		return True
 	except Exception as err:
-		_log("CALLFROMTHREAD failed source_key=%s error=%s" % (source_key, err), level="error")
+		_log(f"CALLFROMTHREAD failed source_key={source_key} error={err}", level="error")
 		return False
 
 
@@ -270,9 +270,9 @@ class BackendNotifyListener(Thread):
 			self.sock = socket(AF_UNIX, SOCK_DGRAM)
 			self.sock.bind(GUI_NOTIFY_SOCKET)
 			self.sock.settimeout(1.0)
-			_log("LISTENER active socket=%s" % GUI_NOTIFY_SOCKET)
+			_log(f"LISTENER active socket={GUI_NOTIFY_SOCKET}")
 		except Exception as err:
-			_log("LISTENER start failed socket=%s error=%s" % (GUI_NOTIFY_SOCKET, err), level="error")
+			_log(f"LISTENER start failed socket={GUI_NOTIFY_SOCKET} error={err}", level="error")
 			return
 		while self.running:
 			try:
@@ -284,7 +284,7 @@ class BackendNotifyListener(Thread):
 			try:
 				payload = loads(data.decode("utf-8", "replace")) if data else {}
 			except Exception as err:
-				_log("LISTENER decode failed error=%s" % err)
+				_log(f"LISTENER decode failed error={err}")
 				continue
 			event = str(payload.get("event") or "")
 			if event in ("live_epg_updated", "metadata_updated", "live_epg_no_match", "live_epg_skipped"):

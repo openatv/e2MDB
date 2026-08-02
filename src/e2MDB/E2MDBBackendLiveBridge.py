@@ -35,7 +35,7 @@ def _run_backend_wakes():
 					response = backend_request(
 						"live_worker_start",
 						timeout=0.75,
-						source="enigma-%s" % (request.get("reason") or "live"),
+						source=f"enigma-{request.get("reason") or "live"}",
 						limit=max(1, int(request.get("limit") or 1)),
 					)
 					if response and response.get("success"):
@@ -49,26 +49,11 @@ def _run_backend_wakes():
 			if response and response.get("success"):
 				job = response.get("job") if isinstance(response.get("job"), dict) else {}
 				state = "deferred" if response.get("deferred") else "started"
-				write_log(MODULE_NAME, "WAKE %s reason=%s limit=%s requests=%s job_id=%s current_job_type=%s" % (
-					state,
-					request.get("reason") or "",
-					request.get("limit") or 1,
-					request.get("request_count") or 1,
-					job.get("id") or response.get("job_id") or "",
-					job.get("type") or "",
-				))
+				write_log(MODULE_NAME, f"WAKE {state} reason={request.get("reason") or ""} limit={request.get("limit") or 1} requests={request.get("request_count") or 1} job_id={job.get("id") or response.get("job_id") or ""} current_job_type={job.get("type") or ""}")
 			else:
-				write_log(MODULE_NAME, "WAKE rejected reason=%s limit=%s error=%s" % (
-					request.get("reason") or "",
-					request.get("limit") or 1,
-					last_error or "backend request rejected",
-				))
+				write_log(MODULE_NAME, f"WAKE rejected reason={request.get("reason") or ""} limit={request.get("limit") or 1} error={last_error or "backend request rejected"}")
 		except Exception as err:
-			write_log(MODULE_NAME, "WAKE failed reason=%s limit=%s error=%s" % (
-				request.get("reason") or "",
-				request.get("limit") or 1,
-				err,
-			))
+			write_log(MODULE_NAME, f"WAKE failed reason={request.get("reason") or ""} limit={request.get("limit") or 1} error={err}")
 
 
 def _schedule_backend_wake(reason="live", limit=1):
@@ -97,7 +82,7 @@ def _schedule_backend_wake(reason="live", limit=1):
 					raise
 		return True
 	except Exception as err:
-		write_log(MODULE_NAME, "WAKE schedule failed reason=%s limit=%s error=%s" % (reason or "live", limit or 1, err))
+		write_log(MODULE_NAME, f"WAKE schedule failed reason={reason or "live"} limit={limit or 1} error={err}")
 		return False
 
 
@@ -111,12 +96,7 @@ def request_backend_live_epg_processing(source_key, callback=None, priority=None
 	source_key = str(source_key or "")
 	scheduled = _schedule_backend_wake(reason=reason or "live", limit=limit)
 	if scheduled:
-		write_log(MODULE_NAME, "REQUEST scheduled source_key=%s priority=%s limit=%s reason=%s" % (
-			source_key,
-			priority,
-			limit,
-			reason or "",
-		))
+		write_log(MODULE_NAME, f"REQUEST scheduled source_key={source_key} priority={priority} limit={limit} reason={reason or ""}")
 	return scheduled
 
 

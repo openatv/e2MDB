@@ -71,7 +71,7 @@ def _log_once(key, message, force=False):
 		if callable(message):
 			message = message()
 	except Exception:
-		message = "log message failed for key=%s" % key
+		message = f"log message failed for key={key}"
 	_log(message, force=force)
 
 
@@ -102,14 +102,8 @@ def _describe_data(data):
 	for key in ("cover_path", "backdrop_path", "image_path", "preview_path", "still_path", "titlelogo_path"):
 		path = data.get(key) or ""
 		full_path, exists_flag = _path_state(path)
-		parts.append("%s='%s' exists_%s=%s" % (key, path, key.replace("_path", ""), exists_flag))
-	return "status='%s' provider='%s' media_type='%s' source_key='%s' %s" % (
-		data.get("status") or "",
-		data.get("provider") or "",
-		data.get("media_type") or "",
-		data.get("source_key") or "",
-		" ".join(parts)
-	)
+		parts.append(f"{key}='{path}' exists_{key.replace("_path", "")}={exists_flag}")
+	return f"status='{data.get("status") or ""}' provider='{data.get("provider") or ""}' media_type='{data.get("media_type") or ""}' source_key='{data.get("source_key") or ""}' {" ".join(parts)}"
 
 
 def e2mdbServiceListEnabled():
@@ -279,13 +273,13 @@ def _source_key(service_ref, begin_time, title, event_end=0, duration=0):
 			duration_value = 0
 		if begin_value and duration_value:
 			end_value = begin_value + duration_value
-	identity = "%s|%s|%s|%s|%s" % ("epg", service_ref or "", begin_value, end_value, _normalize_text(title))
+	identity = f"{"epg"}|{service_ref or ""}|{begin_value}|{end_value}|{_normalize_text(title)}"
 	return md5(identity.encode("utf-8")).hexdigest()
 
 
 def _virtual_path(source_key, title):
 	clean_title = _normalize_text(title).replace(" ", "_") or "event"
-	return "/epg/%s_%s.ts" % (source_key, clean_title[:80])
+	return f"/epg/{source_key}_{clean_title[:80]}.ts"
 
 
 def _candidate_from_values(service_ref, begin_time=0, duration=0, title="", short_desc="", extended_desc="", debug_id=""):
@@ -405,10 +399,10 @@ def _lookup_best_row(candidate):
 				method = "service_begin"
 			else:
 				method = "miss"
-			_log_once("db-best-%s-%s" % (candidate.source_key, method), "DB_LOOKUP_BEST source_key='%s' method=%s hit=%s service='%s' begin=%s title='%s' row_title='%s' status='%s' provider='%s'" % (candidate.source_key, method, bool(data), _short_service(candidate.service_ref), candidate.begin_time, candidate.title, data.get("title") or data.get("metadata_title") or "", data.get("status") or "", data.get("metadata_provider") or ""), force=True)
+			_log_once(f"db-best-{candidate.source_key}-{method}", f"DB_LOOKUP_BEST source_key='{candidate.source_key}' method={method} hit={bool(data)} service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} title='{candidate.title}' row_title='{data.get("title") or data.get("metadata_title") or ""}' status='{data.get("status") or ""}' provider='{data.get("metadata_provider") or ""}'", force=True)
 			return data, method
 	except Exception as err:
-		_log_once("db-best-error-%s" % getattr(candidate, "source_key", ""), "DB_LOOKUP_BEST_ERROR source_key='%s' error=%s" % (getattr(candidate, "source_key", ""), err), force=True)
+		_log_once(f"db-best-error-{getattr(candidate, "source_key", "")}", f"DB_LOOKUP_BEST_ERROR source_key='{getattr(candidate, "source_key", "")}' error={err}", force=True)
 		return {}, "error"
 
 def _build_data_from_row(candidate, row):
@@ -431,7 +425,7 @@ def _build_data_from_row(candidate, row):
 		"overview": row.get("metadata_overview") or row.get("extended_desc") or row.get("short_desc") or getattr(candidate, "extended_desc", "") or getattr(candidate, "short_desc", "") or "",
 		"status": row.get("status") or "pending",
 		"expires_at": row.get("expires_at") or 0,
-		"status_text": "e2MDB: %s" % (row.get("status") or "pending"),
+		"status_text": f"e2MDB: {row.get("status") or "pending"}",
 		"provider": row.get("metadata_provider") or "",
 		"media_type": row.get("metadata_media_type") or "",
 		"genres": row.get("metadata_genres") or "",
@@ -526,7 +520,7 @@ def _get_entry_data(service_ref, event):
 		return {}, None
 	if not candidate.source_key or not candidate.begin_time or not candidate.title:
 		return {}, candidate
-	cache_key = "%s|%s|%s|%s" % (candidate.service_ref, candidate.begin_time, candidate.duration, candidate.title)
+	cache_key = f"{candidate.service_ref}|{candidate.begin_time}|{candidate.duration}|{candidate.title}"
 	cached = _get_cached_data(cache_key)
 	if cached is not None:
 		return cached, candidate
@@ -551,29 +545,29 @@ def _get_entry_data_from_values(service_ref, begin_time=0, duration=0, title="",
 	except Exception:
 		debug_title = ""
 	if not debug_begin or not debug_title:
-		_log_once("values-skip-%s-%s-%s" % (debug_service, debug_begin, debug_title), "VALUES_SKIP reason=missing-begin-or-title service='%s' begin=%s title='%s'" % (_short_service(debug_service), debug_begin, debug_title), force=True)
+		_log_once(f"values-skip-{debug_service}-{debug_begin}-{debug_title}", f"VALUES_SKIP reason=missing-begin-or-title service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, None
 	if not e2mdbServiceListEnabled():
-		_log_once("values-disabled-%s-%s-%s" % (debug_service, debug_begin, debug_title), "VALUES_SKIP reason=servicelist-disabled service='%s' begin=%s title='%s'" % (_short_service(debug_service), debug_begin, debug_title), force=True)
+		_log_once(f"values-disabled-{debug_service}-{debug_begin}-{debug_title}", f"VALUES_SKIP reason=servicelist-disabled service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, None
 	db_path = _db_path()
 	if not db_path:
-		_log_once("values-nodb-%s-%s-%s" % (debug_service, debug_begin, debug_title), "VALUES_SKIP reason=no-db service='%s' begin=%s title='%s'" % (_short_service(debug_service), debug_begin, debug_title), force=True)
+		_log_once(f"values-nodb-{debug_service}-{debug_begin}-{debug_title}", f"VALUES_SKIP reason=no-db service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, None
 	try:
-		candidate = _candidate_from_values(debug_service, debug_begin, duration, debug_title, short_desc, extended_desc, debug_id="values-%s-%s-%s" % (debug_service, debug_begin, debug_title))
+		candidate = _candidate_from_values(debug_service, debug_begin, duration, debug_title, short_desc, extended_desc, debug_id=f"values-{debug_service}-{debug_begin}-{debug_title}")
 	except Exception as err:
-		_log_once("values-candidate-error-%s-%s-%s" % (debug_service, debug_begin, debug_title), "VALUES_CANDIDATE_ERROR service='%s' begin=%s title='%s' error=%s" % (_short_service(debug_service), debug_begin, debug_title, err), force=True)
+		_log_once(f"values-candidate-error-{debug_service}-{debug_begin}-{debug_title}", f"VALUES_CANDIDATE_ERROR service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}' error={err}", force=True)
 		return {}, None
-	cache_key = "%s|%s|%s|%s" % (candidate.service_ref, candidate.begin_time, candidate.duration, candidate.title)
+	cache_key = f"{candidate.service_ref}|{candidate.begin_time}|{candidate.duration}|{candidate.title}"
 	cached = _get_cached_data(cache_key)
 	if cached is not None:
-		_log_once("values-cache-%s" % candidate.source_key, lambda: "VALUES_CACHE_HIT source_key=%s service='%s' begin=%s title='%s' %s" % (candidate.source_key, _short_service(candidate.service_ref), candidate.begin_time, candidate.title, _describe_data(cached)), force=True)
+		_log_once(f"values-cache-{candidate.source_key}", lambda: f"VALUES_CACHE_HIT source_key={candidate.source_key} service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} title='{candidate.title}' {_describe_data(cached)}", force=True)
 		return cached, candidate
-	_log_once("values-lookup-%s" % candidate.source_key, "VALUES_LOOKUP source_key=%s service='%s' begin=%s duration=%s title='%s' search_title='%s' db='%s'" % (candidate.source_key, _short_service(candidate.service_ref), candidate.begin_time, candidate.duration, candidate.title, candidate.search_title, db_path), force=True)
+	_log_once(f"values-lookup-{candidate.source_key}", f"VALUES_LOOKUP source_key={candidate.source_key} service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} duration={candidate.duration} title='{candidate.title}' search_title='{candidate.search_title}' db='{db_path}'", force=True)
 	row, lookup_method = _lookup_best_row(candidate)
 	data = _build_data_from_row(candidate, row) if row else {}
-	_log_once("values-result-%s-%s" % (candidate.source_key, bool(data)), lambda: "VALUES_RESULT source_key=%s method=%s hit=%s service='%s' begin=%s title='%s' %s" % (candidate.source_key, lookup_method, bool(data), _short_service(candidate.service_ref), candidate.begin_time, candidate.title, _describe_data(data)), force=True)
+	_log_once(f"values-result-{candidate.source_key}-{bool(data)}", lambda: f"VALUES_RESULT source_key={candidate.source_key} method={lookup_method} hit={bool(data)} service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} title='{candidate.title}' {_describe_data(data)}", force=True)
 	data = _set_cached_data(cache_key, data, source_key=candidate.source_key)
 	return data, candidate
 
@@ -667,7 +661,7 @@ def _normalize_size(size):
 
 def _pixmap_cache_key(path, size):
 	w, h = _normalize_size(size)
-	return "%s|%sx%s" % (path, w, h)
+	return f"{path}|{w}x{h}"
 
 
 def _load_pixmap_scaled(path, size=None):
@@ -682,7 +676,7 @@ def _load_pixmap_scaled(path, size=None):
 	cache_key = _pixmap_cache_key(path, size)
 	pixmap = _pixmap_cache.get(cache_key)
 	if pixmap:
-		_log_once("pixmap-cache-%s" % cache_key, "PIXMAP_CACHE_HIT path='%s' size='%s'" % (path, size), force=True)
+		_log_once(f"pixmap-cache-{cache_key}", f"PIXMAP_CACHE_HIT path='{path}' size='{size}'", force=True)
 		return pixmap
 	try:
 		try:
@@ -690,15 +684,15 @@ def _load_pixmap_scaled(path, size=None):
 		except TypeError:
 			pixmap = LoadPixmap(path=path)
 	except Exception as err:
-		_log("PIXMAP_LOAD_FAILED path='%s' error=%s" % (path, err), force=True)
+		_log(f"PIXMAP_LOAD_FAILED path='{path}' error={err}", force=True)
 		pixmap = None
 	if pixmap:
 		if len(_pixmap_cache) > _MAX_PIXMAP_CACHE:
 			_pixmap_cache.clear()
 		_pixmap_cache[cache_key] = pixmap
-		_log_once("pixmap-loaded-%s" % cache_key, "PIXMAP_LOADED path='%s' size='%s'" % (path, size), force=True)
+		_log_once(f"pixmap-loaded-{cache_key}", f"PIXMAP_LOADED path='{path}' size='{size}'", force=True)
 	else:
-		_log_once("pixmap-none-%s" % cache_key, "PIXMAP_LOAD_NONE path='%s' size='%s'" % (path, size), force=True)
+		_log_once(f"pixmap-none-{cache_key}", f"PIXMAP_LOAD_NONE path='{path}' size='{size}'", force=True)
 	return pixmap
 
 
@@ -726,16 +720,16 @@ def buildE2MDBServiceListPixmapFromValues(service_ref, begin_time=0, duration=0,
 	path = _cached_preview_path(data)
 	mode = _preview_mode()
 	if candidate:
-		_log_once("preview-check-%s-%s" % (candidate.source_key, reason_suffix), lambda: "PREVIEW_CHECK source_key=%s event=%s mode='%s' service='%s' begin=%s duration=%s title='%s' chosen_path='%s' chosen_exists=%s %s" % (candidate.source_key, reason_suffix, mode, _short_service(candidate.service_ref), candidate.begin_time, candidate.duration, candidate.title, path, bool(path), _describe_data(data)), force=True)
+		_log_once(f"preview-check-{candidate.source_key}-{reason_suffix}", lambda: f"PREVIEW_CHECK source_key={candidate.source_key} event={reason_suffix} mode='{mode}' service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} duration={candidate.duration} title='{candidate.title}' chosen_path='{path}' chosen_exists={bool(path)} {_describe_data(data)}", force=True)
 	else:
-		_log_once("preview-check-none-%s-%s-%s" % (service_ref, begin_time, title), "PREVIEW_CHECK_NO_CANDIDATE event=%s mode='%s' service='%s' begin=%s title='%s'" % (reason_suffix, mode, _short_service(service_ref), begin_time, title), force=True)
+		_log_once(f"preview-check-none-{service_ref}-{begin_time}-{title}", f"PREVIEW_CHECK_NO_CANDIDATE event={reason_suffix} mode='{mode}' service='{_short_service(service_ref)}' begin={begin_time} title='{title}'", force=True)
 	if not path:
 		if candidate:
-			_log_once("preview-miss-%s-%s" % (candidate.source_key, reason_suffix), lambda: "PREVIEW_MISS source_key=%s event=%s requested=False reason=no-valid-preview-render-readonly service='%s' begin=%s title='%s' %s" % (candidate.source_key, reason_suffix, _short_service(candidate.service_ref), candidate.begin_time, candidate.title, _describe_data(data)), force=True)
+			_log_once(f"preview-miss-{candidate.source_key}-{reason_suffix}", lambda: f"PREVIEW_MISS source_key={candidate.source_key} event={reason_suffix} requested=False reason=no-valid-preview-render-readonly service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} title='{candidate.title}' {_describe_data(data)}", force=True)
 		return None
 	pixmap = _load_pixmap_scaled(path, size=size)
 	if candidate:
-		_log_once("preview-hit-%s-%s-%s" % (candidate.source_key, reason_suffix, bool(pixmap)), "PREVIEW_HIT source_key=%s event=%s pixmap=%s path='%s' provider='%s' title='%s'" % (candidate.source_key, reason_suffix, bool(pixmap), path, data.get("provider") or "", data.get("title") or title), force=True)
+		_log_once(f"preview-hit-{candidate.source_key}-{reason_suffix}-{bool(pixmap)}", f"PREVIEW_HIT source_key={candidate.source_key} event={reason_suffix} pixmap={bool(pixmap)} path='{path}' provider='{data.get("provider") or ""}' title='{data.get("title") or title}'", force=True)
 	return pixmap
 
 
@@ -748,14 +742,14 @@ def buildE2MDBServiceListPixmap(service_ref, event, size=None, event_number=0):
 	reason_suffix = "now" if event_number <= 0 else "next"
 	path = _cached_preview_path(data)
 	if candidate:
-		_log_once("preview-check-tuple-%s-%s" % (candidate.source_key, reason_suffix), lambda: "PREVIEW_CHECK_TUPLE source_key=%s event=%s mode='%s' chosen_path='%s' chosen_exists=%s %s" % (candidate.source_key, reason_suffix, _preview_mode(), path, bool(path), _describe_data(data)), force=True)
+		_log_once(f"preview-check-tuple-{candidate.source_key}-{reason_suffix}", lambda: f"PREVIEW_CHECK_TUPLE source_key={candidate.source_key} event={reason_suffix} mode='{_preview_mode()}' chosen_path='{path}' chosen_exists={bool(path)} {_describe_data(data)}", force=True)
 	if not path:
 		if candidate:
-			_log_once("preview-miss-tuple-%s-%s" % (candidate.source_key, reason_suffix), lambda: "PREVIEW_MISS_TUPLE source_key=%s event=%s requested=False reason=no-valid-preview-render-readonly %s" % (candidate.source_key, reason_suffix, _describe_data(data)), force=True)
+			_log_once(f"preview-miss-tuple-{candidate.source_key}-{reason_suffix}", lambda: f"PREVIEW_MISS_TUPLE source_key={candidate.source_key} event={reason_suffix} requested=False reason=no-valid-preview-render-readonly {_describe_data(data)}", force=True)
 		return None
 	pixmap = _load_pixmap_scaled(path, size=size)
 	if candidate:
-		_log_once("preview-hit-tuple-%s-%s-%s" % (candidate.source_key, reason_suffix, bool(pixmap)), "PREVIEW_HIT_TUPLE source_key=%s event=%s pixmap=%s path='%s' provider='%s'" % (candidate.source_key, reason_suffix, bool(pixmap), path, data.get("provider") or ""), force=True)
+		_log_once(f"preview-hit-tuple-{candidate.source_key}-{reason_suffix}-{bool(pixmap)}", f"PREVIEW_HIT_TUPLE source_key={candidate.source_key} event={reason_suffix} pixmap={bool(pixmap)} path='{path}' provider='{data.get("provider") or ""}'", force=True)
 	return pixmap
 
 
@@ -766,7 +760,7 @@ def buildE2MDBServiceListText(service_ref, event, text_type="meta"):
 	if text_type == "status":
 		return data.get("status_text") or ""
 	parts = []
-	for value in (data.get("media_type"), data.get("year"), data.get("rating") and ("★ %s" % data.get("rating")), data.get("provider")):
+	for value in (data.get("media_type"), data.get("year"), data.get("rating") and (f"★ {data.get("rating")}"), data.get("provider")):
 		if value:
 			parts.append(str(value))
 	return " · ".join(parts)

@@ -78,7 +78,7 @@ class E2MDBProviders:
 					except Exception as err:
 						provider_error = str(err)
 					if provider_error:
-						self.start_errors.append("%s: %s" % (pvr_name, provider_error))
+						self.start_errors.append(f"{pvr_name}: {provider_error}")
 						write_log(f"{MODULE_NAME} ERROR in module 'E2MDBProviders:start': {provider_error}")
 					else:
 						self.ready_providers.add(pvr_name)
@@ -248,7 +248,7 @@ class E2MDBProviders:
 					except Exception as err:
 						err_msg, pvr_dicts = str(err), {}
 					if err_msg:
-						self.last_search_errors.append("%s: %s" % (pvr_name, err_msg))
+						self.last_search_errors.append(f"{pvr_name}: {err_msg}")
 						write_log(err_msg)
 						continue
 					write_log(f"{MODULE_NAME} - '{pvr_name}' search result as '{media_type}': {'found infos' if pvr_dicts else 'found nothing'}")

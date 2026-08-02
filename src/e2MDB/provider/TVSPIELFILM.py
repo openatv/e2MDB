@@ -507,32 +507,15 @@ class TVSpielfilmProvider:
 			return err, {}
 		selected, confidence, reason = self._select_asset(candidate, assets)
 		if not selected or confidence < 0.55:
-			self._log("NO_MATCH channel=%s source=%s time_code=%s count=%s title='%s' best='%s' score=%.2f reason=%s" % (
-				channel_id,
-				channel_source,
-				time_code,
-				len(assets),
-				getattr(candidate, "search_title", "") or getattr(candidate, "title", ""),
-				selected.get("title", "") if selected else "",
-				confidence,
-				reason,
-			))
+			self._log(f"NO_MATCH channel={channel_id} source={channel_source} time_code={time_code} count={len(assets)} title='{getattr(candidate, "search_title", "") or getattr(candidate, "title", "")}' best='{selected.get("title", "") if selected else ""}' score={confidence:.2f} reason={reason}")
 			return "no-match", {}
 		detail_err, details = "", {}
 		if selected.get("assetUrl"):
 			detail_err, details = self.parse_single_asset(selected.get("assetUrl"))
 			if detail_err:
-				self._log("DETAIL failed channel=%s asset='%s' error=%s" % (channel_id, selected.get("assetUrl"), detail_err), level="warning")
+				self._log(f"DETAIL failed channel={channel_id} asset='{selected.get("assetUrl")}' error={detail_err}", level="warning")
 		final_dict = self.build_final_dict(candidate, selected, details, confidence)
-		self._log("MATCH channel=%s source=%s time_code=%s confidence=%.2f title='%s' asset='%s' image='%s'" % (
-			channel_id,
-			channel_source,
-			time_code,
-			confidence,
-			getattr(candidate, "title", ""),
-			final_dict.get("title", ""),
-			final_dict.get("image_url", ""),
-		))
+		self._log(f"MATCH channel={channel_id} source={channel_source} time_code={time_code} confidence={confidence:.2f} title='{getattr(candidate, "title", "")}' asset='{final_dict.get("title", "")}' image='{final_dict.get("image_url", "")}'")
 		return "", final_dict
 
 

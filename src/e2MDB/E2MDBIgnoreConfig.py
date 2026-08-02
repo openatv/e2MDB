@@ -72,7 +72,7 @@ class E2MDBIgnorePatterns:
 				patterns = []
 			return cls._unique(patterns)
 		except Exception as err:
-			cls._log("READ failed kind='%s' file='%s' error=%s" % (kind, path, err))
+			cls._log(f"READ failed kind='{kind}' file='{path}' error={err}")
 			return None
 
 	@classmethod
@@ -108,9 +108,9 @@ class E2MDBIgnorePatterns:
 				dump(payload, handle, indent=2, sort_keys=True)
 				handle.write("\n")
 			rename(tmp_path, path)
-			cls._log("SAVE kind='%s' file='%s' patterns=%d reason=%s" % (kind, path, len(unique), reason))
+			cls._log(f"SAVE kind='{kind}' file='{path}' patterns={len(unique)} reason={reason}")
 		except Exception as err:
-			cls._log("SAVE failed kind='%s' file='%s' patterns=%d error=%s" % (kind, path, len(unique), err))
+			cls._log(f"SAVE failed kind='{kind}' file='{path}' patterns={len(unique)} error={err}")
 		return unique
 
 	@classmethod

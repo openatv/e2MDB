@@ -37,14 +37,14 @@ def ensure_backend_dirs():
 			if not exists(path):
 				makedirs(path)
 		except Exception as err:
-			write_log("[e2MDB][BACKEND-CONFIG]", "DIR failed path='%s' error=%s" % (path, err))
+			write_log("[e2MDB][BACKEND-CONFIG]", f"DIR failed path='{path}' error={err}")
 
 
 def atomic_write_json(path, payload):
 	folder = dirname(path)
 	if folder and not exists(folder):
 		makedirs(folder)
-	tmp_path = "%s.tmp" % path
+	tmp_path = f"{path}.tmp"
 	with open(tmp_path, "w", encoding="utf-8") as handle:
 		dump(payload, handle, indent=2, sort_keys=True)
 		handle.write("\n")
@@ -65,7 +65,7 @@ def _get_value(config_entry, default=None):
 
 def _cache_root():
 	cache_path = str(_get_value(config.plugins.e2mdb.cachePath, "/media/hdd/") or "/media/hdd/").rstrip("/")
-	return "/e2MDB" if not cache_path else "%s/e2MDB" % cache_path
+	return "/e2MDB" if not cache_path else f"{cache_path}/e2MDB"
 
 
 API_KEY_CONFIG_FIELDS = {
@@ -170,9 +170,9 @@ def export_enigma_settings(reason="sessionstart"):
 	payload = build_settings_payload()
 	try:
 		atomic_write_json(SETTINGS_FILE, payload)
-		write_log("[e2MDB][BACKEND-CONFIG]", "EXPORT settings file='%s' reason=%s" % (SETTINGS_FILE, reason))
+		write_log("[e2MDB][BACKEND-CONFIG]", f"EXPORT settings file='{SETTINGS_FILE}' reason={reason}")
 	except Exception as err:
-		write_log("[e2MDB][BACKEND-CONFIG]", "EXPORT failed file='%s' error=%s" % (SETTINGS_FILE, err))
+		write_log("[e2MDB][BACKEND-CONFIG]", f"EXPORT failed file='{SETTINGS_FILE}' error={err}")
 	return payload
 
 
@@ -191,7 +191,7 @@ def ensure_default_json_files():
 			if not isfile(path):
 				atomic_write_json(path, payload)
 		except Exception as err:
-			write_log("[e2MDB][BACKEND-CONFIG]", "DEFAULT failed file='%s' error=%s" % (path, err))
+			write_log("[e2MDB][BACKEND-CONFIG]", f"DEFAULT failed file='{path}' error={err}")
 	# Data dumps that grow with the library (recording catalog, job history)
 	# belong next to the database under cache_root/results, not the small-config
 	# directory /etc/enigma2/e2mdb.
@@ -205,7 +205,7 @@ def ensure_default_json_files():
 			if not isfile(path):
 				atomic_write_json(path, payload)
 		except Exception as err:
-			write_log("[e2MDB][BACKEND-CONFIG]", "DEFAULT failed file='%s' error=%s" % (path, err))
+			write_log("[e2MDB][BACKEND-CONFIG]", f"DEFAULT failed file='{path}' error={err}")
 
 
 def init_backend_config(reason="sessionstart"):
@@ -215,7 +215,7 @@ def init_backend_config(reason="sessionstart"):
 				with open(API_KEYS_FILE, "r", encoding="utf-8") as handle:
 					payload = load(handle)
 			except Exception as err:
-				write_log("[e2MDB][BACKEND-CONFIG]", "API-KEYS read failed file='%s' error=%s" % (API_KEYS_FILE, err))
+				write_log("[e2MDB][BACKEND-CONFIG]", f"API-KEYS read failed file='{API_KEYS_FILE}' error={err}")
 				return
 			keys = payload.get("keys", {}) if isinstance(payload, dict) else {}
 			if isinstance(keys, dict):
@@ -234,7 +234,7 @@ def init_backend_config(reason="sessionstart"):
 		try:
 			atomic_write_json(API_KEYS_FILE, {"version": 1, "updated": int(time()), "keys": keys})
 		except Exception as err:
-			write_log("[e2MDB][BACKEND-CONFIG]", "API-KEYS write failed file='%s' error=%s" % (API_KEYS_FILE, err))
+			write_log("[e2MDB][BACKEND-CONFIG]", f"API-KEYS write failed file='{API_KEYS_FILE}' error={err}")
 
 	if reason == "sessionstart":
 		apply_api_keys_from_json()

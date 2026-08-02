@@ -79,7 +79,7 @@ class WikimediaProvider:
 		return {
 			"User-Agent": "e2MDB/3.0 (Enigma2 Live EPG image fallback; mailto:openatv@gmail.com) requests",
 			"Accept": "application/json,text/javascript,*/*;q=0.8",
-			"Accept-Language": "%s,en;q=0.8" % self.language,
+			"Accept-Language": f"{self.language},en;q=0.8",
 		}
 
 	def is_paused(self):
@@ -88,7 +88,7 @@ class WikimediaProvider:
 	def pause_reason(self):
 		if not self.is_paused():
 			return ""
-		return "rate-limited-until-%s" % int(self.disabled_until or 0)
+		return f"rate-limited-until-{int(self.disabled_until or 0)}"
 
 	def _retry_after_seconds(self, response):
 		try:
@@ -130,7 +130,7 @@ class WikimediaProvider:
 		now = int(time())
 		if now - int(self.last_rate_limit_log or 0) >= 60:
 			self.last_rate_limit_log = now
-			self._log("RATE_LIMIT status=%s pause=%ss until=%s" % (status_code, pause_seconds, self.disabled_until), force=True)
+			self._log(f"RATE_LIMIT status={status_code} pause={pause_seconds}s until={self.disabled_until}", force=True)
 
 	def _api_get(self, api_url, params, timeout=(3.05, 7)):
 		if self.is_paused():
@@ -146,12 +146,12 @@ class WikimediaProvider:
 				status_code = 0
 			if status_code in (429, 503):
 				self._pause_after_http_error(status_code, response=response)
-				return "http-%s-rate-limited" % status_code, {}
+				return f"http-{status_code}-rate-limited", {}
 			response.raise_for_status()
 			self.rate_limit_hits = 0
 			return "", response.json()
 		except ValueError as err:
-			self._log("ERROR json api='%s' error=%s" % (api_url, err))
+			self._log(f"ERROR json api='{api_url}' error={err}")
 			return str(err), {}
 		except exceptions.RequestException as err:
 			response = getattr(err, "response", None)
@@ -161,8 +161,8 @@ class WikimediaProvider:
 				status_code = 0
 			if status_code in (429, 503):
 				self._pause_after_http_error(status_code, response=response)
-				return "http-%s-rate-limited" % status_code, {}
-			self._log("ERROR api='%s' error=%s" % (api_url, err))
+				return f"http-{status_code}-rate-limited", {}
+			self._log(f"ERROR api='{api_url}' error={err}")
 			return str(err), {}
 
 	def _clean_text(self, value):
@@ -354,7 +354,7 @@ class WikimediaProvider:
 					image_url,
 					width,
 					height,
-					"%s:%s" % (language, page.get("pageid") or page_title),
+					f"{language}:{page.get("pageid") or page_title}",
 					source_url,
 					"wikipedia-pageimage",
 					description=description,
@@ -410,7 +410,7 @@ class WikimediaProvider:
 					image_url,
 					width,
 					height,
-					"%s:%s" % (language, page.get("pageid") or page_title),
+					f"{language}:{page.get("pageid") or page_title}",
 					source_url,
 					"wikipedia-pageimage-cover",
 					description=description,
@@ -426,7 +426,7 @@ class WikimediaProvider:
 	def _commons_queries(self, title):
 		queries = []
 		base = self._clean_text(title)
-		for query in (base, "%s television" % base, "%s film" % base):
+		for query in (base, f"{base} television", f"{base} film"):
 			query = query.strip()
 			if query and query not in queries:
 				queries.append(query)
@@ -469,14 +469,14 @@ class WikimediaProvider:
 				page_title = page.get("title") or ""
 				if not self._usable_horizontal_image(image_url, width, height, page_title):
 					continue
-				source_url = "https://commons.wikimedia.org/wiki/%s" % page_title.replace(" ", "_")
+				source_url = f"https://commons.wikimedia.org/wiki/{page_title.replace(" ", "_")}"
 				result = self._result_dict(
 					title,
 					page_title.replace("File:", ""),
 					image_url,
 					width,
 					height,
-					"commons:%s" % (page.get("pageid") or page_title),
+					f"commons:{page.get("pageid") or page_title}",
 					source_url,
 					"commons-image",
 				)
@@ -524,14 +524,14 @@ class WikimediaProvider:
 				page_title = page.get("title") or ""
 				if not self._usable_portrait_cover_image(image_url, width, height, page_title):
 					continue
-				source_url = "https://commons.wikimedia.org/wiki/%s" % page_title.replace(" ", "_")
+				source_url = f"https://commons.wikimedia.org/wiki/{page_title.replace(" ", "_")}"
 				result = self._result_dict(
 					title,
 					page_title.replace("File:", ""),
 					image_url,
 					width,
 					height,
-					"commons:%s" % (page.get("pageid") or page_title),
+					f"commons:{page.get("pageid") or page_title}",
 					source_url,
 					"commons-cover",
 					image_kind="cover",
@@ -599,14 +599,9 @@ class WikimediaProvider:
 			if best_score >= 0.70:
 				break
 		if best and best.get("image_url"):
-			self._log("MATCH confidence=%.2f reason=%s title='%s' image='%s'" % (
-				best_score,
-				best.get("reason") or "",
-				getattr(candidate, "title", "") or getattr(candidate, "search_title", ""),
-				best.get("image_url") or "",
-			), force=True)
+			self._log(f"MATCH confidence={best_score:.2f} reason={best.get("reason") or ""} title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}' image='{best.get("image_url") or ""}'", force=True)
 			return "", self.build_final_dict(candidate, best)
-		self._log("NO_MATCH title='%s'" % (getattr(candidate, "title", "") or getattr(candidate, "search_title", "")))
+		self._log(f"NO_MATCH title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}'")
 		return "no-match", {}
 
 	def lookup_epg_cover(self, candidate):
@@ -628,14 +623,9 @@ class WikimediaProvider:
 			if best_score >= 0.70:
 				break
 		if best and best.get("image_url"):
-			self._log("COVER_MATCH confidence=%.2f reason=%s title='%s' image='%s'" % (
-				best_score,
-				best.get("reason") or "",
-				getattr(candidate, "title", "") or getattr(candidate, "search_title", ""),
-				best.get("image_url") or "",
-			), force=True)
+			self._log(f"COVER_MATCH confidence={best_score:.2f} reason={best.get("reason") or ""} title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}' image='{best.get("image_url") or ""}'", force=True)
 			return "", self.build_final_dict(candidate, best)
-		self._log("NO_COVER_MATCH title='%s'" % (getattr(candidate, "title", "") or getattr(candidate, "search_title", "")))
+		self._log(f"NO_COVER_MATCH title='{getattr(candidate, "title", "") or getattr(candidate, "search_title", "")}'")
 		return "no-match", {}
 
 

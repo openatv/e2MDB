@@ -192,12 +192,7 @@ class E2MDBChannelStats(E2MDBLiveEPG):
 				now=now,
 			)
 			self.watch_seconds_session += watch_seconds
-			self.log("WATCH service='%s' name='%s' seconds=%s reason=%s" % (
-				self.current_service_ref,
-				self.current_service_name,
-				watch_seconds,
-				reason,
-			))
+			self.log(f"WATCH service='{self.current_service_ref}' name='{self.current_service_name}' seconds={watch_seconds} reason={reason}")
 			return watch_seconds
 		except Exception as err:
 			self.log(f"WATCH FAILED service='{self.current_service_ref}' error={err}", force=True)
@@ -207,7 +202,7 @@ class E2MDBChannelStats(E2MDBLiveEPG):
 		"""Record a zap when the live service changes and close the previous watch interval."""
 		if not self._enabled():
 			return False
-		if not _ensure_resultsdb_ready("stats-%s" % (reason or "live"), log_ready=False):
+		if not _ensure_resultsdb_ready(f"stats-{reason or "live"}", log_ready=False):
 			return False
 		service_ref = self.normalize_service_ref(service_ref).strip()
 		if not service_ref or service_ref.startswith("-1:"):
@@ -252,11 +247,7 @@ class E2MDBChannelStats(E2MDBLiveEPG):
 
 	def close(self):
 		self._commit_current_watch(reason="close")
-		self.log("CLOSE summary zaps=%s watch_seconds=%s current='%s'" % (
-			self.zap_count_session,
-			self.watch_seconds_session,
-			self.current_service_ref,
-		), force=True)
+		self.log(f"CLOSE summary zaps={self.zap_count_session} watch_seconds={self.watch_seconds_session} current='{self.current_service_ref}'", force=True)
 
 
 def get_channel_stats_tracker():
@@ -383,15 +374,7 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 		if self.started:
 			return self
 		self.started = True
-		self.log("MANAGER started enabled=%s horizon=%sd maxEvents=%s maxPerService=%s topN=%s scheduler=task-menu requestPoll=True boostEnabled=%s idleAfter=%smin" % (
-			getattr(config.plugins.e2mdb.epgPrefillEnabled, "value", False),
-			getattr(config.plugins.e2mdb.epgPrefillHorizonDays, "value", 1),
-			getattr(config.plugins.e2mdb.epgPrefillMaxEvents, "value", 0),
-			getattr(config.plugins.e2mdb.epgPrefillMaxEventsPerService, "value", 0),
-			getattr(config.plugins.e2mdb.epgZapHistoryTopN, "value", 0),
-			True,
-			5,
-		), force=True)
+		self.log(f"MANAGER started enabled={getattr(config.plugins.e2mdb.epgPrefillEnabled, "value", False)} horizon={getattr(config.plugins.e2mdb.epgPrefillHorizonDays, "value", 1)}d maxEvents={getattr(config.plugins.e2mdb.epgPrefillMaxEvents, "value", 0)} maxPerService={getattr(config.plugins.e2mdb.epgPrefillMaxEventsPerService, "value", 0)} topN={getattr(config.plugins.e2mdb.epgZapHistoryTopN, "value", 0)} scheduler=task-menu requestPoll=True boostEnabled={True} idleAfter={5}min", force=True)
 		self._install_standby_notifier()
 		# Poll a lightweight request file for setup-triggered prefill.
 		# Periodic scheduling is handled by the OpenATV task/timer menu only.
@@ -493,25 +476,17 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 	def _poke_worker_after_queue(self, source_key="", reason="prefill"):
 		allowed, allowed_reason = self._worker_allowed_now()
 		if not allowed:
-			self.log("WORKER POKE skipped source_key=%s reason=%s state=%s" % (source_key or "", reason or "prefill", allowed_reason))
+			self.log(f"WORKER POKE skipped source_key={source_key or ""} reason={reason or "prefill"} state={allowed_reason}")
 			return False
 		state = self._boost_state()
-		trigger = "prefill-%s" % (state.get("mode") or allowed_reason or "queue")
+		trigger = f"prefill-{state.get("mode") or allowed_reason or "queue"}"
 		try:
 			from .E2MDBBackendLiveBridge import poke_backend_live_epg_worker
 			ok = poke_backend_live_epg_worker(reason=trigger)
-			self.log("WORKER POKE source_key=%s reason=%s trigger=%s boost=%s standby=%s idle=%s ok=%s" % (
-				source_key or "",
-				reason or "prefill",
-				trigger,
-				state.get("boost"),
-				state.get("standby"),
-				state.get("idle"),
-				ok,
-			))
+			self.log(f"WORKER POKE source_key={source_key or ""} reason={reason or "prefill"} trigger={trigger} boost={state.get("boost")} standby={state.get("standby")} idle={state.get("idle")} ok={ok}")
 			return bool(ok)
 		except Exception as err:
-			self.log("WORKER POKE failed source_key=%s reason=%s error=%s" % (source_key or "", reason or "prefill", err), force=True)
+			self.log(f"WORKER POKE failed source_key={source_key or ""} reason={reason or "prefill"} error={err}", force=True)
 			return False
 
 	def _enabled(self):
@@ -539,7 +514,7 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 		state = self._boost_state(now)
 		if not state.get("boost"):
 			return False, "active-not-idle"
-		return True, "allowed-%s" % (state.get("mode") or "boost")
+		return True, f"allowed-{state.get("mode") or "boost"}"
 
 	def _due_now(self, now=None):
 		now = int(now or time())
@@ -598,12 +573,7 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 		if not self._no_epg_skip_enabled():
 			return 0, 0
 		count, blocked_until = self._prefill_state().record_no_epg(service_ref, service_name=service_name, source=source)
-		self.log("NO_EPG service='%s' name='%s' count=%s blocked_until='%s'" % (
-			service_ref,
-			service_name or "",
-			count,
-			self._format_time(blocked_until) if blocked_until else "",
-		))
+		self.log(f"NO_EPG service='{service_ref}' name='{service_name or ""}' count={count} blocked_until='{self._format_time(blocked_until) if blocked_until else ""}'")
 		return count, blocked_until
 
 	def _record_service_has_events(self, service_ref, service_name="", source="", event_count=0):
@@ -841,19 +811,12 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 						"begin_time": candidate.begin_time,
 						"event_end": candidate.event_end,
 						"priority": self._priority(),
-						"reason": "prefill-%s" % (reason or "timer"),
+						"reason": f"prefill-{reason or "timer"}",
 						"state": "pending",
 					})
 					if ok:
 						enqueued += 1
-						self.log("QUEUE UPSERT source_key=%s priority=%s service='%s' begin='%s' title='%s' search_title='%s'" % (
-							candidate.source_key,
-							self._priority(),
-							candidate.service_name,
-							self._format_time(candidate.begin_time),
-							candidate.title,
-							candidate.search_title,
-						))
+						self.log(f"QUEUE UPSERT source_key={candidate.source_key} priority={self._priority()} service='{candidate.service_name}' begin='{self._format_time(candidate.begin_time)}' title='{candidate.title}' search_title='{candidate.search_title}'")
 						self._poke_worker_after_queue(candidate.source_key, reason=reason)
 			resultsdb.set_cleanup_state("last_epg_prefill", str(now))
 			result = {
@@ -912,11 +875,11 @@ class E2MDBPrefillBackgroundJob:
 
 	def start(self, reason="manual", force=True, callback=None):
 		if self.running:
-			write_log(self.MODULE_NAME, "START skipped reason=busy requested=%s" % (reason or "manual"))
+			write_log(self.MODULE_NAME, f"START skipped reason=busy requested={reason or "manual"}")
 			return False
 		manager = start_prefill_manager()
 		if not manager:
-			write_log(self.MODULE_NAME, "START failed reason=manager-unavailable requested=%s" % (reason or "manual"))
+			write_log(self.MODULE_NAME, f"START failed reason=manager-unavailable requested={reason or "manual"}")
 			return False
 		self.running = True
 		self.callback = callback
@@ -975,17 +938,7 @@ class E2MDBPrefillBackgroundJob:
 		self.per_service = manager._max_events_per_service()
 		self.result["result"] = "running"
 		state = manager._boost_state()
-		write_log(self.MODULE_NAME, "PREPARED reason=%s services=%s horizonDays=%s maxEvents=%s maxPerService=%s priority=%s boost=%s mode=%s idleSeconds=%s" % (
-			self.reason,
-			len(self.services),
-			manager._horizon_days(),
-			self.max_events,
-			self.per_service,
-			manager._priority(),
-			state.get("boost"),
-			state.get("mode"),
-			state.get("idle_seconds", 0),
-		))
+		write_log(self.MODULE_NAME, f"PREPARED reason={self.reason} services={len(self.services)} horizonDays={manager._horizon_days()} maxEvents={self.max_events} maxPerService={self.per_service} priority={manager._priority()} boost={state.get("boost")} mode={state.get("mode")} idleSeconds={state.get("idle_seconds", 0)}")
 
 	def _finish(self):
 		try:
@@ -1004,9 +957,9 @@ class E2MDBPrefillBackgroundJob:
 			int(result.get("queued", 0) or 0) > 0 or int(result.get("skipped", 0) or 0) > 0
 		):
 			try:
-				manager._poke_worker_after_queue("", reason="%s-complete" % (reason or "prefill"))
+				manager._poke_worker_after_queue("", reason=f"{reason or "prefill"}-complete")
 			except Exception as err:
-				write_log(self.MODULE_NAME, "FINAL WORKER POKE failed reason=%s error=%s" % (reason, err))
+				write_log(self.MODULE_NAME, f"FINAL WORKER POKE failed reason={reason} error={err}")
 		self.callback = None
 		self.manager = None
 		self.running = False
@@ -1014,18 +967,7 @@ class E2MDBPrefillBackgroundJob:
 		self.service_index = 0
 		self.pending_events = []
 		self.current_service = None
-		write_log(self.MODULE_NAME, "DONE reason=%s result=%s services=%s inserted=%s queued=%s skipped=%s provider_skipped=%s no_epg=%s no_epg_skipped=%s ignored_services=%s" % (
-			reason,
-			result.get("result", "unknown"),
-			result.get("services", 0),
-			result.get("inserted", 0),
-			result.get("queued", 0),
-			result.get("skipped", 0),
-			result.get("provider_skipped", 0),
-			result.get("no_epg_services", 0),
-			result.get("no_epg_skipped", 0),
-			result.get("ignored_services", 0),
-		))
+		write_log(self.MODULE_NAME, f"DONE reason={reason} result={result.get("result", "unknown")} services={result.get("services", 0)} inserted={result.get("inserted", 0)} queued={result.get("queued", 0)} skipped={result.get("skipped", 0)} provider_skipped={result.get("provider_skipped", 0)} no_epg={result.get("no_epg_services", 0)} no_epg_skipped={result.get("no_epg_skipped", 0)} ignored_services={result.get("ignored_services", 0)}")
 		if callback and callable(callback):
 			try:
 				callback(result, error)
@@ -1097,16 +1039,7 @@ class E2MDBPrefillBackgroundJob:
 		except Exception:
 			pass
 		try:
-			self.manager.log("DONE services=%s inserted=%s queued=%s skipped=%s provider_skipped=%s no_epg=%s no_epg_skipped=%s ignored_services=%s" % (
-				self.result.get("services", 0),
-				self.result.get("inserted", 0),
-				self.result.get("queued", 0),
-				self.result.get("skipped", 0),
-				self.result.get("provider_skipped", 0),
-				self.result.get("no_epg_services", 0),
-				self.result.get("no_epg_skipped", 0),
-				self.result.get("ignored_services", 0),
-			), force=True)
+			self.manager.log(f"DONE services={self.result.get("services", 0)} inserted={self.result.get("inserted", 0)} queued={self.result.get("queued", 0)} skipped={self.result.get("skipped", 0)} provider_skipped={self.result.get("provider_skipped", 0)} no_epg={self.result.get("no_epg_services", 0)} no_epg_skipped={self.result.get("no_epg_skipped", 0)} ignored_services={self.result.get("ignored_services", 0)}", force=True)
 		except Exception:
 			pass
 		self._finish()
@@ -1197,11 +1130,7 @@ class E2MDBPrefillBackgroundJob:
 	def _process_event_data(self, manager, event_data):
 		if int(self.result.get("queued", 0) or 0) >= self.max_events:
 			return
-		write_log(self.MODULE_NAME, "EVENT service='%s' begin='%s' title='%s'" % (
-			event_data.get("service_ref", ""),
-			manager._format_time(event_data.get("begin", 0)),
-			event_data.get("title", ""),
-		))
+		write_log(self.MODULE_NAME, f"EVENT service='{event_data.get("service_ref", "")}' begin='{manager._format_time(event_data.get("begin", 0))}' title='{event_data.get("title", "")}'")
 		candidate = self._candidate_from_event_data(manager, event_data)
 		if not candidate:
 			self.result["skipped"] = int(self.result.get("skipped", 0) or 0) + 1
@@ -1235,19 +1164,12 @@ class E2MDBPrefillBackgroundJob:
 			"begin_time": candidate.begin_time,
 			"event_end": candidate.event_end,
 			"priority": manager._priority(),
-			"reason": "prefill-%s" % (self.reason or "timer"),
+			"reason": f"prefill-{self.reason or "timer"}",
 			"state": "pending",
 		})
 		if ok:
 			self.result["queued"] = int(self.result.get("queued", 0) or 0) + 1
-			manager.log("QUEUE UPSERT source_key=%s priority=%s service='%s' begin='%s' title='%s' search_title='%s'" % (
-				candidate.source_key,
-				manager._priority(),
-				candidate.service_name,
-				manager._format_time(candidate.begin_time),
-				candidate.title,
-				candidate.search_title,
-			))
+			manager.log(f"QUEUE UPSERT source_key={candidate.source_key} priority={manager._priority()} service='{candidate.service_name}' begin='{manager._format_time(candidate.begin_time)}' title='{candidate.title}' search_title='{candidate.search_title}'")
 			manager._poke_worker_after_queue(candidate.source_key, reason=self.reason)
 
 def get_prefill_background_job():

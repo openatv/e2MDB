@@ -31,11 +31,13 @@ except Exception:
 try:
 	from Components.config import config
 except Exception:
-	class _DummyConfigNode(object):
+	class _DummyConfigNode:
 		value = False
+
 		def __getattr__(self, name):
 			return self
-	class _DummyConfig(object):
+
+	class _DummyConfig:
 		plugins = _DummyConfigNode()
 	config = _DummyConfig()
 
@@ -48,9 +50,11 @@ except Exception:
 			print(" ".join(str(arg) for arg in args))
 		except Exception:
 			pass
+
 	def _(text):
 		return text
-	class _DummyGlobals(object):
+
+	class _DummyGlobals:
 		pass
 	e2mdbglobals = _DummyGlobals()
 try:
@@ -66,7 +70,7 @@ except Exception:
 	try:
 		from E2MDBDatabase import mediadb, resultsdb
 	except Exception:
-		class _DummyDB(object):
+		class _DummyDB:
 			def __getattr__(self, name):
 				def _missing(*args, **kwargs):
 					return None
@@ -79,7 +83,7 @@ except Exception:
 	try:
 		from E2MDBHelper import E2MDBHelper
 	except Exception:
-		class E2MDBHelper(object):
+		class E2MDBHelper:
 			pass
 try:
 	from .E2MDBTranslator import translate_title_for_search
@@ -122,7 +126,7 @@ except Exception:
 	try:
 		from provider.Consts import Fields
 	except Exception:
-		class Fields(object):
+		class Fields:
 			PROVIDER = "provider"
 			TITLE = "title"
 			PROVIDER_IDS = "provider_ids"
@@ -1226,7 +1230,7 @@ class E2MDBScanner(E2MDBHelper):
 		return providers.start(self.language, api_keys, series_search_order, movie_search_order)  # start all providers with default language
 
 
-class E2MDBBackendMetadataScanner(object):
+class E2MDBBackendMetadataScanner:
 	"""Backend-safe metadata scanner facade used by e2mdbd.
 
 	All daemon recording/media scans must enter through this class so path
@@ -1235,7 +1239,7 @@ class E2MDBBackendMetadataScanner(object):
 	jobs and stores the returned scan items.
 	"""
 
-	TS_RECORDING_EXTS = (".ts",)
+	TS_RECORDING_EXTS = (".ts", ".stream")
 	MEDIA_FILE_EXTS = (".mkv", ".avi", ".mp4", ".m4v", ".mpg", ".mpeg", ".mov", ".wmv", ".flv", ".iso", ".m2ts", ".mts")
 	VIDEO_EXTS = TS_RECORDING_EXTS + MEDIA_FILE_EXTS
 	NON_MEDIA_SIDECAR_EXTS = (".meta", ".eit", ".cuts", ".cutsr", ".ap", ".sc", ".txt", ".nfo", ".srt", ".sub", ".idx", ".jpg", ".jpeg", ".png", ".gif", ".log", ".tmp", ".part")
@@ -1350,7 +1354,7 @@ class E2MDBBackendMetadataScanner(object):
 		base_title = self.clean_title_from_filename(media_path)
 		if clean_title == base_title:
 			return media_path
-		return join(dirname(media_path), "%s%s" % (clean_title, splitext(media_path)[1]))
+		return join(dirname(media_path), f"{clean_title}{splitext(media_path)[1]}")
 
 	def make_recording_id(self, path):
 		from hashlib import md5
@@ -1557,7 +1561,6 @@ class E2MDBBackendMetadataScanner(object):
 			result.append(text)
 		return result
 
-
 	def scan_path_diagnostics(self, scan_paths, count_files=False, checkpoint=None):
 		from os import walk
 		from os.path import isdir
@@ -1683,7 +1686,7 @@ class E2MDBBackendMetadataScanner(object):
 		return False
 
 	def native_parser_missing_message(self):
-		return "E2MDBScanner Python META/EIT/CUTS parser is unavailable: %s" % self.recording_parser_error
+		return f"E2MDBScanner Python META/EIT/CUTS parser is unavailable: {self.recording_parser_error}"
 
 	def scan_media_file(self, media_path, path_item):
 		# META/EIT/CUTS/TXT sidecars are not TS-only.  Every known media file

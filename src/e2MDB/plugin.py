@@ -627,7 +627,7 @@ class E2MDBScanResults(E2MDBHelper, Screen):
 			except (TypeError, ValueError):
 				duration = 0.0
 			m, s = divmod(int(round(duration)), 60)
-			return "%02d:%02d" % (m, s)
+			return f"{m:02d}:{s:02d}"
 
 		skin_list = []
 		failure_dict = self.read_scan_dicts("failed")
@@ -939,14 +939,14 @@ class E2MDBPatternListSelection(Screen):
 	def _save_patterns(self, reason="setup", close=False):
 		try:
 			self.patterns = E2MDBIgnorePatterns.save(self.list_key, self.patterns, reason=reason)
-			self.log("SAVE title='%s' patterns=%d reason=%s" % (self.title, len(self.patterns), reason))
+			self.log(f"SAVE title='{self.title}' patterns={len(self.patterns)} reason={reason}")
 			if close:
 				self.close(True)
 			else:
 				self.build_list(self._current_index())
 			return True
 		except Exception as err:
-			self.log("SAVE failed title='%s' error=%s" % (self.title, err))
+			self.log(f"SAVE failed title='{self.title}' error={err}")
 			try:
 				self.session.open(MessageBox, _("Could not save ignore list:\n%s") % err, type=MessageBox.TYPE_ERROR, timeout=8)
 			except Exception:
@@ -1197,7 +1197,7 @@ class E2MDBPatternSourceSelection(Screen):
 						key = title.lower()
 						if key not in seen_titles:
 							seen_titles.add(key)
-							entries.append({"label": "%s  —  %s" % (title, service_name or service_ref), "pattern": title})
+							entries.append({"label": f"{title}  —  {service_name or service_ref}", "pattern": title})
 							if len(entries) >= self.MAX_SOURCE_ITEMS:
 								return entries
 					try:
@@ -1230,7 +1230,7 @@ class E2MDBPatternSourceSelection(Screen):
 						key = name.lower()
 						if name and key not in seen_names:
 							seen_names.add(key)
-							entries.append({"label": "%s  —  %s" % (name, current_root), "pattern": name})
+							entries.append({"label": f"{name}  —  {current_root}", "pattern": name})
 							if len(entries) >= self.MAX_SOURCE_ITEMS:
 								return entries
 					if not recursive:
@@ -1246,7 +1246,7 @@ class E2MDBPatternSourceSelection(Screen):
 			self.entries = self._collect_folder_name_entries()
 		else:
 			self.entries = self._collect_epg_title_entries()
-		self.log("LOAD source_type=%s entries=%d" % (self.source_type, len(self.entries)))
+		self.log(f"LOAD source_type={self.source_type} entries={len(self.entries)}")
 
 	def build_list(self):
 		self.selection_list.list = []
@@ -1546,7 +1546,7 @@ class E2MDBPrefillServiceSelection(Screen):
 		self.selection_list.list = []
 		for idx, bouquet in enumerate(self.bouquets):
 			state, selected, total = self._bouquet_selection_state(bouquet)
-			label = "%s %s  (%d/%d)" % (self._status_prefix(state), bouquet.get("name") or "", selected, total)
+			label = f"{self._status_prefix(state)} {bouquet.get("name") or ""}  ({selected}/{total})"
 			self.selection_list.addSelection(label, {"type": "bouquet", "index": idx}, idx, state == "all")
 		try:
 			self.selection_list.updateList()
@@ -1880,7 +1880,7 @@ class E2MDBPrefillStatusScreen(Screen):
 		queue_rows = self._queue_group_rows()
 		if queue_rows:
 			for state_name, reason, priority, count in queue_rows:
-				lines.append("  %-12s prio=%-3s %-24s %s" % (state_name or "", priority or 0, reason or "", count or 0))
+				lines.append(f"  {state_name or "":-12s} prio={priority or 0:-3s} {reason or "":-24s} {count or 0}")
 		else:
 			lines.append("  " + _("No prefill queue entries."))
 		lines.append("")
@@ -2022,7 +2022,7 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 		""")
 		if rows:
 			for state, reason, priority, count in rows:
-				lines.append("  %-14s prio=%-3s %-28s %s" % (state or "", priority or 0, reason or "", count or 0))
+				lines.append(f"  {state or "":-14s} prio={priority or 0:-3s} {reason or "":-28s} {count or 0}")
 		else:
 			lines.append("  " + _("No queue entries."))
 		lines.append("")
@@ -2037,7 +2037,7 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 		""")
 		if pending:
 			for state, priority, reason, title, service_name, event_status, begin_time, attempts in pending:
-				lines.append("  p%-3s %-18s %s - %s" % (priority or 0, service_name or "", self._format_time(begin_time), title or ""))
+				lines.append(f"  p{priority or 0:-3s} {service_name or "":-18s} {self._format_time(begin_time)} - {title or ""}")
 		else:
 			lines.append("  " + _("No pending queue entries."))
 		lines.append("")
@@ -2051,7 +2051,7 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 		""")
 		if recent:
 			for state, priority, reason, title, service_name, event_status, begin_time, updated_at in recent:
-				lines.append("  %-10s/%-10s %s %s - %s" % (state or "", event_status or "", self._format_time(updated_at), service_name or "", title or ""))
+				lines.append(f"  {state or "":-10s}/{event_status or "":-10s} {self._format_time(updated_at)} {service_name or ""} - {title or ""}")
 		else:
 			lines.append("  " + _("No recent queue entries."))
 		if self.last_action:
@@ -2076,10 +2076,10 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 				self.last_action = _("Last action: %s removed %d queue entries.") % (label or mode, removed)
 			else:
 				self.last_action = _("Last action failed: %s") % str(result.get("error") or "unknown error")
-			self.log("CLEAR mode=%s result=%s" % (mode, result))
+			self.log(f"CLEAR mode={mode} result={result}")
 		except Exception as err:
 			self.last_action = _("Last action failed: %s") % str(err)
-			self.log("CLEAR mode=%s failed error=%s" % (mode, err))
+			self.log(f"CLEAR mode={mode} failed error={err}")
 		try:
 			self["info"].setText(self._build_info_text())
 		except Exception as err:
@@ -2105,10 +2105,10 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 					self.last_action = _("Last action: no active no-match entries found.")
 			else:
 				self.last_action = _("Last action failed: %s") % str(result.get("error") or "unknown error")
-			self.log("RETRY no-match result=%s" % result)
+			self.log(f"RETRY no-match result={result}")
 		except Exception as err:
 			self.last_action = _("Last action failed: %s") % str(err)
-			self.log("RETRY no-match failed error=%s" % err)
+			self.log(f"RETRY no-match failed error={err}")
 		try:
 			self["info"].setText(self._build_info_text())
 		except Exception as err:
@@ -2202,8 +2202,8 @@ class E2MDBCleanupStatusScreen(Screen):
 			value /= 1024.0
 			index += 1
 		if index == 0:
-			return "%d %s" % (int(value), units[index])
-		return "%.1f %s" % (value, units[index])
+			return f"{int(value)} {units[index]}"
+		return f"{value:.1f} {units[index]}"
 
 	def _quick_database_status(self):
 		try:
@@ -2225,7 +2225,7 @@ class E2MDBCleanupStatusScreen(Screen):
 
 	def _format_decimal(self, value, default="-"):
 		try:
-			return "%.1f" % float(value)
+			return f"{float(value):.1f}"
 		except Exception:
 			return default
 
@@ -2235,7 +2235,7 @@ class E2MDBCleanupStatusScreen(Screen):
 		if value is None:
 			value = system.get("load_percent")
 		try:
-			return "%.1f%%" % float(value)
+			return f"{float(value):.1f}%"
 		except Exception:
 			return "-"
 
@@ -2272,19 +2272,19 @@ class E2MDBCleanupStatusScreen(Screen):
 		state_parts = []
 		if queue_states:
 			for state_name in sorted(queue_states.keys()):
-				state_parts.append("%s %s" % (state_name or "-", queue_states.get(state_name) or 0))
+				state_parts.append(f"{state_name or "-"} {queue_states.get(state_name) or 0}")
 		lines.append(_("Queue states: %s") % (", ".join(state_parts[:6]) if state_parts else _("No queue entries.")))
 		lines.append("")
 		if self.last_result:
 			result = self.last_result
 			lines.append(_("Last manual action result:"))
-			lines.append("  result=%s reason=%s" % (result.get("result"), result.get("reason")))
-			lines.append("  events=%s queue=%s prefill_state_removed=%s" % (result.get("events", 0), result.get("queue", 0), result.get("prefill_state_removed", 0)))
-			lines.append("  cache_candidates=%s cache_deleted=%s cache_kept=%s errors=%s" % (result.get("cache_candidates", 0), result.get("cache_deleted", 0), result.get("cache_kept", 0), result.get("cache_errors", 0)))
+			lines.append(f"  result={result.get("result")} reason={result.get("reason")}")
+			lines.append(f"  events={result.get("events", 0)} queue={result.get("queue", 0)} prefill_state_removed={result.get("prefill_state_removed", 0)}")
+			lines.append(f"  cache_candidates={result.get("cache_candidates", 0)} cache_deleted={result.get("cache_deleted", 0)} cache_kept={result.get("cache_kept", 0)} errors={result.get("cache_errors", 0)}")
 			if result.get("sqlite_maintenance"):
-				lines.append("  sqlite_saved=%s" % self._format_size(result.get("sqlite_size_saved", 0)))
+				lines.append(f"  sqlite_saved={self._format_size(result.get("sqlite_size_saved", 0))}")
 			elif result.get("size_saved") is not None:
-				lines.append("  sqlite_saved=%s" % self._format_size(result.get("size_saved", 0)))
+				lines.append(f"  sqlite_saved={self._format_size(result.get("size_saved", 0))}")
 		else:
 			try:
 				stats = self._cleanup_state("last_epg_cleanup_stats", "")
@@ -2426,7 +2426,7 @@ class E2MDBSetup(Setup, E2MDBHelper):
 				timeout=10,
 				close_on_any_key=True,
 			)
-			write_log("[e2MDB][SETUP]", "MEDIA retry-missing failed error=%s" % err)
+			write_log("[e2MDB][SETUP]", f"MEDIA retry-missing failed error={err}")
 
 	def key_prefill_services(self):
 		self.session.openWithCallback(lambda result=None: self._refresh_setup_safe(), E2MDBPrefillServiceSelection)
@@ -2601,15 +2601,15 @@ class E2MDBPrefillSchedulerTask:
 		now = int(time())
 		if deadline > 0 and now < deadline and not self.cancel_requested:
 			remaining_ms = max(1000, min(self.RETRY_INTERVAL_MS, (deadline - now) * 1000))
-			self._log_timer(20, "e2MDB Live/EPG Prefill %s; retrying within timer window." % reason)
-			write_log(self.MODULE_NAME, "RETRY reason=%s until=%s" % (reason, deadline))
+			self._log_timer(20, f"e2MDB Live/EPG Prefill {reason}; retrying within timer window.")
+			write_log(self.MODULE_NAME, f"RETRY reason={reason} until={deadline}")
 			try:
 				self.retry_timer.start(int(remaining_ms), True)
 			except Exception:
 				self._finish(success=False)
 			return True
-		self._log_timer(30, "e2MDB Live/EPG Prefill could not start before timer window ended: %s." % reason)
-		write_log(self.MODULE_NAME, "FAILED retry-window-ended reason=%s" % reason, level="error")
+		self._log_timer(30, f"e2MDB Live/EPG Prefill could not start before timer window ended: {reason}.")
+		write_log(self.MODULE_NAME, f"FAILED retry-window-ended reason={reason}", level="error")
 		self._finish(success=False)
 		return False
 
@@ -2648,7 +2648,7 @@ class E2MDBPrefillSchedulerTask:
 	def _background_done(self, result, error=None):
 		if error:
 			write_log(self.MODULE_NAME, f"FAILED error={error}", level="error")
-			self._log_timer(30, "e2MDB Live/EPG Prefill failed: %s" % error)
+			self._log_timer(30, f"e2MDB Live/EPG Prefill failed: {error}")
 			self._finish(success=False)
 			return
 		result = result or {}

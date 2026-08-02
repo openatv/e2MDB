@@ -96,7 +96,7 @@ class E2MDBTitleTranslator:
 			"q": title,
 		})
 		request = Request(
-			"%s?%s" % (TRANSLATE_API_URL, params),
+			f"{TRANSLATE_API_URL}?{params}",
 			headers={
 				"User-Agent": getattr(e2mdbglobals, "USERAGENT", "Mozilla/5.0"),
 				"Accept": "application/json,text/plain,*/*",

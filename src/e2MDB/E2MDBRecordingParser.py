@@ -71,14 +71,14 @@ def _read_text_file(path):
 def _sidecar_candidates(path, suffix):
 	base, _ext = splitext(path)
 	if suffix == ".eit":
-		return ("%s.eit" % base, "%s.eit" % path)
+		return (f"{base}.eit", f"{path}.eit")
 	if suffix == ".meta":
-		return ("%s.meta" % path, "%s.meta" % base)
+		return (f"{path}.meta", f"{base}.meta")
 	if suffix == ".cuts":
-		return ("%s.cuts" % path, "%s.cuts" % base)
+		return (f"{path}.cuts", f"{base}.cuts")
 	if suffix == ".txt":
-		return ("%s.txt" % path, "%s.txt" % base)
-	return ("%s%s" % (path, suffix),)
+		return (f"{path}.txt", f"{base}.txt")
+	return (f"{path}{suffix}",)
 
 
 def _first_existing_sidecar(path, suffix):
@@ -88,7 +88,7 @@ def _first_existing_sidecar(path, suffix):
 	return _sidecar_candidates(path, suffix)[0]
 
 
-class EITFileReader(object):
+class EITFileReader:
 	def __init__(self, filename: str):
 		self.filename = filename
 		self.title = ""
@@ -104,7 +104,7 @@ class EITFileReader(object):
 			with open(self.filename, "rb") as handle:
 				self.data = handle.read()
 		except OSError as error:
-			self.error = "reading '%s' / %s" % (self.filename, str(error))
+			self.error = f"reading '{self.filename}' / {str(error)}"
 			return
 
 		if not self.data or len(self.data) < 12:
