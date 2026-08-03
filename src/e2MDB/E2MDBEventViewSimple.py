@@ -46,7 +46,7 @@ from .E2MDBDatabase import resultsdb
 from .E2MDBSkin import build_eventview_final_dict_from_db
 
 
-class E2MDBEventViewSimple(Screen, E2MDBHelper):
+class E2MDBEventViewSimple(Screen):
 	skin = """
 	<screen name="E2MDBMediaEventView" position="0,0" size="1280,720" resolution="1280,720" title="EventviewSimple" flags="wfNoBorder" backgroundColor="#0000000">
 		<widget name="backdrop" position="160,0" size="e,e" alphatest="blend" zPosition="-10" scaleFlags="centerScaled" cornerRadius="40" />
@@ -64,7 +64,7 @@ class E2MDBEventViewSimple(Screen, E2MDBHelper):
 	REMOVE_TIMER = 1
 	NO_ACTION = 2
 
-	def __init__(self, session, event, serviceRef, org_path, json_path):
+	def __init__(self, session, event, serviceRef, org_path):
 		Screen.__init__(self, session, enableHelp=True)
 		self.keyGreenAction = self.NO_ACTION
 		self.event = event
@@ -72,7 +72,6 @@ class E2MDBEventViewSimple(Screen, E2MDBHelper):
 		self.org_path = org_path
 		if event and hasattr(event, "getEventName"):
 			self.org_title = event.getEventName()
-		self.json_path = json_path
 		self.isRecording = (not serviceRef.ref.flags & eServiceReference.isGroup) and serviceRef.ref.getPath() and "%3a//" not in serviceRef.ref.toString()
 		self.setTitle(_("Event View"))
 		self["Event"] = Event()
@@ -139,7 +138,6 @@ class E2MDBEventViewSimple(Screen, E2MDBHelper):
 		except Exception:
 			pass
 
-
 	def _service_ref_string(self):
 		try:
 			ref = getattr(self.serviceRef, "ref", None)
@@ -176,26 +174,25 @@ class E2MDBEventViewSimple(Screen, E2MDBHelper):
 				write_log("[E2MDBEventViewSimple] DB display metadata source=epg")
 				return build_eventview_final_dict_from_db(event_row=row)
 		try:
-			media_hash = self.get_reduced_org_hash(self.org_path)
-			row = resultsdb.get_media_metadata(media_hash)
-			if not row and hasattr(resultsdb, "get_media_metadata_by_path"):
-				row = resultsdb.get_media_metadata_by_path(self.org_path)
+			row = resultsdb.get_media_metadata_by_path(self.org_path)
 			if row and (row.get("metadata_title") or row.get("metadata_overview") or row.get("metadata_cover_path") or row.get("metadata_backdrop_path") or row.get("metadata_image_path") or row.get("artwork_poster_path") or row.get("artwork_backdrop_path") or row.get("artwork_episode_path")):
-				write_log(f"[E2MDBEventViewSimple] DB display metadata source=media path={self.org_path} hash={media_hash}")
+				write_log(f"[E2MDBEventViewSimple] DB display metadata source=media path={self.org_path}")
 				return build_eventview_final_dict_from_db(event_row=row)
 		except Exception as err:
 			write_log(f"[E2MDBEventViewSimple] DB media metadata lookup failed: {err}")
 		return {}
 
 	def layoutFinished(self):
-		def get_picture_path(pic_type):
-			pic_path = final_dict.get(f"{pic_type}_path", "")
-			if pic_path:
-				pic_path = self.get_full_org_path(pic_path)
-			return pic_path
+
+		def _set_dict_key(dictionary, key, value):
+			if value:
+				dictionary[key] = value
+			return dictionary
+
 		self.setService(self.serviceRef)
 		self.setEvent(self.event)  # TODO: can response 'hasEvent' be deleted in function?
 		final_dict = self._load_final_dict_from_db()
+		print(f"[E2MDBEventViewSimple] DEBUG final_dict: {final_dict}")
 		if not final_dict:
 			write_log("[E2MDBEventViewSimple] DB display metadata not found; JSON is not used for EventView display")
 			return
@@ -236,21 +233,21 @@ class E2MDBEventViewSimple(Screen, E2MDBHelper):
 			desc_long = f"{desc_short}\n\n{crew_long}\n{cast_long}"
 			self["description"].setText(desc_long)
 			item_dict = {}  # data for infoline
-			self.set_dict_key(item_dict, "media_type", media_type)
-			self.set_dict_key(item_dict, "countries", final_dict.get("countries", ""))
-			self.set_dict_key(item_dict, "released", final_dict.get("released", "")[:4])
-			self.set_dict_key(item_dict, "genres", final_dict.get("genres", ""))
+			_set_dict_key(item_dict, "media_type", media_type)
+			_set_dict_key(item_dict, "countries", final_dict.get("countries", ""))
+			_set_dict_key(item_dict, "released", final_dict.get("released", "")[:4])
+			_set_dict_key(item_dict, "genres", final_dict.get("genres", ""))
 			season_no, episode_no = final_dict.get("season_no", ""), final_dict.get("episode_no", "")
 			desc_list = []
 			if season_no and episode_no:
 				desc_list.append(f"{_('Season')} {season_no} / {_('Episode')} {episode_no}")
-			self.set_dict_key(item_dict, "season_epsiode", ", ".join(desc_list))
-			self.set_dict_key(item_dict, "runtime", runtime)
-			self.set_dict_key(item_dict, "age_rating", age_rating)
-			self.set_dict_key(item_dict, "vote_average", vote_average)
-			self.set_dict_key(item_dict, "provider", provider)
+			_set_dict_key(item_dict, "season_epsiode", ", ".join(desc_list))
+			_set_dict_key(item_dict, "runtime", runtime)
+			_set_dict_key(item_dict, "age_rating", age_rating)
+			_set_dict_key(item_dict, "vote_average", vote_average)
+			_set_dict_key(item_dict, "provider", provider)
 			self["infoline"].updateInfo(item_dict)
-			backdrop_path = get_picture_path("backdrop")
+			backdrop_path = final_dict.get("backdrop_path", "")
 			if backdrop_path and isfile(backdrop_path):
 				try:
 					mask_alpha = Image.open(join(e2mdbglobals.PLUGINDIR, "images", "mask_l.png")).convert("RGBA").split()[3]
@@ -270,17 +267,16 @@ class E2MDBEventViewSimple(Screen, E2MDBHelper):
 					write_log(f"[E2MDBEventViewSimple] ERROR in module 'layoutFinished': {err_msg}")
 			else:  # use default backdrop
 				self["backdrop"].instance.setPixmapFromFile(f"{e2mdbglobals.PLUGINDIR}/images/backdrop.png")
-			cover_path = get_picture_path("cover")
+			cover_path = final_dict.get("cover_path", "")
 			if cover_path and isfile(cover_path):
 				self["cover"].instance.setPixmapFromFile(cover_path)
-			titlelogo_path = get_picture_path("titlelogo")
+			titlelogo_path = final_dict.get("titlelogo_path", "")
 			if titlelogo_path and isfile(titlelogo_path):
 				self["titlelogo"].instance.setPixmapFromFile(titlelogo_path)
 				self["title"].setText("")
-			image_path = get_picture_path("image")
+			image_path = final_dict.get("image_path", "")
 			if image_path and isfile(image_path):
 				self["image"].instance.setPixmapFromFile(image_path)
-
 
 
 class E2MDBEventSelection(E2MDBHelper, Screen):

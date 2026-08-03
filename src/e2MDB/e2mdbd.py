@@ -6,14 +6,13 @@
 ########################################################################################################
 
 from mimetypes import guess_type
-from hashlib import md5
 from json import dump, dumps, load, loads
 from os import fsync, getpid, makedirs, remove, rename
-from os.path import abspath, basename, dirname, exists, getmtime, getsize, isfile, join, realpath, splitext
+from os.path import abspath, basename, dirname, exists, getmtime, getsize, isfile, join, realpath
 from socket import AF_UNIX, SOCK_DGRAM, SOCK_STREAM, socket, timeout as SocketTimeout
-from sys import argv, exit, stdout
+from sys import exit, stdout
 from threading import Event, Lock, Thread, current_thread
-from time import gmtime, localtime, sleep, strftime, time
+from time import gmtime, sleep, strftime, time
 from traceback import format_exc
 from uuid import uuid4
 
@@ -24,20 +23,8 @@ except Exception as err:
 	BACKEND_DATABASE_IMPORT_ERROR = err
 else:
 	BACKEND_DATABASE_IMPORT_ERROR = None
-try:
-	from E2MDBBackendProvider import BackendProviderEnricher
-except Exception as err:
-	BackendProviderEnricher = None
-	BACKEND_PROVIDER_IMPORT_ERROR = err
-else:
-	BACKEND_PROVIDER_IMPORT_ERROR = None
-try:
-	from E2MDBScanner import E2MDBBackendMetadataScanner
-except Exception as err:
-	E2MDBBackendMetadataScanner = None
-	BACKEND_METADATA_SCANNER_IMPORT_ERROR = err
-else:
-	BACKEND_METADATA_SCANNER_IMPORT_ERROR = None
+from E2MDBBackendProvider import BackendProviderEnricher
+from E2MDBBackendMetadataScanner import E2MDBBackendMetadataScanner
 
 CONFIG_DIR = "/etc/enigma2/e2mdb"
 RUNTIME_DIR = "/var/run/e2mdb"
@@ -65,6 +52,8 @@ def configured_web_port(webserver):
 	if port < 1 or port > 65535:
 		port = DEFAULT_WEB_PORT
 	return port
+
+
 def ensure_dirs():
 	for path in (CONFIG_DIR, RUNTIME_DIR):
 		if not exists(path):
@@ -119,7 +108,6 @@ def iso_from_timestamp(value):
 		return ""
 
 
-
 def send_gui_notification(event, source_key="", reason="backend", **payload):
 	"""Send a best-effort push notification to Enigma2 without requiring polling."""
 	source_key = str(source_key or "").strip()
@@ -143,6 +131,7 @@ def send_gui_notification(event, source_key="", reason="backend", **payload):
 		except Exception:
 			pass
 
+
 def safe_int(value, default=0):
 	try:
 		return int(value)
@@ -152,7 +141,6 @@ def safe_int(value, default=0):
 
 def truthy(value):
 	return str(value or "").strip().lower() in ("1", "true", "yes", "on", "all", "pending")
-
 
 
 class StatusStore:
@@ -206,8 +194,8 @@ class JobManager:
 		self.status_store = status_store
 		self.database = database
 		self.settings = settings if isinstance(settings, dict) else {}
-		self.provider_enricher = BackendProviderEnricher(self.settings) if BackendProviderEnricher else None
-		self.metadata_scanner = E2MDBBackendMetadataScanner() if E2MDBBackendMetadataScanner else None
+		self.provider_enricher = BackendProviderEnricher(self.settings)
+		self.metadata_scanner = E2MDBBackendMetadataScanner()
 		if self.metadata_scanner and hasattr(self.metadata_scanner, "configure"):
 			self.metadata_scanner.configure(self.settings)
 		self.lock = Lock()
@@ -897,7 +885,7 @@ class JobManager:
 
 	def _require_metadata_scanner(self):
 		if not self.metadata_scanner:
-			raise RuntimeError(f"E2MDBScanner backend metadata scanner unavailable: {BACKEND_METADATA_SCANNER_IMPORT_ERROR}")
+			raise RuntimeError("E2MDBBackendMetadataScanner unavailable")
 		return self.metadata_scanner
 
 	def _normalize_scan_paths(self, paths_payload):
@@ -974,7 +962,6 @@ class JobManager:
 
 	def _iter_video_files(self, scan_paths):
 		return self._require_metadata_scanner().iter_media_files(scan_paths)
-
 
 	def _run_recording_scan(self, scheduler_connection=None, finish=True, options=None):
 		options = options if isinstance(options, dict) else {}
@@ -1232,12 +1219,11 @@ class JobManager:
 				message=message,
 			)
 
-
 	def _run_metadata_enrich(self, scheduler_connection=None, options=None, finish=True):
 		if not self.database:
 			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
 		if not self.provider_enricher:
-			raise RuntimeError(f"provider enricher unavailable: {BACKEND_PROVIDER_IMPORT_ERROR}")
+			raise RuntimeError("provider enricher unavailable")
 		options = options if isinstance(options, dict) else {}
 		multi_phase = bool(options.get("multi_phase")) or not finish
 		limit = safe_int(options.get("limit"), safe_int(self.settings.get("provider", {}).get("job_limit"), 100))
@@ -1385,7 +1371,6 @@ class JobManager:
 			self._finish_job(success=True, scheduler_connection=scheduler_connection, message=message)
 		else:
 			self._update_job(scheduler_connection, state="running", phase="provider_done", current=total, total=total, percent=100, phase_percent=100, part_current=3 if multi_phase else 1, part_total=3 if multi_phase else 1, message=message)
-
 
 	def _live_queue_item_to_provider_item(self, queue_item):
 		queue_item = queue_item if isinstance(queue_item, dict) else {}
@@ -1564,7 +1549,7 @@ class JobManager:
 		if not self.database:
 			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
 		if not self.provider_enricher:
-			raise RuntimeError(f"provider enricher unavailable: {BACKEND_PROVIDER_IMPORT_ERROR}")
+			raise RuntimeError("provider enricher unavailable")
 		options = options if isinstance(options, dict) else {}
 		limit = safe_int(options.get("limit"), 25)
 		if limit <= 0:
@@ -1662,7 +1647,6 @@ class JobManager:
 		message = f"Live/EPG queue worker completed: {ok_count} done, {no_match_count} no match/skipped, {error_count} errors"
 		self._finish_job(success=True, scheduler_connection=scheduler_connection, message=message)
 
-
 	def _run_live_epg_cleanup_job(self, scheduler_connection=None, options=None):
 		if not self.database:
 			raise RuntimeError(f"database unavailable: {BACKEND_DATABASE_IMPORT_ERROR}")
@@ -1746,11 +1730,11 @@ class JobManager:
 		except Exception as err:
 			return {"success": False, "error": f"database reload failed: {err}"}
 		try:
-			self.provider_enricher = BackendProviderEnricher(settings) if BackendProviderEnricher else None
+			self.provider_enricher = BackendProviderEnricher(settings)
 		except Exception as err:
 			return {"success": False, "error": f"provider reload failed: {err}"}
 		try:
-			self.metadata_scanner = E2MDBBackendMetadataScanner() if E2MDBBackendMetadataScanner else None
+			self.metadata_scanner = E2MDBBackendMetadataScanner()
 			if self.metadata_scanner and hasattr(self.metadata_scanner, "configure"):
 				self.metadata_scanner.configure(settings)
 		except Exception as err:
@@ -1977,6 +1961,7 @@ class LiveEPGAutoWorker(Thread):
 	job is running or queue rows are pending. Therefore the next Live/EPG batch is
 	started at most about one second after the current backend job has finished.
 	"""
+
 	def __init__(self, job_manager, status_store, stop_event):
 		Thread.__init__(self)
 		self.daemon = True
@@ -2331,7 +2316,6 @@ class TwistedWebServer(Thread):
 					payload = {"success": False, "error": str(err)}
 				request.setHeader(b"Content-Type", b"application/json; charset=UTF-8")
 				return dumps(payload, sort_keys=True).encode("utf-8")
-
 
 		class ArtworkFileResource(resource.Resource):
 			isLeaf = True

@@ -10,6 +10,7 @@
 # PYTHON IMPORTS
 from difflib import SequenceMatcher
 from json import dumps, loads
+from hashlib import md5
 from os.path import basename, dirname, join, exists, isfile, splitext
 from os import listdir, makedirs
 from re import sub
@@ -241,7 +242,6 @@ def _db_display_text(data, key, fallback_key=None):
 	if fallback_key:
 		return _db_value_to_text(data.get(fallback_key))
 	return ''
-
 
 
 def _db_loads_json(value, fallback=None):
@@ -1516,7 +1516,6 @@ def _ensure_browser_cache(self, allow_rebuild=True, background=False):
 		return False
 
 
-
 def _rebuild_browser_cache(self):
 	_browser_create_tables(self)
 	with self._connect() as conn:
@@ -1778,6 +1777,7 @@ def _rebuild_browser_cache(self):
 
 	write_log(f'[e2MDB] Rebuilt browser cache with {browser_count} visible items from SQLite display data only, skipped {skipped_no_final} non-final items')
 	return True
+
 
 def _browser_filters_sql(self, media_type='all', search_term='', year='', genre='', letter='', cast=''):
 	clauses = []
@@ -2296,6 +2296,7 @@ def _new_get_browser_media(self, page=1, limit=None, media_type='all', search_te
 			pass
 		return data
 
+
 def _new_get_browser_item(self, result_id):
 	try:
 		cache_ready = _ensure_browser_cache(self, allow_rebuild=False, background=True)
@@ -2389,6 +2390,7 @@ def _new_get_browser_facets(self, media_type='all', search_term='', letter='', c
 		facets['casts'] = []
 		return facets
 
+
 def _new_get_browser_index_status(self):
 	try:
 		_ensure_browser_cache(self, allow_rebuild=False, background=True)
@@ -2465,7 +2467,6 @@ def fileStem(name):
 	return sub(r'\.[^.]+$', '', name or '').replace('.', ' ').replace('_', ' ').replace('-', ' ').strip()
 
 
-
 def _resultsdb_update_media_metadata(self, hash_id, final_dict):
 	"""Write final display-ready metadata for recordings/movies to results.db.
 
@@ -2535,6 +2536,7 @@ def _resultsdb_update_media_metadata(self, hash_id, final_dict):
 		write_log(f"[e2MDB] Error updating media display metadata {hash_id}: {e}")
 		return 0
 
+
 def _resultsdb_get_media_metadata(self, hash_id):
 	"""Return one media row including final display metadata by media hash."""
 	try:
@@ -2550,18 +2552,12 @@ def _resultsdb_get_media_metadata(self, hash_id):
 		return {}
 
 
-
-
 def _resultsdb_get_media_metadata_by_path(self, media_path):
 	"""Return one media row by absolute file path."""
 	try:
-		media_path = str(media_path or '').strip()
-		if not media_path:
-			return {}
-		with self._connect() as conn:
-			conn.row_factory = Row
-			row = conn.execute("SELECT * FROM e2mdb_media WHERE file_path = ? LIMIT 1", (media_path,)).fetchone()
-			return dict(row) if row else {}
+		_media_path = str(media_path or "").replace("/media/hdd", "").replace("/media/autofs", "")
+		media_hash = md5(_media_path.encode()).hexdigest()
+		return _resultsdb_get_media_metadata(self, media_hash)
 	except Exception as e:
 		write_log(f"[e2MDB] Error reading media display metadata by path {media_path}: {e}")
 		return {}
@@ -2956,8 +2952,6 @@ def _live_epg_update_event_status(self, source_key, status, confidence=None, jso
 		return 0
 
 
-
-
 def _live_epg_update_event_metadata(self, source_key, final_dict):
 	"""Write display-ready metadata to the EPG event row.
 
@@ -3025,6 +3019,7 @@ def _live_epg_update_event_metadata(self, source_key, final_dict):
 	except Exception as e:
 		write_log(f"[e2MDB] Error updating EPG display metadata {source_key}: {e}")
 		return 0
+
 
 def _live_epg_get_expired_events(self, now=None, limit=500):
 	"""Return expired EPG/Live events that may be removed by cleanup."""

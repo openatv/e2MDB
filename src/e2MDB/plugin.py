@@ -2494,10 +2494,8 @@ def E2MDBshowEventInformation(self):
 	if not _useE2MDBMediaEventView():
 		old_show_event_information(self)
 		return
-	e2mdbhelper = E2MDBHelper()
 	current = self.getCurrent()
 	org_path = current.getPath()
-	json_path = e2mdbhelper.get_primary_datapath(org_path)
 	event = self["list"].getCurrentEvent()
 	db_row = {}
 	media_row = {}
@@ -2510,10 +2508,10 @@ def E2MDBshowEventInformation(self):
 	except Exception:
 		db_row = {}
 	try:
-		media_hash = e2mdbhelper.get_reduced_org_hash(org_path)
-		media_row = resultsdb.get_media_metadata(media_hash)
+		media_row = resultsdb.get_media_metadata_by_path(org_path)
 	except Exception:
 		media_row = {}
+
 	media_has_metadata = False
 	try:
 		media_has_metadata = bool(media_row and (media_row.get("metadata_title") or media_row.get("metadata_overview") or media_row.get("metadata_cover_path") or media_row.get("metadata_backdrop_path") or media_row.get("metadata_image_path")))
@@ -2521,7 +2519,7 @@ def E2MDBshowEventInformation(self):
 		media_has_metadata = False
 	epg_has_metadata = _epgRowHasE2MDBMetadata(db_row)
 	if epg_has_metadata or media_has_metadata:
-		self.session.open(E2MDBEventViewSimple, event, ServiceReference(current), org_path, json_path)
+		self.session.open(E2MDBEventViewSimple, event, ServiceReference(current), org_path)
 	else:
 		old_show_event_information(self)
 
