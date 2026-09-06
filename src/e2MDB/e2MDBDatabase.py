@@ -17,7 +17,14 @@ from re import sub
 from sqlite3 import connect, OperationalError, Row
 from threading import Lock, Thread
 from typing import Any, Optional
-from . import write_log
+try:
+	from . import write_log
+except ImportError:
+	def write_log(*args):
+		try:
+			print(" ".join(str(arg) for arg in args))
+		except Exception:
+			pass
 
 
 class MediaDB:

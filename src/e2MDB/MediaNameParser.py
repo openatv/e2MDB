@@ -115,6 +115,10 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 		IGNORECASE
 	)
 	SXX_FOLDER_PATTERN = compile(r"^s\d{1,4}$", IGNORECASE)
+	EPISODE_FOLDER_PATTERN = compile(
+		r"^(?:e|ep|episode|episodes|folge|folgen|epizoda|epizody|epizod|epizode|episodio|episodios|episodi|aflevering|afleveringen|odcinek|odcinki|jakso|jaksot|bolum|bolumler|επεισοδιο|επεισοδια|серия|серии)\s*\d{1,4}$",
+		IGNORECASE
+	)
 
 	@classmethod
 	def normalize_folder_name(cls, value):
@@ -156,7 +160,7 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 		folder_key = cls.normalize_folder_name(folder_name)
 		if not folder_key:
 			return True
-		if folder_key in cls.IGNORED_LIBRARY_FOLDER_NAMES or bool(cls.SEASON_FOLDER_PATTERN.match(folder_key) or cls.SXX_FOLDER_PATTERN.match(folder_key)):
+		if folder_key in cls.IGNORED_LIBRARY_FOLDER_NAMES or bool(cls.SEASON_FOLDER_PATTERN.match(folder_key) or cls.SXX_FOLDER_PATTERN.match(folder_key) or cls.EPISODE_FOLDER_PATTERN.match(folder_key)):
 			return True
 		if extra_folder_names:
 			extra_folder_keys = extra_folder_names if isinstance(extra_folder_names, set) else cls.parse_ignored_folder_names(extra_folder_names)
@@ -281,7 +285,6 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 			name = base_name.replace('[', '').replace(']', '').replace('_', ' ').replace('.', ' ').replace('(', '').replace(')', '')
 			name = ' '.join(name.split())
 			result.movie_name = name
-			result.success = True
 
 		return result
 
@@ -392,6 +395,20 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 				except (ValueError, IndexError):
 					pass
 
+		# ============ EXTRACT EPISODE FROM PATH (if no episode found in filename) ============
+		# If we didn't find an episode in the filename but there's an "Episode 06" or "Folge 06"
+		# folder in the path, try to extract the episode number from it.
+		if result.episode_number is None:
+			episode_pattern = compile(r'(?:episode|folge)[\s._-]*(\d{1,4})', IGNORECASE)
+			episode_match = episode_pattern.search(file_path)
+			if episode_match:
+				try:
+					episode = int(episode_match.group(1))
+					if episode > 0:
+						result.episode_number = episode
+				except (ValueError, IndexError):
+					pass
+
 		# ============ EXTRACT SERIES NAME ============
 		# Strategy: Use first folder after library_path as series name
 		# Examples:
@@ -403,7 +420,6 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 			# Generic category folders such as "series", "serien", "film", "movie" or language folders must be skipped.
 			lib_normalized = normpath(self.library_path)
 			file_normalized = normpath(file_path)
-
 			if file_normalized.startswith(lib_normalized):
 				# Remove library path
 				after_lib = file_normalized[len(lib_normalized):].lstrip(sep)
@@ -419,9 +435,14 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 
 		if not result.series_name:
 			# If the configured library path points directly at a series or season folder,
-			# recover the title from the nearest meaningful parent folder.
+			# recover the title from the nearest meaningful parent folder above library_path.
+			# Folders at or below library_path itself were already checked above and must not
+			# be reconsidered here (e.g. a library root named "MeineTests" is not a series name).
 			path_parts = [part for part in normpath(file_path).split(sep) if part]
 			folder_parts = path_parts if is_directory else path_parts[:-1]
+			if self.library_path:
+				lib_parts_count = len([part for part in normpath(self.library_path).split(sep) if part])
+				folder_parts = folder_parts[:lib_parts_count - 1]
 			for folder_name in reversed(folder_parts):
 				if folder_name.startswith('.') or self.is_ignored_library_folder(folder_name, self.extra_ignored_library_folder_names):
 					continue
@@ -436,6 +457,8 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 			for title_pattern in (
 				compile(r'^(.+?)[\s._-]+[sS]\d{1,4}[][ ._-]*[eE]\d{1,3}'),
 				compile(r'^(.+?)[\s._-]+\d{1,2}[xX]\d{1,3}', IGNORECASE),
+				compile(r'^(.+?)[\s._-]+(?:staffel|season|folge)\s*\d{1,4}', IGNORECASE),
+				compile(r'^(.+?)[\s._-]+[eE]\d{1,3}(?:[\s._-]|$)'),
 			):
 				title_match = title_pattern.search(base_name)
 				if not title_match:
@@ -445,8 +468,10 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 					result.series_name = series_name
 					break
 
-		# Mark as successful if we have season+series (even without episode)
-		if result.series_name:
+		# Mark as successful only if we have a series name AND actual season/episode evidence.
+		# A folder name alone (e.g. a generic collection folder like "MeineTests") is not proof
+		# of episodic content - without a detected season or episode this is likely a movie.
+		if result.series_name and (result.season_number is not None or result.episode_number is not None):
 			if result.season_number is None:
 				result.season_number = 1  # Default to season 1 if we have series but no season
 			result.success = True
@@ -466,9 +491,7 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 		"""
 		results = []
 		video_extensions = {'.mp4', '.mkv', '.avi', '.flv', '.mov', '.ts', '.m2ts', '.mts', '.wmv', '.webm', '.ogv'}
-
 		print(f"Scanning directory: {directory}")
-
 		if recursive:
 			walk_iter = walk(directory)
 		else:
@@ -476,34 +499,23 @@ class MediaNameParser:  # Media name parser with comprehensive Emby.Naming episo
 			if isdir(directory):
 				_, _, files = next(iter(walk(directory)))
 				walk_iter = [(directory, [], files)]
-
 		for root, dirs, files in walk_iter:
 			for file in files:
 				_, ext = splitext(file)
 				if ext.lower() not in video_extensions:
 					continue
-
 				file_path = join(root, file)
 				result = self.parse(file_path)
 				results.append(result)
-
 		print(f"Found {len(results)} video files")
-
-		# Write to output file if specified
-		if output_file:
+		if output_file:  # Write to output file if specified
 			output_lines = [f"Scanning directory: {directory}\n", f"Initialized MediaNameParser with library_path='{self.library_path}'"]
 			for result in results:
 				output_lines.append(f"\n{result.path}")
-				if result.success:
-					output_lines.append(f"  -> {result}")
-				else:
-					output_lines.append(f"  -> Failed: {result.path}")
-
+				output_lines.append(f"  -> {result}" if result.success else f"  -> Failed: {result.path}")
 			with open(output_file, 'w', encoding='utf-8') as f:
 				f.write('\n'.join(output_lines))
-
 			print(f"Results written to {output_file}")
-
 		return results
 
 

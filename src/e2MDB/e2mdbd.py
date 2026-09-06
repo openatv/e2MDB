@@ -2506,6 +2506,8 @@ def ensure_default_files():
 				"anime_enabled": False, "kitsu_enabled": False,
 				"english_text_fallback": True,
 				"translate_metadata_fallback": False,
+				"translate_title_search": False,
+				"translate_title_search_language": "",
 				"job_limit": 100
 			},
 			"artwork": {"download_enabled": True, "fanart_enabled": False, "fanart_api_key": ""},

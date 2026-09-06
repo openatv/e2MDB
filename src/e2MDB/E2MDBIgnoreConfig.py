@@ -9,7 +9,14 @@ from os import makedirs, rename
 from os.path import dirname, exists, isfile
 from time import time
 
-from . import write_log
+try:
+	from . import write_log
+except ImportError:
+	def write_log(*args):
+		try:
+			print(" ".join(str(arg) for arg in args))
+		except Exception:
+			pass
 
 
 class E2MDBIgnorePatterns:

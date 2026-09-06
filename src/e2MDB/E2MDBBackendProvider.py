@@ -848,6 +848,10 @@ class BackendProviderEnricher:
 		return merged
 
 	def _gather_provider_matches(self, item, media_type, year, searched, language):
+		# Try every candidate title, not just until the first one returns any
+		# results - a later, better-matching candidate could otherwise never be
+		# tried. choose_best() picks the best match across the accumulated
+		# results, mirroring the legacy scanner's search_variants accumulation.
 		matches = []
 		last_error = ""
 		for title in self.candidate_titles(item):
@@ -856,10 +860,10 @@ class BackendProviderEnricher:
 				results = providers.gather_providers_info(title, media_type, year)
 				if results:
 					matches.extend([dict(result) for result in results if isinstance(result, dict)])
-					break
-				search_errors = getattr(providers, "last_search_errors", [])
-				if search_errors:
-					last_error = "; ".join(str(error) for error in search_errors if error)
+				else:
+					search_errors = getattr(providers, "last_search_errors", [])
+					if search_errors:
+						last_error = "; ".join(str(error) for error in search_errors if error)
 			except Exception as err:
 				last_error = f"{err}\n{format_exc()}"
 		return matches, last_error
@@ -892,6 +896,29 @@ class BackendProviderEnricher:
 		if media_type == "movie":
 			return ("series",)
 		return ()
+
+	def _search_title_translation_retry(self, item, media_type, year, searched, language):
+		# Same idea as the legacy GUI-side E2MDBTranslator.translate_title_for_search()
+		# (not called here - that module needs live Enigma2 config and can't run in
+		# the daemon): if normal search variants found nothing, translate the title
+		# once via the existing backend_translator and try again with that. This is
+		# a search-title fallback, not the metadata-text translation above.
+		provider_settings = self.settings.get("provider", {}) if isinstance(self.settings.get("provider", {}), dict) else {}
+		if not bool(provider_settings.get("translate_title_search", False)):
+			return [], ""
+		title = first_non_empty(item, "provider_title", "series_title", "movie_title", "title")
+		if not title:
+			return [], ""
+		target_language = self._normalize_provider_language(provider_settings.get("translate_title_search_language") or language)
+		translated = backend_translator.translate(title, target_language, source_language="auto")
+		if not translated or translated.casefold() == title.casefold():
+			return [], ""
+		searched.append({"title": translated, "media_type": media_type, "year": year, "language": target_language, "translated_from": title})
+		try:
+			results = providers.gather_providers_info(translated, media_type, year)
+		except Exception:
+			return [], translated
+		return [dict(result) for result in results if isinstance(result, dict)] if results else [], translated
 
 	def search_item(self, item):
 		start_error = self.start()
@@ -932,6 +959,16 @@ class BackendProviderEnricher:
 					break
 				if fallback_error and not last_error:
 					last_error = fallback_error
+		translated_search_title = ""
+		if not best:
+			translation_matches, translated_search_title = self._search_title_translation_retry(item, media_type, year, searched, target_language)
+			if translation_matches:
+				translation_unique = self._deduplicate_matches(translation_matches)
+				translation_best = self.choose_best(item, translation_unique)
+				translation_best = self._complete_best_metadata(item, translation_best, media_type, translation_unique)
+				if translation_best:
+					unique = self._deduplicate_matches(unique + translation_unique)
+					best = translation_best
 		english_fallback_used = False
 		english_fallback_mode = ""
 		metadata_translated = False
@@ -972,6 +1009,7 @@ class BackendProviderEnricher:
 			"media_type": result_media_type,
 			"requested_media_type": media_type,
 			"strict_type_fallback_used": strict_type_fallback_used,
+			"translated_search_title": translated_search_title,
 			"year": year,
 			"searched": searched,
 			"matches": unique[:20],

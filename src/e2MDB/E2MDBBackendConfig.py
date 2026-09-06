@@ -123,6 +123,8 @@ def build_settings_payload():
 			"kitsu_enabled": bool(_get_value(config.plugins.e2mdb.kitsuactive, False)),
 			"english_text_fallback": bool(_get_value(config.plugins.e2mdb.providerEnglishTextFallback, True)),
 			"translate_metadata_fallback": bool(_get_value(config.plugins.e2mdb.translateMetadataFallback, False)),
+			"translate_title_search": bool(_get_value(config.plugins.e2mdb.translateTitleSearch, False)),
+			"translate_title_search_language": _get_value(config.plugins.e2mdb.translateTitleSearchLanguage, ""),
 		},
 		"artwork": {
 			"download_enabled": True,
