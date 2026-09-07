@@ -1016,7 +1016,7 @@ class JobManager:
 		)
 		self._media_live_epg_checkpoint(reason="scan-file-collect-done", force=True)
 		total = len(files)
-		ts_total = len([path for path, _item in files if scanner.is_ts_recording_file(path)])
+		ts_total = len([path for path, _item in files if scanner.has_sidecar_infos(path)])
 		media_total = total - ts_total
 		rescan_existing = self._scanner_rescan_existing(options)
 		existing_index = {}
@@ -1080,7 +1080,7 @@ class JobManager:
 				existing_mtime = safe_int(existing.get("mtime"), -1)
 				if existing_size == file_size and existing_mtime == file_mtime:
 					skipped_existing += 1
-					source_type = "recording" if scanner.is_ts_recording_file(media_path) else "media_file"
+					source_type = "recording" if scanner.has_sidecar_infos(media_path) else "media_file"
 					if source_type == "recording":
 						ts_count += 1
 					else:
