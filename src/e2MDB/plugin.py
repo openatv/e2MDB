@@ -1880,7 +1880,7 @@ class E2MDBPrefillStatusScreen(Screen):
 		queue_rows = self._queue_group_rows()
 		if queue_rows:
 			for state_name, reason, priority, count in queue_rows:
-				lines.append(f"  {state_name or "":-12s} prio={priority or 0:-3s} {reason or "":-24s} {count or 0}")
+				lines.append(f"  {state_name or '':<12} prio={priority or 0:<3} {reason or '':<24} {count or 0}")
 		else:
 			lines.append("  " + _("No prefill queue entries."))
 		lines.append("")
@@ -2022,7 +2022,7 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 		""")
 		if rows:
 			for state, reason, priority, count in rows:
-				lines.append(f"  {state or "":-14s} prio={priority or 0:-3s} {reason or "":-28s} {count or 0}")
+				lines.append(f"  {state or '':<14} prio={priority or 0:<3} {reason or '':<28} {count or 0}")
 		else:
 			lines.append("  " + _("No queue entries."))
 		lines.append("")
@@ -2037,7 +2037,7 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 		""")
 		if pending:
 			for state, priority, reason, title, service_name, event_status, begin_time, attempts in pending:
-				lines.append(f"  p{priority or 0:-3s} {service_name or "":-18s} {self._format_time(begin_time)} - {title or ""}")
+				lines.append(f"  p{priority or 0:<3} {service_name or '':<18} {self._format_time(begin_time)} - {title or ''}")
 		else:
 			lines.append("  " + _("No pending queue entries."))
 		lines.append("")
@@ -2051,7 +2051,7 @@ class E2MDBWorkerQueueStatusScreen(Screen):
 		""")
 		if recent:
 			for state, priority, reason, title, service_name, event_status, begin_time, updated_at in recent:
-				lines.append(f"  {state or "":-10s}/{event_status or "":-10s} {self._format_time(updated_at)} {service_name or ""} - {title or ""}")
+				lines.append(f"  {state or '':<10}/{event_status or '':<10} {self._format_time(updated_at)} {service_name or ''} - {title or ''}")
 		else:
 			lines.append("  " + _("No recent queue entries."))
 		if self.last_action:
