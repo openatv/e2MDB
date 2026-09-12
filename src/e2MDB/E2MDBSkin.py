@@ -7,7 +7,7 @@
 
 # PYTHON IMPORTS
 from json import loads
-from os.path import exists, join
+from os.path import join
 
 # ENIGMA IMPORTS
 from Components.config import config
@@ -21,8 +21,6 @@ except Exception:
 
 # PLUGIN IMPORTS
 from . import write_log
-
-
 
 
 class E2MDBSkinSource(Source):
@@ -194,6 +192,7 @@ def _full_cache_path(path):
 	if path.startswith(("cover/", "backdrop/", "titlelogo/", "image/", "artwork/", "data/", "series/", "seasons/", "index/")):
 		return join(_cache_path_root(), path)
 	return path
+
 
 def _artwork_basename(path):
 	try:
@@ -399,6 +398,7 @@ def build_eventview_final_dict_from_db(candidate=None, event_row=None):
 	"""Return a final_dict-like display dict using only SQLite columns."""
 	event_row = event_row or {}
 	skin_data = build_epg_skin_data(candidate=candidate, event_row=event_row)
+
 	def _loads_list(value):
 		if not value:
 			return []

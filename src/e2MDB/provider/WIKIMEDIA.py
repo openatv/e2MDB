@@ -10,7 +10,6 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 from html import unescape
 from re import IGNORECASE, S, sub
-from secrets import choice
 from time import time
 
 # THIRD PARTY IMPORTS

@@ -204,7 +204,7 @@ class TVSpielfilmProvider:
 
 	def resolve_channel_id(self, candidate):
 		service_ref = str(getattr(candidate, "service_ref", "") or "").strip()
-		service_name = str(getattr(candidate, "service_name", "") or "").strip()
+		# service_name = str(getattr(candidate, "service_name", "") or "").strip()
 		service_name_norm = self._candidate_channel_name(candidate)
 		for source_name, source in (("imported", self._read_imported()), ("supported", self._read_supported())):
 			for channel_id, detail in source.items():

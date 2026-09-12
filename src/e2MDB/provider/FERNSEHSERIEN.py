@@ -8,9 +8,8 @@
 # PYTHON IMPORTS
 from datetime import datetime
 from html import unescape
-from re import IGNORECASE, S, findall, search, split, sub
+from re import IGNORECASE, S, findall, search, sub
 from secrets import choice
-from time import time
 from urllib.parse import quote_plus
 
 # THIRD PARTY IMPORTS

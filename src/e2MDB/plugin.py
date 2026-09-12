@@ -13,7 +13,7 @@ from datetime import datetime
 from time import time
 from json import load, dump
 from os import makedirs, remove, walk
-from os.path import join, isfile, isdir, abspath, basename, dirname, exists
+from os.path import join, isfile, isdir, abspath, basename, exists
 from twisted.internet import reactor
 from twisted.internet.reactor import callInThread
 
@@ -2878,7 +2878,7 @@ def _getOptionalEventViewEPGSelect(event=None, serviceRef=None):
 
 def _showEventViewCallback(closeCallback, session, simple, event, serviceRef, callback=None, singleEPGCB=None, multiEPGCB=None, similarEPGCB=None, skinName=None):
 	if not closeCallback:
-		closeCallback = lambda *args, **kwargs: None
+		closeCallback = lambda *args, **kwargs: None  # noqa E731
 	if simple:
 		screenClass = _getOptionalEventViewSimple(event, serviceRef)
 		return session.openWithCallback(closeCallback, screenClass, event, serviceRef, callback, similarEPGCB=similarEPGCB, skin=skinName or "EventViewSimple")

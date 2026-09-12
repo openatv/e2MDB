@@ -11,7 +11,7 @@
 from datetime import datetime
 from getopt import getopt, GetoptError
 from html import unescape
-from json import dumps, loads, dump
+from json import dumps, dump
 from re import sub
 from requests import post, exceptions
 from sys import exit, argv

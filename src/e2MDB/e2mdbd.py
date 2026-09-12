@@ -1017,7 +1017,7 @@ class JobManager:
 		self._media_live_epg_checkpoint(reason="scan-file-collect-done", force=True)
 		total = len(files)
 		ts_total = len([path for path, _item in files if scanner.has_sidecar_infos(path)])
-		media_total = total - ts_total
+		media_total = total - ts_total  # TODO
 		rescan_existing = self._scanner_rescan_existing(options)
 		existing_index = {}
 		if self.database and not rescan_existing:
