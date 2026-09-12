@@ -89,7 +89,6 @@ def _enabled():
 		return True
 
 
-
 def _is_now_source(source):
 	try:
 		return int(getattr(source, "nowOrNext", 0) or 0) == 0
@@ -664,7 +663,6 @@ def _update_source_meta_now(source, reason="refresh", notify=True):
 	return result
 
 
-
 def _set_open_epg_cache_only_meta(source, service, event, reason="refresh", notify=False):
 	"""Keep e2MDB metadata deferred while an EPG/channel list is moving.
 
@@ -1042,19 +1040,19 @@ def install_component_meta_hooks():
 		if not component_meta_supported():
 			_log("HOOK skipped reason=component-meta-not-supported", force=True)
 			return False
-#		_old_eventinfo_update_source = EventInfo.updateSource  # TODO maybe not needed
-#		_old_serviceevent_new_service = ServiceEvent.newService  # TODO maybe not needed
+# _old_eventinfo_update_source = EventInfo.updateSource  # TODO maybe not needed
+# _old_serviceevent_new_service = ServiceEvent.newService  # TODO maybe not needed
 		_old_infobar_init = InfoBar.__init__
 		EventInfo.refreshData = _eventinfo_refresh
-#		EventInfo.updateSource = _eventinfo_update_source  # TODO maybe not needed
+# EventInfo.updateSource = _eventinfo_update_source  # TODO maybe not needed
 		ServiceEvent.refreshData = _serviceevent_refresh
 		Event.refreshData = _event_refresh  # Some skins use Event instead of ServiceEvent for the infobar sources. Hook it too just in case.
-#		ServiceEvent.newService = _serviceevent_new_service  # TODO maybe not needed
+# ServiceEvent.newService = _serviceevent_new_service  # TODO maybe not needed
 		service_list_ready = bool(SourceServiceList and all(hasattr(SourceServiceList, name) for name in ("getMeta", "setMeta", "refreshData")))
 		if service_list_ready:
 			_old_servicelist_refresh = SourceServiceList.refreshData
 			SourceServiceList.refreshData = _servicelist_refresh
-#		InfoBar.__init__ = _infobar_init  # TODO maybe not needed
+# InfoBar.__init__ = _infobar_init  # TODO maybe not needed
 		_hooks_installed = True
 		_log(f"HOOK installed mode=component-meta-event-transition-adhoc eventinfo-aliases=Event_Now,Event_Next serviceListMeta={service_list_ready} old-infobar-hook-not-required", force=True)
 		return True

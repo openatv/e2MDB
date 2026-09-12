@@ -254,6 +254,7 @@ class _LiveFallbackCandidate:
 		self.duration = max(0, self.event_end - self.begin_time) if self.begin_time and self.event_end else 0
 		self.virtual_path = str(item.get("path") or (f"live://{self.source_key}"))
 
+
 class BackendProviderEnricher:
 	def __init__(self, settings=None):
 		self.settings = settings if isinstance(settings, dict) else {}
@@ -1136,7 +1137,6 @@ class BackendProviderEnricher:
 			return target
 		except Exception:
 			return ""
-
 
 	def _is_portrait_artwork_url(self, value):
 		try:

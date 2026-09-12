@@ -130,4 +130,3 @@ class E2MDBImageDownloader:
 		if fail:
 			fail(failure.value)
 		return None  # swallow the error, matching the old callInThread variant which never propagated exceptions
-

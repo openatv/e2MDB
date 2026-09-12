@@ -22,9 +22,9 @@ from E2MDBRecordingParser import parse_recording as default_parse_recording
 from E2MDBIgnoreConfig import E2MDBIgnorePatterns
 
 
-#def write_mylog(text, value=""):
-#	with open("/home/root/logs/mylog.txt", "a") as file:
-#		file.write(f"+++++{text} {value}\n")
+# def write_mylog(text, value=""):
+# with open("/home/root/logs/mylog.txt", "a") as file:
+# file.write(f"+++++{text} {value}\n")
 
 
 class E2MDBBackendMetadataScanner:
@@ -45,7 +45,7 @@ class E2MDBBackendMetadataScanner:
 	FOREIGN_SEPAS = (("_", ""), (": ", ""), (" – ", ""), (" - ", ""), ("! ", "! "))
 
 	season_keys = [
-#		_("season"),  # localized
+# _("season"),  # localized
 		"staffel",  # DE
 		"season",  # EN
 		"temporada",  # ES
@@ -64,7 +64,7 @@ class E2MDBBackendMetadataScanner:
 		"ฤดูกาล"  # TH
 		]
 	episode_keys = [
-#		_("episode"),  # localized
+# _("episode"),  # localized
 		"folge",  # DE
 		"episode",  # EN
 		"episodio",  # ES
@@ -209,8 +209,8 @@ class E2MDBBackendMetadataScanner:
 		return self.media_extension(path) in self.VIDEO_EXTS
 
 	def has_sidecar_infos(self, path):  # is this a recording with additional infos (e.G. EIT)?
-#		write_mylog("parse_recording_func:", str(self.parse_recording_func(path)))  
-		return self.parse_recording_func(path).get("exists", False) # HOLGER: Hier kommt partout kein Ergebis an, 'eit_exists' ist stets Leerstring ""
+# write_mylog("parse_recording_func:", str(self.parse_recording_func(path)))
+		return self.parse_recording_func(path).get("exists", False)  # HOLGER: Hier kommt partout kein Ergebis an, 'eit_exists' ist stets Leerstring ""
 
 	def clean_title_from_filename(self, path):
 		name = splitext(basename(path))[0]
@@ -588,8 +588,8 @@ class E2MDBBackendMetadataScanner:
 		return search_title, new_desc, est_media_type, match_reason
 
 	def create_search_titles(self, org_title, org_path, quickscan=True, ep_details=None):  # create titles alternatives
-#		write_mylog("org_title:", org_title)
-#		write_mylog("org_path :", org_path)
+# write_mylog("org_title:", org_title)
+# write_mylog("org_path :", org_path)
 		search_titles = []
 		if ep_details and ep_details.success:
 			est_media_type, search_title, match_reason = "series", ep_details.series_name, self.get_se_ep(ep_details)
@@ -777,7 +777,7 @@ class E2MDBBackendMetadataScanner:
 
 	def build_scan_item(self, media_path, path_item, sc_parsed={}):
 		from os.path import getmtime, getsize
-#		write_mylog("sc_parsed:", str(sc_parsed))
+# write_mylog("sc_parsed:", str(sc_parsed))
 		has_sidecar_infos = self.has_sidecar_infos(media_path)
 		filename_title = self.clean_openatv_recording_title(media_path) if has_sidecar_infos else self.clean_title_from_filename(media_path)
 		sc_parsed_title = sc_parsed.get("title", "").strip()
@@ -826,21 +826,21 @@ class E2MDBBackendMetadataScanner:
 		if estimated_media_type in ("series", "anime_series", "manga_series") and not series_title:
 			series_title = self.clean_series_title(title or media_path)
 		search_candidates = self.unique_list((provider_title, series_title, movie_title, title, filename_title, short, extended))
-#		write_mylog("search_candidates1:", str(search_candidates))
+# write_mylog("search_candidates1:", str(search_candidates))
 		if has_sidecar_infos:
 			sc_path = sc_parsed.get("path", "")
-#			write_mylog("sc_path:", sc_path)
+# write_mylog("sc_path:", sc_path)
 			sc_title = sc_parsed.get("title", "")
-#			write_mylog("sc_title1:", sc_title)
+# write_mylog("sc_title1:", sc_title)
 			if not sc_title:  # e.g. '/media/hdd/movie/20260118 2012 - ZDF HD - Wunderschön! Der Mont Blanc.ts' -> 'Wunderschön! Der Mont Blanc'
 				sc_title = splitext(basename(sc_path).split(" - ")[-1])[0]
-#				write_mylog("sc_title2:", sc_title)
+# write_mylog("sc_title2:", sc_title)
 			search_candidates = self.create_search_titles(sc_title, sc_path, quickscan=True, ep_details=None)
-#			write_mylog("search_candidates2:", str(search_candidates))
+# write_mylog("search_candidates2:", str(search_candidates))
 		else:
 			search_candidates = self.create_search_titles(series_title or movie_title or title, media_path, quickscan=True, ep_details=None)
-#			write_mylog("search_candidates3:", str(search_candidates))
-#		write_mylog("--------------------------------------------------------------------------------------------------------")
+# write_mylog("search_candidates3:", str(search_candidates))
+# write_mylog("--------------------------------------------------------------------------------------------------------")
 		scanner_used = "E2MDBBackendMetadataScanner.metadata_sidecar_parser" if has_sidecar_infos else "E2MDBBackendMetadataScanner.media_name_parser"
 		parse_error = sc_parsed.get("parse_error", "")
 		return {

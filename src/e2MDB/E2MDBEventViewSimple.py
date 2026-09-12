@@ -339,15 +339,15 @@ class E2MDBEventSelection(E2MDBHelper, Screen):
 		self["key_yellow"] = StaticText()
 		self["actions"] = ActionMap(["OkCancelActions", "ButtonSetupActions"], {
 			"ok": self.keyOk,
-#			"red": self.keyRed,
+# "red": self.keyRed,
 			"green": self.keyGreen,
-#			"yellow": self.openEPGSearch,
-#			"blue": self.zapToCurrent,
-#			"channeldown": self.prevDay,
-#			"channelup": self.nextDay,
-#			"previous": self.prevweek,
-#			"next": self.nextweek,
-#			"info": self.keyInfo,
+# "yellow": self.openEPGSearch,
+# "blue": self.zapToCurrent,
+# "channeldown": self.prevDay,
+# "channelup": self.nextDay,
+# "previous": self.prevweek,
+# "next": self.nextweek,
+# "info": self.keyInfo,
 			"cancel": self.keyExit
 		}, -1)
 		self.results = results_dict.get("results", [])
@@ -355,7 +355,7 @@ class E2MDBEventSelection(E2MDBHelper, Screen):
 		self.onLayoutFinish.append(self.refresh_menulist)
 
 	def refresh_menulist(self):
-#		self["menuList"].onSelectionChanged.append(self.showCurrentAsset)  # TODO: wird wahrscheinlich nicht gebraucht
+# self["menuList"].onSelectionChanged.append(self.showCurrentAsset)  # TODO: wird wahrscheinlich nicht gebraucht
 		self["searchtitle"].setText(self.search_data.get("search_title", ""))
 		self["short_desc"].setText(self.search_data.get("short_desc", ""))
 

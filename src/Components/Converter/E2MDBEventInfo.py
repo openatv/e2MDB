@@ -86,7 +86,6 @@ class E2MDBEventInfo(Converter):
 				return path
 		return None
 
-
 	def _is_portrait_artwork_path(self, path):
 		try:
 			text = str(path or "").lower()
@@ -156,7 +155,6 @@ class E2MDBEventInfo(Converter):
 		except Exception:
 			pass
 		return None
-
 
 	def _clean_text(self, value):
 		try:
