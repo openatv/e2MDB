@@ -89,7 +89,6 @@ def _enabled():
 		return True
 
 
-
 def _is_now_source(source):
 	try:
 		return int(getattr(source, "nowOrNext", 0) or 0) == 0
@@ -662,7 +661,6 @@ def _update_source_meta_now(source, reason="refresh", notify=True):
 	result = update_source_meta(source, reason=reason, notify=notify)
 	_debug(f"UPDATE_NOW end reason={reason} result={result} {_describe_source(source)}")
 	return result
-
 
 
 def _set_open_epg_cache_only_meta(source, service, event, reason="refresh", notify=False):

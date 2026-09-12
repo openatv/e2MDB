@@ -66,7 +66,6 @@ class E2MDBEventViewBridge:
 		except Exception:
 			return ""
 
-
 	def _apply_row_to_skin(self, candidate, row, reason="eventview"):
 		try:
 			skin_data = build_epg_skin_data(candidate=candidate, event_row=row or {})

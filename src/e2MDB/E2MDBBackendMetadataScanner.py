@@ -209,8 +209,8 @@ class E2MDBBackendMetadataScanner:
 		return self.media_extension(path) in self.VIDEO_EXTS
 
 	def has_sidecar_infos(self, path):  # is this a recording with additional infos (e.G. EIT)?
-#		write_mylog("parse_recording_func:", str(self.parse_recording_func(path)))  
-		return self.parse_recording_func(path).get("exists", False) # HOLGER: Hier kommt partout kein Ergebis an, 'eit_exists' ist stets Leerstring ""
+#		write_mylog("parse_recording_func:", str(self.parse_recording_func(path)))
+		return self.parse_recording_func(path).get("exists", False)  # HOLGER: Hier kommt partout kein Ergebis an, 'eit_exists' ist stets Leerstring ""
 
 	def clean_title_from_filename(self, path):
 		name = splitext(basename(path))[0]
