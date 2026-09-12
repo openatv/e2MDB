@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>e2MDB</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--line:#d8e1ea;--text:#1f2937;--muted:#6b7280;--accent:#0f4c81;--danger:#d24545;--shadow:0 10px 30px rgba(15,23,42,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:20;padding:14px 18px;background:linear-gradient(120deg,#173d5d,var(--accent));color:#fff;box-shadow:var(--shadow)}header h1{margin:0;font-size:22px}header small{opacity:.85}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tab{border:0;border-radius:999px;padding:10px 14px;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}.tab.active{background:#fff;color:#173d5d;font-weight:700}
+.page{display:none;padding:14px;gap:14px}.page.active{display:flex}#editor.page.active{height:calc(100vh - 120px);min-height:calc(100vh - 120px);max-height:calc(100vh - 120px);overflow:hidden}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.sidebar{width:380px;min-width:300px;display:flex;flex-direction:column;overflow:hidden;min-height:0}.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}#browser.page.active{display:grid;grid-template-columns:minmax(760px,1.25fr) minmax(420px,1fr);align-items:start;height:calc(100vh - 120px);min-height:calc(100vh - 120px);max-height:calc(100vh - 120px);overflow:hidden}.browser-left{min-width:760px;display:flex;flex-direction:column;overflow:hidden;height:100%;min-height:0;max-height:none}.browser-right{width:auto;min-width:0;max-width:none;display:flex;flex-direction:column;overflow:auto;height:100%;min-height:0;max-height:none}#browser.browser-collapsed.page.active{display:grid;grid-template-columns:minmax(0,1fr)}.page#browser.browser-collapsed .browser-left{display:none !important}.page#browser.browser-collapsed .browser-right{width:100%!important;max-width:none!important;min-width:0;flex:1 1 100%}.browser-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px}.media-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.episode-actions{display:flex;gap:6px;flex-wrap:nowrap;margin-top:8px}.icon-btn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text);cursor:pointer;box-shadow:var(--shadow);padding:0;font-size:15px;line-height:1}.icon-btn:hover{border-color:var(--accent);color:var(--accent)}.icon-btn:disabled{opacity:.45;cursor:not-allowed}.icon-btn.alt:hover{border-color:#ef4444;color:#ef4444}.series-stack{display:flex;flex-direction:column;gap:18px}.season-box,.episodes-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.episodes-box .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.toolbar{padding:14px;border-bottom:1px solid var(--line);display:grid;gap:10px}.row{display:flex;gap:8px;flex-wrap:wrap}.toolbar.inline{grid-template-columns:repeat(4,minmax(0,1fr))}.facet-grid{display:grid;grid-template-columns:1.4fr repeat(4,minmax(0,1fr));gap:10px}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #c9d6e2;background:#fff}button{padding:10px 12px;border-radius:10px;border:1px solid transparent;cursor:pointer;background:var(--accent);color:#fff}button.alt{background:#eef3f8;color:#173d5d;border-color:#d8e1ea}button.warn{background:var(--danger)}button:disabled{opacity:.6;cursor:not-allowed}
+.list,.detail-scroll{overflow:auto;min-height:0}#editorList{flex:1 1 auto;min-height:0;overflow:auto}#editorSentinel{flex:0 0 auto}#browserScrollArea{flex:1 1 auto;min-height:0;height:100%;max-height:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable both-edges;padding-bottom:8px}#browserGrid{align-content:start;padding:14px;overflow:visible;height:auto;min-height:0}.item{padding:12px 14px;border-bottom:1px solid #eef2f7;cursor:pointer}.item:hover,.item.active{background:#f8fbff}.item h4{margin:0 0 6px;font-size:15px}.tiny{font-size:12px}.muted{color:var(--muted)}.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.badge{padding:4px 8px;border-radius:999px;background:#edf2f7;color:#334155;font-size:11px}.badge.failed{background:#fee2e2;color:#991b1b}.badge.matched{background:#dcfce7;color:#166534}
+.alpha{display:flex;gap:6px;flex-wrap:wrap}.alpha button{padding:7px 10px;font-size:12px;background:#eef3f8;color:#173d5d}.alpha button.active{background:var(--accent);color:#fff}.alpha.disabled button{opacity:.55;cursor:not-allowed}.index-hint{padding:8px 10px;border:1px dashed var(--line);border-radius:10px;background:#f8fbff}
+.hero{display:grid;grid-template-columns:220px 1fr;gap:18px}.poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:14px;background:#e5e7eb;border:1px solid var(--line)}.backdrop{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;background:#e5e7eb;border:1px solid var(--line);margin-top:12px}
+.cards,.browser-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,240px));gap:16px;justify-content:start;align-content:start;overflow:visible;min-height:0;height:auto;padding-bottom:8px}.card,.result-card,.episode-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}.card{cursor:pointer;display:flex;flex-direction:column;min-width:220px;max-width:240px;width:100%}.card img{display:block;width:100%;height:320px;object-fit:cover;object-position:center top;background:#e5e7eb}.card .poster{display:block;width:100%;height:320px;aspect-ratio:auto;border-radius:0;background:#e5e7eb}.card-body{padding:12px}.card h4{margin:0 0 6px;font-size:15px}.result-card,.episode-card{padding:12px}.result-card img,.episode-card img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#e5e7eb;margin:0 0 10px}.episode-card .body{display:flex;flex-direction:column;gap:6px}.episode-card .body p{margin:0}
+.section{margin-top:18px}.section h3{margin:0 0 10px}.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pill-row{display:flex;gap:8px;flex-wrap:wrap}.pill{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--text)}button.pill{color:var(--text)}.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}.person-pill:hover{border-color:var(--accent);color:var(--accent)}.person-results{display:grid;gap:10px;margin-top:12px}.person-result{display:grid;grid-template-columns:74px minmax(0,1fr);gap:12px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}.person-result:hover{border-color:var(--accent);box-shadow:var(--shadow)}.person-result img,.person-result .poster{width:74px;height:110px;object-fit:cover;border-radius:8px;background:#e5e7eb;border:1px solid var(--line)}.person-result h4{margin:0 0 5px;font-size:15px}.episode-card img.hidden{display:block}.sentinel{height:18px}
+@media(max-width:1150px){.page.active{flex-direction:column}.sidebar,.browser-right{width:100%;max-width:none;flex:1 1 100%}#browser.page.active{grid-template-columns:minmax(0,1fr);min-height:auto}.browser-left,.browser-right{min-height:auto;max-height:none}.browser-left{min-width:0;overflow:visible}#browserScrollArea{height:auto;max-height:none;min-height:0}.browser-left .detail-scroll{max-height:none}.toolbar.inline,.facet-grid,.split{grid-template-columns:1fr 1fr}.hero{grid-template-columns:160px 1fr}.hero.series .backdrop{display:block}#browser.browser-collapsed .browser-left{display:block}#browser.browser-collapsed .browser-right{width:100%!important;max-width:none!important}.cards,.browser-grid{grid-template-columns:repeat(auto-fill,minmax(210px,230px));justify-content:start}.card{min-width:210px;max-width:230px}.card img,.card .poster{height:300px}.episodes-box .cards{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}}
+@media(max-width:720px){.page{padding:10px}.toolbar.inline,.facet-grid,.split{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero .backdrop,.hero.series .backdrop{display:block}.cards,.browser-grid{grid-template-columns:repeat(auto-fill,minmax(160px,180px));justify-content:start}.card{min-width:160px;max-width:180px}.card img,.card .poster{height:250px}#browserScrollArea{height:auto;max-height:none;min-height:0}}
+
+/* e2MDB v58: stable editor scrolling */
+#editor.page.active{
+  display:grid;
+  grid-template-columns:minmax(340px,420px) minmax(0,1fr);
+  align-items:stretch;
+  height:calc(100vh - 120px);
+  min-height:calc(100vh - 120px);
+  max-height:calc(100vh - 120px);
+  overflow:hidden;
+}
+#editor .sidebar{
+  width:auto;
+  min-width:0;
+  max-width:none;
+  height:100%;
+  max-height:100%;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+#editor .main{
+  height:100%;
+  max-height:100%;
+  min-height:0;
+}
+#editorList{
+  display:block;
+  flex:1 1 0;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  -webkit-overflow-scrolling:touch;
+}
+#editorSentinel{
+  display:block;
+  height:24px;
+  min-height:24px;
+  width:100%;
+}
+@media(max-width:1150px){
+  #editor.page.active{
+    display:flex;
+    flex-direction:column;
+    height:auto;
+    min-height:calc(100vh - 120px);
+    max-height:none;
+    overflow:visible;
+  }
+  #editor .sidebar{
+    height:55vh;
+    max-height:55vh;
+  }
+  #editorList{
+    height:auto;
+    max-height:none;
+  }
+}
+
+
+/* e2MDB phase12c: lightweight web tools menu */
+#tools.page.active{
+  display:block;
+  min-height:calc(100vh - 120px);
+}
+.tools-main{
+  padding:16px;
+  min-height:calc(100vh - 150px);
+}
+.tools-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.tools-header h2{margin:0;font-size:22px}.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}.tool-card{padding:14px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);min-width:0}.tool-card h3{margin:0 0 8px;font-size:17px}.tool-card p{margin:4px 0}.tool-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.tool-actions button{padding:8px 10px}.tool-output{border:1px solid #e5edf5;background:#f8fbff;border-radius:10px;padding:10px;max-height:360px;overflow:auto;font-family:Consolas,Menlo,monospace;font-size:12px;white-space:pre-wrap}.tool-kv{display:grid;grid-template-columns:minmax(130px,.8fr) minmax(0,1.2fr);gap:4px 10px}.tool-kv div:nth-child(odd){color:var(--muted)}.tool-list{display:grid;gap:8px}.tool-list-item{border:1px solid #e5edf5;border-radius:10px;padding:8px;background:#fff}.tool-list-item strong{display:block;margin-bottom:4px}.tool-status-ok{color:#166534}.tool-status-bad{color:#991b1b}.tool-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tool-inline select,.tool-inline input{width:auto;min-width:120px}.hamburger{font-weight:700;letter-spacing:.02em}
+@media(max-width:720px){.tools-main{padding:10px}.tools-grid{grid-template-columns:1fr}.tool-kv{grid-template-columns:1fr}.tool-inline select,.tool-inline input{width:100%}}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>e2MDB</h1>
+  <small>Editor + Media Browser</small>
+  <div class="tabs">
+    <button class="tab active" data-tab="editor" data-i18n="Editor">Editor</button>
+    <button class="tab" data-tab="browser" data-i18n="Media Browser">Media Browser</button>
+    <button class="tab hamburger" data-tab="tools" data-i18n="Werkzeuge">☰ Werkzeuge</button>
+  </div>
+</header>
+
+<section id="editor" class="page active">
+  <aside class="panel sidebar">
+    <div class="toolbar">
+      <input id="editorSearch" placeholder="Suche im Datenbestand…">
+      <div class="row">
+        <select id="editorStatus"><option value="all">Alle</option><option value="failed">Failed</option><option value="matched">Mit Ergebnissen</option></select>
+        <select id="editorType"><option value="all">Alle Typen</option><option value="movie">Movies</option><option value="series">Serien</option></select>
+      </div>
+      <div id="editorLetters" class="alpha"></div>
+    </div>
+    <div id="editorList" class="list"><div id="editorSentinel" class="sentinel"></div></div>
+  </aside>
+  <main class="panel main">
+    <div class="toolbar inline">
+      <input id="manualQuery" placeholder="Einzel-Scan mit manuellem Suchbegriff">
+      <select id="manualType"><option value="multi">Auto</option><option value="movie">Movie</option><option value="series">Serie</option></select>
+      <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px"><input type="checkbox" id="renameOnApply" style="width:auto">Beim Übernehmen passend umbenennen</label>
+      <button id="rescanBtn">Einzel-Scan</button>
+    </div>
+    <div id="editorDetail" class="detail-scroll" style="padding:16px"><p class="muted">Eintrag links auswählen.</p></div>
+  </main>
+</section>
+
+<section id="browser" class="page">
+  <div id="browserLeftPane" class="panel browser-left">
+    <div class="toolbar">
+      <div class="facet-grid">
+        <input id="browserSearch" data-i18n-placeholder="Titel / Name suchen…" placeholder="Titel / Name suchen…">
+        <select id="browserType"><option value="all">Alle</option><option value="movie">Movies</option><option value="series">Serien</option></select>
+        <select id="browserYear"><option value="">Jahr</option></select>
+        <select id="browserGenre"><option value="">Genre</option></select>
+        <span id="browserCastBox"><input id="browserCast" list="browserCastList" data-i18n-placeholder="Darsteller suchen/wählen…" placeholder="Darsteller suchen/wählen…"><datalist id="browserCastList"></datalist></span>
+      </div>
+      <div id="browserIndexHint" class="index-hint muted tiny" style="display:none"></div>
+      <div id="browserLetters" class="alpha"></div>
+    </div>
+    <div id="browserScrollArea">
+      <div id="browserGrid" class="browser-grid"></div>
+      <div class="browser-more-wrap" style="padding:8px 14px 14px 14px"><button id="browserLoadMore" class="alt" type="button" data-i18n="Mehr laden" style="width:100%">Mehr laden</button></div>
+      <div id="browserSentinel" class="sentinel"></div>
+    </div>
+  </div>
+  <aside class="panel browser-right main">
+    <div class="browser-actions" style="padding:16px 16px 0 16px;margin-bottom:0"><button id="browserToggleLeft" class="alt" style="display:none" data-i18n="Linke Liste einblenden">Linke Liste einblenden</button></div>
+    <div id="browserDetail" class="detail-scroll" style="padding:16px"><p class="muted">Movie oder Serie anklicken.</p></div>
+  </aside>
+</section>
+
+
+
+<section id="tools" class="page">
+  <main class="panel tools-main">
+    <div class="tools-header">
+      <div>
+        <h2 data-i18n="Werkzeuge">Werkzeuge</h2>
+        <p class="muted" data-i18n="Schneller Zugriff auf Backend-Status, Jobs, DB-Status und Wartung.">Schneller Zugriff auf Backend-Status, Jobs, DB-Status und Wartung.</p>
+      </div>
+      <div class="tool-actions">
+        <button id="toolsRefreshAll" type="button" data-i18n="Alles aktualisieren">Alles aktualisieren</button>
+        <button id="toolsStopJob" type="button" class="warn" data-i18n="Laufenden Job stoppen">Laufenden Job stoppen</button>
+      </div>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-card">
+        <h3 data-i18n="Backend-Jobs">Backend-Jobs</h3>
+        <p class="muted tiny" data-i18n="Aktueller Job, Single-Worker-Queue und Job-Verlauf.">Aktueller Job, Single-Worker-Queue und Job-Verlauf.</p>
+        <div class="tool-actions">
+          <button id="toolsLoadJobs" type="button" data-i18n="Status laden">Status laden</button>
+          <button id="toolsStartScan" type="button" data-i18n="Scan starten">Scan starten</button>
+          <button id="toolsStartLiveWorker" type="button" class="alt" data-i18n="Live/EPG Worker starten">Live/EPG Worker starten</button>
+        </div>
+        <div id="toolsJobsOut" class="tool-output muted">Noch nicht geladen.</div>
+      </div>
+      <div class="tool-card">
+        <h3 data-i18n="DB- und Medienstatus">DB- und Medienstatus</h3>
+        <p class="muted tiny" data-i18n="Schnelle Datenbank- und Medienzähler ohne Medienscan.">Schnelle Datenbank- und Medienzähler ohne Medienscan.</p>
+        <div class="tool-actions">
+          <button id="toolsLoadDb" type="button" data-i18n="DB-Status laden">DB-Status laden</button>
+          <button id="toolsLoadMedia" type="button" class="alt" data-i18n="Medienstatus laden">Medienstatus laden</button>
+        </div>
+        <div id="toolsDbOut" class="tool-output muted">Noch nicht geladen.</div>
+      </div>
+      <div class="tool-card">
+        <h3 data-i18n="Live/EPG Queue">Live/EPG Queue</h3>
+        <p class="muted tiny" data-i18n="Queue-Status und kurze Liste der letzten Einträge.">Queue-Status und kurze Liste der letzten Einträge.</p>
+        <div class="tool-actions">
+          <button id="toolsLoadLiveQueue" type="button" data-i18n="Queue laden">Queue laden</button>
+          <button id="toolsResetLiveRunning" type="button" class="alt" data-i18n="Running zurücksetzen">Running zurücksetzen</button>
+          <button id="toolsClearLiveFailed" type="button" class="alt" data-i18n="Failed leeren">Failed leeren</button>
+        </div>
+        <div class="tool-inline tiny" style="margin-bottom:8px">
+          <label for="toolsLiveState" class="muted" data-i18n="Status">Status</label>
+          <select id="toolsLiveState"><option value="all">all</option><option value="pending">pending</option><option value="running">running</option><option value="failed">failed</option><option value="done">done</option></select>
+          <label for="toolsLiveLimit" class="muted" data-i18n="Limit">Limit</label>
+          <input id="toolsLiveLimit" type="number" min="1" max="200" value="30">
+        </div>
+        <div id="toolsLiveOut" class="tool-output muted">Noch nicht geladen.</div>
+      </div>
+      <div class="tool-card">
+        <h3 data-i18n="Wartung">Wartung</h3>
+        <p class="muted tiny" data-i18n="Direkte Wartungsaktionen. Keine Plugin-Konfiguration.">Direkte Wartungsaktionen. Keine Plugin-Konfiguration.</p>
+        <div class="tool-actions">
+          <button id="toolsDbMaintenance" type="button" data-i18n="SQLite-Wartung starten">SQLite-Wartung starten</button>
+          <button id="toolsCleanupDry" type="button" class="alt" data-i18n="Cleanup Testlauf">Cleanup Testlauf</button>
+          <button id="toolsCleanupRun" type="button" class="warn" data-i18n="Cleanup starten">Cleanup starten</button>
+          <button id="toolsCacheStatus" type="button" class="alt" data-i18n="Cache-Status">Cache-Status</button>
+          <button id="toolsCacheCleanup" type="button" class="warn" data-i18n="Cache bereinigen">Cache bereinigen</button>
+        </div>
+        <div id="toolsMaintenanceOut" class="tool-output muted">Noch nicht geladen.</div>
+      </div>
+      <div class="tool-card">
+        <h3 data-i18n="Scanpfade">Scanpfade</h3>
+        <p class="muted tiny" data-i18n="Anzeige der aktuell wirksamen Medien-Scanpfade.">Anzeige der aktuell wirksamen Medien-Scanpfade.</p>
+        <div class="tool-actions">
+          <button id="toolsLoadScanPaths" type="button" data-i18n="Scanpfade laden">Scanpfade laden</button>
+        </div>
+        <div id="toolsScanPathsOut" class="tool-output muted">Noch nicht geladen.</div>
+      </div>
+    </div>
+  </main>
+</section>
+
+
+<script>
+window.__E2MDB_I18N__ = {};
+window.e2mdbT = function(key, fallback){
+  var map = window.__E2MDB_I18N__ || {};
+  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : (fallback || key);
+};
+window.applyI18n = function(root){
+  var scope = root || document;
+  scope.querySelectorAll('[data-i18n]').forEach(function(el){
+    var key = el.getAttribute('data-i18n');
+    var fallback = el.getAttribute('data-i18n-fallback') || el.textContent || '';
+    el.textContent = window.e2mdbT(key, fallback);
+  });
+  scope.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-placeholder');
+    var fallback = el.getAttribute('placeholder') || '';
+    el.setAttribute('placeholder', window.e2mdbT(key, fallback));
+  });
+  scope.querySelectorAll('[data-i18n-title]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-title');
+    var fallback = el.getAttribute('title') || '';
+    el.setAttribute('title', window.e2mdbT(key, fallback));
+  });
+  scope.querySelectorAll('[data-i18n-aria-label]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-aria-label');
+    var fallback = el.getAttribute('aria-label') || '';
+    el.setAttribute('aria-label', window.e2mdbT(key, fallback));
+  });
+};
+window.loadI18n = async function(){
+  try {
+    const res = await fetch((window.API_BASE || '') + 'api/results?action=i18n');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === 'object'){
+      window.__E2MDB_I18N__ = data;
+      window.applyI18n(document);
+    }
+  } catch(e) {}
+};
+</script>
+
+<script>
+const API_BASE = (() => {
+  const path = window.location.pathname || '/';
+  const base = path.endsWith('/') ? path : path.replace(/[^/]+$/, '');
+  return base || '/';
+})();
+const api = (params) => fetch(`${API_BASE}api/results?${new URLSearchParams(params)}`).then(r => r.json());
+const fetchDetails = (params) => fetch(`${API_BASE}api/details?${new URLSearchParams(params)}`).then(r => r.json());
+const apiJson = (endpoint, params={}) => fetch(`${API_BASE}api/${endpoint}?${new URLSearchParams(params)}`).then(r => r.json());
+const $ = s => document.querySelector(s);
+const letters = ['', '0-9', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
+const escapeHtml = s => (s || '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fileStem(name){ return (name||'').replace(/\.[^.]+$/, '').replace(/[._-]+/g, ' ').trim(); }
+const state = {
+  editor: {page:1, loading:false, hasMore:true, selected:null, q:'', status:'all', type:'all', letter:'', observer:null},
+  browser: {page:1, loading:false, hasMore:true, selected:null, q:'', type:'all', year:'', genre:'', cast:'', letter:'', castMap:{}, castOptions:[], itemCache:{}, renderedKeys:[], episodeItems:[], episodeCursor:0, episodesObserver:null, currentSeasonId:null, currentSeriesCover:'', leftCollapsed:false, indexReady:false, indexBuilding:false, peopleIndexReady:false, statusPoll:null},
+  tools: {loaded:false, wired:false}
+};
+function debounce(fn, ms=350){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
+function renderAlpha(el, current, onSelect){ el.innerHTML=''; letters.forEach(letter=>{ const b=document.createElement('button'); b.textContent=letter||'Alle'; if(letter===current) b.classList.add('active'); b.onclick=()=>onSelect(letter); el.appendChild(b); }); }
+function uniqueStrings(list){ return [...new Set((list||[]).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+
+function browserNearBottom(){
+  const pane = $('#browserScrollArea');
+  if(!pane) return false;
+  return (pane.scrollTop + pane.clientHeight) >= (pane.scrollHeight - 180);
+}
+function updateBrowserMoreButton(){
+  const btn = $('#browserLoadMore');
+  if(!btn) return;
+  btn.style.display = '';
+  btn.disabled = !!state.browser.loading;
+  if(state.browser.loading){
+    btn.textContent = window.e2mdbT('Lade…','Lade…');
+  } else if(state.browser.hasMore){
+    btn.textContent = window.e2mdbT('Mehr laden','Mehr laden');
+  } else {
+    btn.textContent = window.e2mdbT('Keine weiteren Einträge','Keine weiteren Einträge');
+  }
+}
+function browserControlsEnabled(){ return true; }
+function applyBrowserIndexState(source){
+  source = source || {};
+  if(Object.prototype.hasOwnProperty.call(source, 'index_ready')) state.browser.indexReady = !!source.index_ready;
+  if(Object.prototype.hasOwnProperty.call(source, 'index_building')) state.browser.indexBuilding = !!source.index_building;
+  if(Object.prototype.hasOwnProperty.call(source, 'people_index_ready')) state.browser.peopleIndexReady = !!source.people_index_ready;
+  const ready = !!state.browser.indexReady;
+  const peopleReady = ready && !!state.browser.peopleIndexReady;
+  const hint = $('#browserIndexHint');
+  const castBox = $('#browserCastBox');
+  const search = $('#browserSearch');
+  const year = $('#browserYear');
+  const genre = $('#browserGenre');
+  const cast = $('#browserCast');
+  const letters = $('#browserLetters');
+  [search, year, genre].forEach(el => { if(el) el.disabled = false; });
+  if(cast){
+    cast.disabled = false;
+    if(!peopleReady && !state.browser.cast) cast.value = '';
+  }
+  if(castBox) castBox.style.display = ''; // Cast search also works without the optional people index.
+  if(letters){
+    letters.classList.toggle('disabled', false);
+    letters.querySelectorAll('button').forEach(btn => { btn.disabled = false; });
+  }
+  if(!ready){
+    // Keep current filters active while the optional browser index is building.
+    // The backend direct path now applies q/year/genre/letter/cast in SQL.
+  }
+  if(hint){
+    if(!ready){
+      hint.style.display = '';
+      hint.textContent = window.e2mdbT('Der Media-Index wird aufgebaut. Suche, Filter, Sortierung und Darsteller-Suche sind verfügbar, sobald der Index fertig ist.', 'Der Media-Index wird aufgebaut. Suche, Filter, Sortierung und Darsteller-Suche sind verfügbar, sobald der Index fertig ist.');
+    } else if(!peopleReady){
+      hint.style.display = '';
+      hint.textContent = window.e2mdbT('Der Media-Index ist bereit. Die Darsteller-Suche nutzt direkt die Datenbank; Vorschläge erscheinen, sobald der optionale Darsteller-Index fertig ist.', 'Der Media-Index ist bereit. Die Darsteller-Suche nutzt direkt die Datenbank; Vorschläge erscheinen, sobald der optionale Darsteller-Index fertig ist.');
+    } else {
+      hint.style.display = 'none';
+      hint.textContent = '';
+    }
+  }
+  updateBrowserMoreButton();
+}
+async function refreshBrowserIndexStatus(){
+  try{
+    const status = await api({action:'browser_status'});
+    applyBrowserIndexState(status || {});
+    if(state.browser.indexReady && state.browser.statusPoll){
+      clearInterval(state.browser.statusPoll);
+      state.browser.statusPoll = null;
+      await loadBrowser(true);
+    }
+  }catch(e){}
+}
+function ensureBrowserStatusPolling(){
+  if(state.browser.statusPoll || state.browser.indexReady) return;
+  state.browser.statusPoll = setInterval(refreshBrowserIndexStatus, 5000);
+}
+async function maybeLoadMoreBrowser(){
+  if(state.browser.loading || !state.browser.hasMore) return;
+  if(browserNearBottom()) await loadBrowser(false);
+}
+
+function resetBrowserSeasonView(){
+  state.browser.currentSeasonId=null;
+  resetEpisodeLoader();
+  document.querySelectorAll('#seasonPills .pill').forEach(x=>x.classList.remove('active'));
+  const info=$('#seasonInfo');
+  if(info) info.textContent=window.e2mdbT('Keine Staffel ausgewählt.','Keine Staffel ausgewählt.');
+  const grid=$('#episodesGrid');
+  if(grid) grid.innerHTML='';
+  const episodesBox=document.querySelector('.episodes-box');
+  if(episodesBox) episodesBox.style.display='none';
+}
+function setBrowserCollapsed(collapsed){
+  state.browser.leftCollapsed=!!collapsed;
+  document.getElementById('browser').classList.toggle('browser-collapsed', !!collapsed);
+  const btn=$('#browserToggleLeft');
+  if(btn) btn.textContent = collapsed ? window.e2mdbT('Linke Liste einblenden','Linke Liste einblenden') : window.e2mdbT('Linke Liste ausblenden','Linke Liste ausblenden');
+  if(btn) btn.style.display = collapsed ? 'inline-flex' : 'none';
+  if(!collapsed) resetBrowserSeasonView();
+}
+
+function wireBrowserToggle(){
+  const btn=$('#browserToggleLeft');
+  if(btn) btn.onclick=()=>setBrowserCollapsed(!state.browser.leftCollapsed);
+}
+
+
+
+function setActiveTab(tabName, opts={}){
+  tabName = (tabName === 'browser' || tabName === 'tools') ? tabName : 'editor';
+  localStorage.setItem('e2mdb.activeTab', tabName);
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===tabName));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const target = document.getElementById(tabName);
+  if(target) target.classList.add('active');
+  if(tabName === 'browser'){
+    setTimeout(() => {
+      restoreBrowserSnapshot();
+      if($('#browserGrid') && !state.browser.loading && (!$('#browserGrid').children.length || opts.forceReload)){
+        loadBrowser(true);
+      } else {
+        updateBrowserMoreButton();
+      }
+    }, opts.initial ? 0 : 80);
+  } else if(tabName === 'tools') {
+    setTimeout(() => {
+      initToolsPage();
+      if(opts.forceReload || !state.tools.loaded){
+        loadToolsSummary();
+      }
+    }, opts.initial ? 0 : 80);
+  } else {
+    setTimeout(() => {
+      wireEditorScrolling();
+      if($('#editorList') && !$('#editorList .item').length && !state.editor.loading){
+        loadEditor(true);
+      } else {
+        ensureEditorListFill();
+      }
+    }, opts.initial ? 0 : 80);
+  }
+}
+
+function browserSnapshotKey(){
+  return 'e2mdb.browser.snapshot.v1';
+}
+function saveBrowserSnapshot(){
+  try{
+    const keys = state.browser.renderedKeys || [];
+    const items = keys.map(key => state.browser.itemCache[key]).filter(Boolean).slice(0, 80);
+    if(!items.length) return;
+    sessionStorage.setItem(browserSnapshotKey(), JSON.stringify({
+      ts: Date.now(),
+      page: state.browser.page,
+      hasMore: state.browser.hasMore,
+      filters: {q:state.browser.q,type:state.browser.type,year:state.browser.year,genre:state.browser.genre,cast:state.browser.cast,letter:state.browser.letter},
+      items
+    }));
+  }catch(e){}
+}
+function restoreBrowserSnapshot(){
+  const grid = $('#browserGrid');
+  if(!grid || grid.children.length) return false;
+  try{
+    const raw = sessionStorage.getItem(browserSnapshotKey());
+    if(!raw) return false;
+    const snap = JSON.parse(raw);
+    if(!snap || !Array.isArray(snap.items) || !snap.items.length) return false;
+    // Do not restore very old entries. This is only a page-refresh fast cache.
+    if(Date.now() - (snap.ts||0) > 10 * 60 * 1000) return false;
+    state.browser.itemCache = {};
+    state.browser.renderedKeys = [];
+    snap.items.forEach(item => {
+      const key=item.browser_key||item.id||item.media_hash;
+      if(!key || state.browser.itemCache[key]) return;
+      state.browser.itemCache[key]=item;
+      state.browser.renderedKeys.push(key);
+      const wrap=document.createElement('div');
+      wrap.innerHTML=browserCard(item);
+      const card=wrap.firstElementChild;
+      if(card){
+        card.onclick=()=>selectBrowser(key);
+        grid.appendChild(card);
+      }
+    });
+    state.browser.page = snap.page || 2;
+    state.browser.hasMore = snap.hasMore !== false;
+    updateBrowserMoreButton();
+    return grid.children.length > 0;
+  }catch(e){ return false; }
+}
+document.querySelectorAll('.tab').forEach(btn => btn.onclick = () => {
+  setActiveTab(btn.dataset.tab || 'editor');
+});
+
+
+function ensureEditorSentinel(){
+  const list = $('#editorList');
+  if(!list) return null;
+  let sentinel = $('#editorSentinel');
+  if(!sentinel){
+    sentinel = document.createElement('div');
+    sentinel.id = 'editorSentinel';
+    sentinel.className = 'sentinel';
+  }
+  if(sentinel.parentElement !== list || sentinel !== list.lastElementChild){
+    list.appendChild(sentinel);
+  }
+  return sentinel;
+}
+function editorNearBottom(){
+  const list = $('#editorList');
+  if(!list) return false;
+  return (list.scrollTop + list.clientHeight) >= (list.scrollHeight - 220);
+}
+async function ensureEditorListFill(){
+  const list = $('#editorList');
+  if(!list || state.editor.loading || !state.editor.hasMore) return;
+  let guard = 0;
+  while(state.editor.hasMore && !state.editor.loading && list.scrollHeight <= list.clientHeight + 80 && guard < 5){
+    guard += 1;
+    await loadEditor(false);
+  }
+}
+function wireEditorScrolling(){
+  const list = $('#editorList');
+  if(!list) return;
+  const sentinel = ensureEditorSentinel();
+
+  if(state.editor.observer){
+    try { state.editor.observer.disconnect(); } catch(e) {}
+    state.editor.observer = null;
+  }
+
+  if(sentinel && 'IntersectionObserver' in window){
+    state.editor.observer = new IntersectionObserver(entries => {
+      if(entries[0] && entries[0].isIntersecting && state.editor.hasMore && !state.editor.loading){
+        loadEditor(false);
+      }
+    }, {root: list, rootMargin: '600px 0px 600px 0px', threshold: 0.01});
+    state.editor.observer.observe(sentinel);
+  }
+
+  if(!list.dataset.scrollWired){
+    list.dataset.scrollWired = '1';
+    list.addEventListener('scroll', () => {
+      if(state.editor.loading || !state.editor.hasMore) return;
+      if(editorNearBottom()) loadEditor(false);
+    }, {passive:true});
+
+    list.addEventListener('wheel', () => {
+      if(state.editor.loading || !state.editor.hasMore) return;
+      setTimeout(() => { if(editorNearBottom()) loadEditor(false); }, 0);
+    }, {passive:true});
+  }
+}
+
+async function loadEditor(reset=false){
+  if(state.editor.loading) return;
+  const list = $('#editorList');
+  if(!list) return;
+
+  if(reset){
+    state.editor.page=1;
+    state.editor.hasMore=true;
+    list.innerHTML='';
+    ensureEditorSentinel();
+    if(state.editor.observer){
+      try { state.editor.observer.disconnect(); } catch(e) {}
+      state.editor.observer=null;
+    }
+    setTimeout(wireEditorScrolling, 0);
+  }
+
+  if(!state.editor.hasMore) return;
+  state.editor.loading=true;
+
+  try {
+    const data = await api({action:'list', page:state.editor.page, limit:30, q:state.editor.q, status:state.editor.status, media_type:state.editor.type, letter:state.editor.letter});
+    const sentinel = ensureEditorSentinel();
+    (data.results||[]).forEach(item => {
+      const div=document.createElement('div');
+      div.className='item'; div.dataset.id=item.id;
+      div.innerHTML=`<h4>${escapeHtml(item.title||item.file_name)}</h4><div class="tiny muted">${escapeHtml(item.file_name||'')}</div><div class="badges"><span class="badge ${escapeHtml(item.scan_status||'matched')}">${escapeHtml(item.scan_status||'matched')}</span>${item.estimated_type?`<span class="badge">${escapeHtml(item.estimated_type)}</span>`:''}${item.genres?`<span class="badge">${escapeHtml(item.genres)}</span>`:''}<span class="badge">${escapeHtml(String(item.result_count||0))} Treffer</span></div>`;
+      div.onclick=()=>selectEditor(item.id);
+      if(sentinel && sentinel.parentElement === list){
+        list.insertBefore(div, sentinel);
+      } else {
+        list.appendChild(div);
+      }
+    });
+
+    state.editor.hasMore=!!data.has_more;
+    if((data.results||[]).length) state.editor.page += 1;
+  } finally {
+    state.editor.loading=false;
+    ensureEditorSentinel();
+    wireEditorScrolling();
+    setTimeout(ensureEditorListFill, 40);
+  }
+}
+async function selectEditor(id){
+  state.editor.selected=id;
+  document.querySelectorAll('#editorList .item').forEach(x=>x.classList.toggle('active', x.dataset.id===id));
+  const payload = await api({action:'get', id});
+  renderEditorDetail(payload);
+}
+function altCard(result){
+  const payload = encodeURIComponent(JSON.stringify(result));
+  const imgs = encodeURIComponent(JSON.stringify({cover_url:result.cover_url||'', backdrop_url:result.backdrop_url||'', titlelogo_url:result.titlelogo_url||''}));
+  return `<div class="result-card"><strong>${escapeHtml(result.title||result.name||'')}</strong><div class="tiny muted">${escapeHtml(result.provider||'')} ${escapeHtml(result.media_type||'')} ${escapeHtml(result.released||'')}</div><div class="badges">${result.genres?`<span class="badge">${escapeHtml(result.genres)}</span>`:''}</div><p>${escapeHtml(result.overview||'')}</p>${result.backdrop_url?`<img src="${escapeHtml(result.backdrop_url)}">`:(result.cover_url?`<img src="${escapeHtml(result.cover_url)}">`:'')}<div class="row"><button onclick="applyResult('${payload}')">Alternative übernehmen</button><button class="alt" onclick="setImages('${imgs}')">Bilder übernehmen</button></div></div>`;
+}
+function renderEditorDetail(payload){
+  const media=payload.media||{}, data=payload.data||{}, results=(payload.results&&payload.results.results)||[], scan=payload.scan_info||{};
+  $('#editorDetail').innerHTML=`<div class="hero"><img class="poster" src="${escapeHtml(data.cover_url||data.cover_path||'')}" onerror="this.style.visibility='hidden'"><div><h2 style="margin-top:0">${escapeHtml(data.title||media.title||media.file_name||'')}</h2><div class="badges"><span class="badge ${escapeHtml(media.scan_status||'matched')}">${escapeHtml(media.scan_status||'matched')}</span>${data.media_type?`<span class="badge">${escapeHtml(data.media_type)}</span>`:''}${data.released?`<span class="badge">${escapeHtml(data.released)}</span>`:''}${data.genres?`<span class="badge">${escapeHtml(data.genres)}</span>`:''}</div><p>${escapeHtml(data.overview||scan.desc||scan.ext_desc||'')}</p><div class="tiny muted">${escapeHtml(media.file_path||'')}</div><div class="row" style="margin-top:12px"><input id="renameInput" value="${escapeHtml(media.file_name||'')}"><button class="alt" onclick="renameCurrent()">Datei umbenennen</button></div></div></div>${(data.backdrop_url||data.backdrop_path)?`<img class="backdrop" src="${escapeHtml(data.backdrop_url||data.backdrop_path)}">`:''}<div class="section"><h3>Alternativen</h3><div class="cards">${results.map(altCard).join('') || '<p class="muted">Keine Alternativen vorhanden.</p>'}</div></div>`;
+}
+async function applyResult(encoded){
+  if(!state.editor.selected) return;
+  const result = decodeURIComponent(encoded);
+  const payload = await api({action:'apply_result', id:state.editor.selected, result, rename_to_match:$('#renameOnApply').checked?'1':'0'});
+  if(!payload.success) return alert(payload.error||'Übernehmen fehlgeschlagen');
+  state.editor.selected = payload.id || state.editor.selected;
+  await wireEditorScrolling();
+loadEditor(true); await selectEditor(state.editor.selected);
+}
+async function setImages(encoded){
+  if(!state.editor.selected) return;
+  const img = JSON.parse(decodeURIComponent(encoded));
+  const payload = await api({action:'set_images', id:state.editor.selected, cover_url:img.cover_url||'', backdrop_url:img.backdrop_url||'', titlelogo_url:img.titlelogo_url||''});
+  if(payload.success) await selectEditor(state.editor.selected);
+}
+async function renameCurrent(){
+  if(!state.editor.selected) return;
+  const newName = $('#renameInput').value.trim(); if(!newName) return;
+  const payload = await api({action:'rename', id:state.editor.selected, new_name:newName});
+  if(!payload.success) return alert(payload.error||'Rename fehlgeschlagen');
+  state.editor.selected = payload.new_id || state.editor.selected;
+  await loadEditor(true); await selectEditor(state.editor.selected);
+}
+$('#rescanBtn').onclick = async () => {
+  if(!state.editor.selected) return;
+  const payload = await api({action:'rescan', id:state.editor.selected, query:$('#manualQuery').value.trim(), type:$('#manualType').value});
+  if(!payload.success) return alert(payload.error||'Rescan fehlgeschlagen');
+  const current = await api({action:'get', id:state.editor.selected});
+  renderEditorDetail(current);
+};
+const triggerEditor = debounce(() => { state.editor.q=$('#editorSearch').value.trim(); state.editor.status=$('#editorStatus').value; state.editor.type=$('#editorType').value; loadEditor(true); });
+$('#editorSearch').addEventListener('input', triggerEditor); $('#editorStatus').addEventListener('change', triggerEditor); $('#editorType').addEventListener('change', triggerEditor);
+function setEditorLetter(letter){ state.editor.letter=letter; renderAlpha($('#editorLetters'), letter, setEditorLetter); loadEditor(true); }
+renderAlpha($('#editorLetters'), '', setEditorLetter);
+function episodePreviewUrl(id){ return ''; }
+async function playMedia(id){
+  if(!id) return;
+  try {
+    const payload = await api({action:'play', id});
+    if(!payload || payload.success===false) throw new Error((payload&&payload.error)||'Playback could not be started');
+  } catch(e){ alert('Abspielen fehlgeschlagen: ' + e); }
+}
+async function stopMedia(){
+  try {
+    const payload = await api({action:'stop'});
+    if(!payload || payload.success===false) throw new Error((payload&&payload.error)||'Playback could not be stopped');
+  } catch(e){ alert('Stop fehlgeschlagen: ' + e); }
+}
+function episodeBatchSize(){ return Math.max(6, Math.ceil((window.innerHeight || 900) / 160) * 2); }
+function resetEpisodeLoader(){ state.browser.episodeItems=[]; state.browser.episodeCursor=0; state.browser.currentSeasonId=null; if(state.browser.episodesObserver){ try{ state.browser.episodesObserver.disconnect(); }catch(e){} state.browser.episodesObserver=null; } }
+function renderEpisodeBatch(reset=false){
+  const grid=$('#episodesGrid'); if(!grid) return;
+  if(reset){ grid.innerHTML=''; state.browser.episodeCursor=0; }
+  const items=state.browser.episodeItems||[];
+  const next=items.slice(state.browser.episodeCursor, state.browser.episodeCursor + episodeBatchSize());
+  next.forEach(ep => {
+    const card=document.createElement('div'); card.className='episode-card';
+    const img = ep.preview_url || ep.cover_url || ep.backdrop_url || state.browser.currentSeriesCover || '';
+    const playId = ep.media_hash || ep.id || ep.file_path || '';
+    card.innerHTML=`${img?`<img src="${escapeHtml(img)}" data-fallback="${escapeHtml(state.browser.currentSeriesCover || '')}" loading="lazy" onerror="if(this.dataset.fallback && this.src!==this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback}else{this.classList.add('hidden')}">`:'<div class="poster" style="aspect-ratio:16/9;border-radius:10px;margin:0 0 10px"></div>'}<div class="body"><strong>${escapeHtml(ep.episode_no ? 'E'+ep.episode_no+' ' : '')}${escapeHtml(ep.episode_name||'')}</strong><div class="tiny muted">${escapeHtml(ep.released||'')}</div>${ep.file_name?`<div class="tiny muted">${escapeHtml(ep.file_name)}</div>`:''}${ep.overview?`<p class="tiny">${escapeHtml(ep.overview)}</p>`:'<p class="tiny muted">Keine Episodenbeschreibung vorhanden.</p>'}<div class="episode-actions"><button type="button" class="icon-btn episode-play" title=window.e2mdbT("Abspielen","Abspielen") aria-label=window.e2mdbT("Abspielen","Abspielen") ${playId?'':'disabled'}>▶</button><button type="button" class="icon-btn alt episode-stop" title=window.e2mdbT("Stop","Stop") aria-label=window.e2mdbT("Stop","Stop")>■</button></div></div>`;
+    const playBtn = card.querySelector('.episode-play');
+    if(playBtn && playId) playBtn.onclick = () => playMedia(playId);
+    const stopBtn = card.querySelector('.episode-stop');
+    if(stopBtn) stopBtn.onclick = () => stopMedia();
+    grid.appendChild(card);
+  });
+  state.browser.episodeCursor += next.length;
+  let sentinel=$('#episodesSentinel');
+  if(state.browser.episodeCursor < items.length){
+    if(!sentinel){ sentinel=document.createElement('div'); sentinel.id='episodesSentinel'; sentinel.className='sentinel'; grid.parentNode.appendChild(sentinel); }
+    if(!state.browser.episodesObserver){
+      state.browser.episodesObserver = new IntersectionObserver(entries => { if(entries[0].isIntersecting) renderEpisodeBatch(false); }, {root: $('#browserDetail')});
+    }
+    state.browser.episodesObserver.observe(sentinel);
+  } else if(sentinel){ sentinel.remove(); }
+}
+
+function browserPersonResult(item){
+  const title = item.title||item.name||item.search_string||item.file_name||'Ohne Titel';
+  const key = item.browser_key||item.id||item.media_hash||'';
+  const year=item.year||((item.released||'').slice(0,4))||'';
+  const overview=(item.overview||'').trim();
+  const shortOverview = overview.length > 180 ? overview.slice(0,177)+'...' : overview;
+  const cover = item.cover_url || '';
+  const seasonCount = parseInt(item.season_count || 0, 10) || 0;
+  const episodeCount = parseInt(item.episode_count || 0, 10) || 0;
+  const typeLabel = item.media_type === 'series' ? 'Serie' : (item.media_type === 'movie' ? 'Movie' : (item.media_type || ''));
+  const seriesInfo = (item.media_type === 'series' && seasonCount > 0) ? ` · ${escapeHtml(String(seasonCount))} Staffeln${episodeCount?` / ${escapeHtml(String(episodeCount))} Ep`:''}` : '';
+  return `<div class="person-result" data-id="${escapeHtml(key)}">
+    ${cover ? `<img src="${escapeHtml(cover)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'poster'}))">` : `<div class="poster"></div>`}
+    <div>
+      <h4>${escapeHtml(title)}</h4>
+      <div class="tiny muted">${escapeHtml(typeLabel)}${year?` · ${escapeHtml(year)}`:''}${seriesInfo}</div>
+      ${item.genres?`<div class="badges"><span class="badge">${escapeHtml(item.genres)}</span></div>`:''}
+      ${shortOverview?`<p class="tiny muted" style="margin:8px 0 0">${escapeHtml(shortOverview)}</p>`:''}
+    </div>
+  </div>`;
+}
+function castPillHtml(name){
+  const value = String(name||'').trim();
+  if(!value) return '';
+  return `<button type="button" class="pill person-pill" data-person="${escapeHtml(value)}">${escapeHtml(value)}</button>`;
+}
+function wirePersonPills(root=document){
+  (root||document).querySelectorAll('.person-pill').forEach(btn => {
+    if(btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.onclick = () => selectCastPerson(btn.dataset.person || btn.textContent || '');
+  });
+}
+async function showPersonMediaList(name){
+  const person = String(name||'').trim();
+  const detail = $('#browserDetail');
+  if(!person || !detail) return;
+  detail.innerHTML = `<div class="section" style="margin-top:0"><h2 style="margin-top:0">${escapeHtml(person)}</h2><p class="muted">Lade Filme und Serien aus der DB…</p></div>`;
+  try {
+    const data = await api({action:'browser_list', page:1, limit:100, q:'', media_type:'all', year:'', genre:'', cast:person, letter:''});
+    const items = data.items || [];
+    items.forEach(item => {
+      const key = item.browser_key || item.id;
+      if(key) state.browser.itemCache[key] = item;
+    });
+    detail.innerHTML = `<div class="section" style="margin-top:0"><h2 style="margin-top:0">${escapeHtml(person)}</h2><div class="tiny muted">${escapeHtml(String(items.length))} passende Filme/Serien in der DB${data.has_more?' · weitere Treffer über „Mehr laden“ links':''}</div><div class="person-results">${items.map(browserPersonResult).join('') || '<p class="muted">Keine passenden Filme oder Serien gefunden.</p>'}</div></div>`;
+    detail.querySelectorAll('.person-result').forEach(row => { row.onclick = () => selectBrowser(row.dataset.id); });
+    detail.scrollTop = 0;
+  } catch(e) {
+    detail.innerHTML = `<div class="section" style="margin-top:0"><h2 style="margin-top:0">${escapeHtml(person)}</h2><p class="muted">Treffer konnten nicht geladen werden: ${escapeHtml(String(e))}</p></div>`;
+  }
+}
+async function selectCastPerson(name){
+  const person = String(name||'').trim();
+  if(!person) return;
+  state.browser.q = '';
+  state.browser.type = 'all';
+  state.browser.year = '';
+  state.browser.genre = '';
+  state.browser.cast = person;
+  state.browser.letter = '';
+  const search = $('#browserSearch'); if(search) search.value = '';
+  const type = $('#browserType'); if(type) type.value = 'all';
+  const year = $('#browserYear'); if(year) year.value = '';
+  const genre = $('#browserGenre'); if(genre) genre.value = '';
+  const cast = $('#browserCast'); if(cast) cast.value = person;
+  renderAlpha($('#browserLetters'), '', setBrowserLetter);
+  setBrowserCollapsed(false);
+  // v16 behavior: clicking a cast name filters the MediaBrowser list.
+  // Keep the current detail panel intact; do not replace it with a
+  // separate person-result view.
+  await loadBrowser(true);
+}
+
+function browserCard(item){
+  const cardKey = item.browser_key||item.id||item.media_hash||'';
+  const title = item.title||item.name||item.search_string||item.file_name||'Ohne Titel';
+  const year=item.year||((item.released||'').slice(0,4))||'';
+  const rating=(item.vote_average||item.vote_average||'');
+  const overview=(item.overview||'').trim();
+  const shortOverview = overview.length > 120 ? overview.slice(0,117)+'...' : overview;
+  const cover = item.cover_url || item.poster_url || item.cover_path || item.poster_path || '';
+  const seasonCount = parseInt(item.season_count || 0, 10) || 0;
+  const episodeCount = parseInt(item.episode_count || 0, 10) || 0;
+  const seriesBadge = (item.media_type === 'series' && seasonCount > 0) ? `<span class="badge">${escapeHtml(String(seasonCount))} Staffeln${episodeCount?` · ${escapeHtml(String(episodeCount))} Ep`:''}</span>` : '';
+  return `<div class="card" data-id="${escapeHtml(cardKey)}">
+    ${cover ? `<img loading="lazy" decoding="async" src="${escapeHtml(cover)}" onerror="console.warn('e2MDB cover load failed', this.src); this.replaceWith(Object.assign(document.createElement('div'),{className:'poster'}))">` : `<div class="poster"></div>`}
+    <div class="card-body">
+      <h4>${escapeHtml(title)}</h4>
+      <div class="tiny muted">${escapeHtml(item.media_type||'')} ${escapeHtml(year)}</div>
+      <div class="badges">${seriesBadge}${item.genres?`<span class="badge">${escapeHtml(item.genres)}</span>`:''}${rating?`<span class="badge">⭐ ${escapeHtml(String(rating))}</span>`:''}</div>
+      ${shortOverview?`<p class="tiny muted" style="margin:8px 0 0">${escapeHtml(shortOverview)}</p>`:''}
+    </div>
+  </div>`;
+}
+function updateBrowserFacets(facets){
+  const years=(facets.years||[]), genres=(facets.genres||[]);
+  const peopleReady = !!state.browser.peopleIndexReady && !!state.browser.indexReady;
+  const casts=peopleReady ? ((facets.casts&&facets.casts.length)?facets.casts:(state.browser.castOptions||[])) : [];
+  const yearSel=$('#browserYear'), genreSel=$('#browserGenre'), castInput=$('#browserCast'), castList=$('#browserCastList');
+  const curYear=state.browser.year, curGenre=state.browser.genre, curCast=state.browser.cast || '';
+  if(yearSel) yearSel.innerHTML='<option value="">Jahr</option>'+years.map(y=>`<option value="${escapeHtml(y)}" ${y===curYear?'selected':''}>${escapeHtml(y)}</option>`).join('');
+  if(genreSel) genreSel.innerHTML='<option value="">Genre</option>'+genres.map(g=>`<option value="${escapeHtml(g)}" ${g===curGenre?'selected':''}>${escapeHtml(g)}</option>`).join('');
+  if(castInput) castInput.value = curCast || '';
+  if(castList) castList.innerHTML=casts.map(c=>`<option value="${escapeHtml(c)}"></option>`).join('');
+  applyBrowserIndexState({});
+}
+function refreshCastOptions(){ state.browser.castOptions = uniqueStrings(Object.values(state.browser.castMap).flat()); }
+function passesCastFilter(item){
+  // Cast filtering is handled by the backend SQL query. A client-side
+  // post-filter on the visible page caused false empty results when the
+  // optional people index was not complete.
+  return true;
+}
+
+async function enrichVisibleCast(items){
+  let changed=false;
+  for(const item of items){
+    const key=item.browser_key||item.id;
+    if(state.browser.castMap[key]) continue;
+    const cast = uniqueStrings((item.cast||[]).concat(String(item.cast_text||'').split(',').map(x=>x.trim()).filter(Boolean)));
+    if(cast.length){
+      state.browser.castMap[key]=cast;
+      changed=true;
+    }
+  }
+  if(changed){
+    refreshCastOptions();
+    updateBrowserFacets({years:[...$('#browserYear').options].slice(1).map(o=>o.value), genres:[...$('#browserGenre').options].slice(1).map(o=>o.value), casts:state.browser.castOptions});
+  }
+}
+
+async function loadBrowser(reset=false){
+  if(state.browser.loading) return;
+  const grid = $('#browserGrid');
+  if(reset){
+    state.browser.page=1;
+    state.browser.hasMore=true;
+    if(grid) grid.innerHTML='';
+    state.browser.itemCache={};
+    state.browser.renderedKeys=[];
+    const pane = $('#browserScrollArea');
+    if(pane) pane.scrollTop = 0;
+  }
+  if(!state.browser.hasMore) return;
+  state.browser.loading=true;
+  try{
+    const controlsReady = browserControlsEnabled();
+    const data = await api({action:'browser_list', page:state.browser.page, limit:16, q:state.browser.q||'', media_type:state.browser.type, year:state.browser.year||'', genre:state.browser.genre||'', cast:state.browser.cast||'', letter:state.browser.letter||''});
+    applyBrowserIndexState(data || {});
+    if(data && data.facets) applyBrowserIndexState(data.facets);
+    updateBrowserFacets(data.facets||{});
+    if(!state.browser.indexReady) ensureBrowserStatusPolling();
+    const appended=[];
+    (data.items||[]).forEach(item => {
+      if(!passesCastFilter(item)) return;
+      appended.push(item);
+      const key=item.browser_key||item.id||item.media_hash;
+      if(!key || state.browser.itemCache[key]) return;
+      state.browser.itemCache[key]=item;
+      state.browser.renderedKeys.push(key);
+      const wrap=document.createElement('div');
+      wrap.innerHTML=browserCard(item);
+      const card=wrap.firstElementChild;
+      card.onclick=()=>selectBrowser(key);
+      if(grid) grid.appendChild(card);
+    });
+    if(appended.length) enrichVisibleCast(appended);
+    if(reset && grid && !grid.children.length){
+      const p=document.createElement('p');
+      p.className='muted';
+      p.style.padding='14px';
+      p.textContent = state.browser.indexReady ? window.e2mdbT('Keine Einträge gefunden.','Keine Einträge gefunden.') : window.e2mdbT('Der Index wird aufgebaut. Es werden bereits Basis-Einträge angezeigt, sobald sie verfügbar sind.','Der Index wird aufgebaut. Es werden bereits Basis-Einträge angezeigt, sobald sie verfügbar sind.');
+      grid.appendChild(p);
+    }
+    state.browser.hasMore=!!data.has_more;
+    if((data.items||[]).length) state.browser.page += 1;
+  } finally {
+    state.browser.loading=false;
+  }
+  updateBrowserMoreButton();
+  saveBrowserSnapshot();
+}
+function renderBrowserDetail(base, loadingText='Lade Zusatzdaten…'){
+  const media=(base&&base.media)||{}, data=(base&&base.data)||{}, result=(base&&base.result)||{}, raw=(base&&base.raw)||{};
+  const title=raw.title||raw.name||data.title||data.name||result.title||result.name||media.search_string||media.file_name||raw.file_name||'Ohne Titel';
+  const cover=data.cover_url||data.cover_path||result.cover_url||raw.cover_url||'';
+  state.browser.currentSeriesCover = cover || '';
+  const backdrop=data.backdrop_url||data.backdrop_path||result.backdrop_url||raw.backdrop_url||'';
+  const genres=data.genres||result.genres||raw.genres||window.e2mdbT('Keine Genres','Keine Genres');
+  const released=data.released||result.released||raw.released||raw.year||window.e2mdbT('Unbekannt','Unbekannt');
+  const overview=data.overview||result.overview||raw.overview||window.e2mdbT('Keine Detailbeschreibung vorhanden.','Keine Detailbeschreibung vorhanden.');
+  const mediaType=(base&&base.media_type)||data.media_type||result.media_type||raw.media_type||'unbekannt';
+  const runtime = data.runtime || result.runtime || raw.runtime || '';
+  const rating = data.vote_average || result.vote_average || raw.vote_average || '';
+  const votes = data.vote_count || result.vote_count || raw.vote_count || '';
+  const providerLabel = (base&&base.provider) || data.provider || result.provider || raw.provider || '';
+  const fileName = media.file_name || raw.file_name || '';
+  const posterHtml = cover ? `<img class="poster clickable" id="browserHeroPoster" title=window.e2mdbT("Vollansicht umschalten","Vollansicht umschalten") src="${escapeHtml(cover)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'poster clickable',id:'browserHeroPoster'}))">` : `<div class="poster clickable" id="browserHeroPoster" title=window.e2mdbT("Vollansicht umschalten","Vollansicht umschalten")></div>`;
+  const heroClass = mediaType==='series' ? 'hero series' : 'hero';
+  const backdropHtml = (backdrop && mediaType !== 'series') ? `<img class="backdrop" src="${escapeHtml(backdrop)}" onerror="this.remove()">` : '';
+  const playId = media.hash || media.id || raw.media_hash || raw.id || '';
+  const mediaActions = (fileName && mediaType==='movie') ? `<div class="media-actions"><button type="button" class="icon-btn" id="browserPlayBtn" title=window.e2mdbT("Abspielen","Abspielen") aria-label=window.e2mdbT("Abspielen","Abspielen")>▶</button><button type="button" class="icon-btn alt" id="browserStopBtn" title=window.e2mdbT("Stop","Stop") aria-label=window.e2mdbT("Stop","Stop")>■</button></div>` : '';
+  $('#browserDetail').innerHTML=`<div class="${heroClass}">${posterHtml}<div><h2 style="margin-top:0;margin-bottom:8px">${escapeHtml(title)}</h2><div class="badges">${mediaType?`<span class="badge">${escapeHtml(mediaType)}</span>`:''}${released?`<span class="badge">${escapeHtml(released)}</span>`:''}${genres?`<span class="badge">${escapeHtml(genres)}</span>`:''}${rating?`<span class="badge">⭐ ${escapeHtml(String(rating))}</span>`:''}</div><p style="margin-top:12px">${escapeHtml(overview)}</p>${mediaActions}<div class="split section"><div><strong>Basisdaten</strong><div class="tiny muted" style="margin-top:8px;line-height:1.7">Titel: ${escapeHtml(title)}<br>${(data.title||result.title) && (data.title||result.title)!==title ? `Provider-Titel: ${escapeHtml(data.title||result.title)}<br>` : ''}Typ: ${escapeHtml(mediaType)}<br>Jahr/Release: ${escapeHtml(String(released))}<br>Genres: ${escapeHtml(genres)}<br>${runtime?`Laufzeit: ${escapeHtml(String(runtime))}<br>`:''}${votes?`Votes: ${escapeHtml(String(votes))}<br>`:''}${providerLabel?`Provider: ${escapeHtml(providerLabel)}<br>`:''}${fileName?`Datei: ${escapeHtml(fileName)}`:'Kein Dateiname verfügbar'}</div></div><div id="browserExtraHint" class="tiny muted" style="display:none"></div></div></div></div>${backdropHtml}<div id="browserExtra" class="section"></div>`;
+  const playBtn = $('#browserPlayBtn'); if(playBtn) playBtn.onclick=()=>playMedia(playId);
+  const stopBtn = $('#browserStopBtn'); if(stopBtn) stopBtn.onclick=()=>stopMedia();
+  const heroPoster = $('#browserHeroPoster');
+  if(heroPoster) heroPoster.onclick = () => {
+    const browser = $('#browser');
+    if(!browser) return;
+    const nextCollapsed = !browser.classList.contains('browser-collapsed');
+    setBrowserCollapsed(nextCollapsed);
+    if(nextCollapsed){
+      const detail = $('#browserDetail');
+      if(detail) detail.scrollTop = 0;
+      browser.scrollIntoView({block:'start', behavior:'smooth'});
+    }
+  };
+  wireBrowserToggle();
+}
+async function selectBrowser(id){
+  state.browser.selected=id;
+  document.querySelectorAll('#browserGrid .card').forEach(x=>x.classList.toggle('active', x.dataset.id===id));
+  const raw = state.browser.itemCache[id] || {id, title:'', file_name:'', overview:''};
+  const mediaHash = raw.media_hash || raw.id || id;
+  renderBrowserDetail({raw}, 'Lade lokale Detaildaten…');
+  const rawMediaType = raw.media_type || raw.provider_media_type || raw.metadata_media_type || '';
+  if(rawMediaType === 'series'){
+    // v16 behaviour: show the available season overview immediately from the
+    // already loaded browser card payload. Do not open any season automatically.
+    renderSeriesPanel(mediaHash, raw.local_inventory_preview || raw.local_inventory || raw, {}, raw.cast || []);
+  }
+  let item = {success:false, media:{}, data:{}, result:{}, raw};
+  try {
+    const payload = await api({action:'browser_item', id:mediaHash});
+    item = Object.assign({success:true, media:{}, data:{}, result:{}, raw}, payload||{});
+    if(item.success === false && item.error){
+      renderBrowserDetail({raw}, item.error);
+      $('#browserExtra').innerHTML = `<h3>Erweiterte Infos</h3><p class="muted tiny">${escapeHtml(item.error)}</p>`;
+      return;
+    }
+    renderBrowserDetail(Object.assign({}, item, {raw}), 'Lade lokale Zusatzdaten…');
+  } catch(e) {
+    renderBrowserDetail({raw}, 'Detaildaten konnten nicht geladen werden.');
+    $('#browserExtra').innerHTML = `<h3>Erweiterte Infos</h3><p class="muted tiny">${escapeHtml(String(e))}</p>`;
+    return;
+  }
+  const mediaType=(item.media_type||item.result.media_type||raw.media_type||'');
+  if(mediaType==='series'){
+    // After browser_item re-rendered the detail panel, immediately restore the
+    // local season overview from the already known card data, then refine it
+    // with series_details in the background.
+    renderSeriesPanel(mediaHash, raw.local_inventory_preview || raw.local_inventory || raw, {}, raw.cast || []);
+    loadSeriesDetails(mediaHash);
+  } else {
+    loadMovieDetails(item);
+  }
+}
+
+async function loadMovieDetails(item){
+  const raw = item.raw || state.browser.itemCache[state.browser.selected] || {};
+  const data = item.data || {};
+  const localCast = uniqueStrings((raw.cast||[]).concat(data.cast||[]).concat((item.result&&item.result.cast)||[]).concat(String(raw.cast_text||'').split(',').map(x=>x.trim()).filter(Boolean)).concat(String(data.cast_text||'').split(',').map(x=>x.trim()).filter(Boolean)));
+  if(localCast.length){
+    state.browser.castMap[state.browser.selected]=localCast;
+    refreshCastOptions();
+    updateBrowserFacets({years:[...$('#browserYear').options].slice(1).map(o=>o.value), genres:[...$('#browserGenre').options].slice(1).map(o=>o.value), casts:state.browser.castOptions});
+  }
+  $('#browserExtraHint').textContent='Lokale Daten geladen.';
+  $('#browserExtra').innerHTML=`<h3>Erweiterte Infos</h3><div class="split"><div><p class="tiny muted">Bewertung: ${escapeHtml((data.vote_average||item.result.vote_average||raw.vote_average||''))} (${escapeHtml((data.vote_count||item.result.vote_count||raw.vote_count||''))} Votes)</p><p>${escapeHtml(data.tagline||'')}</p><p class="tiny muted">Originaltitel: ${escapeHtml(data.original_title||data.original_name||'')}</p></div><div><strong>Darsteller</strong><div class="pill-row" style="margin-top:8px">${localCast.slice(0,20).map(c=>castPillHtml(c)).join('')||'<span class="muted tiny">keine Darstellerdaten</span>'}</div></div></div>`;
+  wirePersonPills($('#browserExtra'));
+}
+
+function normalizeSeriesLocal(rawLocal, selectedRaw={}, details={}){
+  const raw = rawLocal || {};
+  const seasonsSrc = (raw.seasons && raw.seasons.length) ? raw.seasons : (selectedRaw.seasons || []);
+  const seasons = (seasonsSrc || []).map(s => ({
+    season_no: String(s.season_no || s.season_number || ''),
+    episode_count: parseInt(s.episode_count || ((s.items || []).length) || 0, 10) || 0,
+    episodes: s.episodes || [],
+    items: s.items || [],
+    files: s.files || []
+  })).filter(s => parseInt(s.season_no || 0, 10) > 0)
+    .sort((a,b)=>(parseInt(a.season_no||0,10)||0)-(parseInt(b.season_no||0,10)||0));
+  return {
+    series_title: raw.series_title || selectedRaw.series_title || selectedRaw.title || details.name || details.title || '',
+    season_count: (parseInt(raw.season_count || 0, 10) || 0) || seasons.length || (parseInt(selectedRaw.season_count || 0, 10) || 0),
+    episode_count: (parseInt(raw.episode_count || 0, 10) || 0) || seasons.reduce((sum, s) => sum + (parseInt(s.episode_count || 0, 10) || 0), 0) || (parseInt(selectedRaw.episode_count || 0, 10) || 0),
+    seasons: seasons,
+    files: raw.files || selectedRaw.files || [],
+    cast: raw.cast || selectedRaw.cast || []
+  };
+}
+function renderSeriesPanel(id, rawLocal={}, details={}, castList=[]){
+  const selectedRaw = state.browser.itemCache[state.browser.selected] || {};
+  const local = normalizeSeriesLocal(rawLocal, selectedRaw, details || {});
+  const remoteSeasons = ((details && details.seasons) || []).filter(Boolean);
+  const seasonMap = new Map();
+  remoteSeasons.forEach(s => {
+    const no = parseInt(s.season_no || s.season_number || 0, 10);
+    if(no > 0) seasonMap.set(String(no), {season_no:String(no), local:null, remote:s});
+  });
+  (local.seasons || []).forEach(s => {
+    const no = parseInt(s.season_no || 0, 10);
+    if(no <= 0) return;
+    const cur = seasonMap.get(String(no)) || {season_no:String(no), remote:null};
+    cur.local = s;
+    seasonMap.set(String(no), cur);
+  });
+  const seasons = [...seasonMap.values()].sort((a,b)=>(parseInt(a.season_no||0,10)||0)-(parseInt(b.season_no||0,10)||0));
+  const cast = uniqueStrings(((castList && castList.length ? castList : (details.cast || local.cast || selectedRaw.cast || [])) || []).map(x => typeof x === 'string' ? x : (x.name || x.actor || '')));
+  if(cast.length){
+    state.browser.castMap[state.browser.selected||id]=cast;
+    refreshCastOptions();
+    updateBrowserFacets({years:[...$('#browserYear').options].slice(1).map(o=>o.value), genres:[...$('#browserGenre').options].slice(1).map(o=>o.value), casts:state.browser.castOptions});
+  }
+  const box = $('#browserExtra');
+  if(!box) return;
+  $('#browserExtraHint').textContent = 'Lokale Serieninfos aus DB geladen.';
+  box.innerHTML=`<div class="series-stack"><div class="season-box"><h3>${escapeHtml(local.series_title||details.name||details.title||'Serie')} / Staffeln</h3><div class="tiny muted">In DB: ${escapeHtml(String(local.season_count||0))} Staffeln · ${escapeHtml(String(local.episode_count||0))} Folgen</div><div id="seasonPills" class="pill-row" style="margin-top:10px">${seasons.map(s=>`<button type="button" class="pill" data-season="${escapeHtml(s.season_no||'')}">Staffel ${escapeHtml(s.season_no||'')}${s.local&&s.local.episode_count?` · ${escapeHtml(String(s.local.episode_count))} Ep`:''}</button>`).join('')||'<span class="muted tiny">keine Staffeln</span>'}</div><div id="seasonInfo" class="section tiny muted">Keine Staffel ausgewählt.</div><div class="section"><strong>Darsteller</strong><div class="pill-row" style="margin-top:8px">${cast.slice(0,20).map(c=>castPillHtml(c)).join('')||'<span class="muted tiny">keine Darstellerdaten</span>'}</div></div></div><div class="episodes-box" style="display:none"><h3>Episoden</h3><div id="episodesGrid" class="cards"></div></div></div>`;
+  document.querySelectorAll('#seasonPills .pill').forEach(btn => btn.onclick = () => loadSeason(id, btn.dataset.season, local));
+  wirePersonPills(box);
+}
+async function loadSeriesDetails(id){
+  resetEpisodeLoader();
+  let payload={details:{}, success:false, local_inventory:{}};
+  try { payload=await api({action:'series_details', id}); } catch(e){ $('#browserExtraHint').textContent='Serien-Detaildaten konnten nicht geladen werden.'; $('#browserExtra').innerHTML=`<h3>Serie</h3><p class="muted tiny">${escapeHtml(String(e))}</p>`; return; }
+  const d=payload.details||{};
+  const selectedRaw = state.browser.itemCache[state.browser.selected] || {};
+  const payloadLocal = payload.local_inventory || selectedRaw.local_inventory_preview || {};
+  const cast=uniqueStrings(((d.cast||payloadLocal.cast||selectedRaw.cast||[]).map(x=>typeof x==='string'?x:(x.name||x.actor||''))));
+  renderSeriesPanel(id, payloadLocal, d, cast);
+}
+async function loadSeason(id, season_no, localInventory=null){
+  setBrowserCollapsed(true);
+  const detail=$('#browserDetail'); if(detail) detail.scrollTop=0;
+  document.querySelectorAll('#seasonPills .pill').forEach(x=>x.classList.toggle('active', x.dataset.season===season_no));
+  resetEpisodeLoader();
+  state.browser.currentSeasonId = `${id}:${season_no}`;
+  const localSeason=((localInventory&&localInventory.seasons)||[]).find(s=>String(s.season_no||s.season_no||'')===String(season_no));
+  const localItems = (localSeason && localSeason.items) ? localSeason.items.filter(item => !!(item && item.id)) : [];
+  let payload={details:{}};
+  // Fast path: series_details already delivers all local episode rows. Do not wait
+  // for another backend round-trip when the user clicks a season button.
+  if(!localItems.length){
+    try { payload=await api({action:'season_details', id, season_no:season_no}); } catch(e){ payload={details:{}}; }
+  }
+  const details=payload.details||{};
+  const localByNo = new Map(localItems.map(item => [String(item.episode_no||''), item]));
+  const localByFile = new Map(localItems.map(item => [String(item.file_name||'').toLowerCase(), item]));
+  let episodes=[];
+  (details.episodes||[]).forEach(ep => {
+    const episode_no = ep.episode_no || ep.number || ep.episode_number || '';
+    let localItem = localByNo.get(String(episode_no||''));
+    if(!localItem && ep.file_name) localItem = localByFile.get(String(ep.file_name||'').toLowerCase());
+    if(!localItem) return;
+    const explicitEpisodeImage = localItem.episode_cover_url || localItem.episode_preview_url || ep.episode_cover_url || ep.episode_preview_url || ep.preview_url || ep.image || ep.still_path || localItem.preview_url || localItem.cover_url || ep.cover_url || '';
+    episodes.push({
+      episode_no: episode_no,
+      episode_name: ep.episode_name || ep.name || ep.title || localItem.title || localItem.episode_title || (localItem.file_name ? fileStem(localItem.file_name) : `Episode ${episode_no}`.trim()),
+      overview: ep.overview || ep.description || ep.plot || localItem.overview || localItem.description || localItem.extended || (localItem.file_name ? `Datei: ${localItem.file_name}` : ''),
+      released: ep.released || ep.first_aired || ep.air_date || localItem.released || localItem.air_date || '',
+      cover_url: explicitEpisodeImage || state.browser.currentSeriesCover || '',
+      backdrop_url: ep.backdrop_url || '',
+      preview_url: explicitEpisodeImage || '',
+      file_name: localItem.file_name || ep.file_name || '',
+      file_path: localItem.file_path || ep.file_path || '',
+      media_hash: localItem.media_hash || localItem.id || ep.media_hash || ep.id || '',
+      id: localItem.media_hash || localItem.id || ep.media_hash || ep.id || localItem.file_path || ep.file_path || ''
+    });
+  });
+  if(!episodes.length && localItems.length){
+    episodes = localItems.map(item => {
+      const explicitEpisodeImage = item.episode_cover_url || item.episode_preview_url || item.preview_url || item.cover_url || '';
+      return {
+        episode_no: item.episode_no || '',
+        episode_name: item.title || item.episode_title || item.name || (item.file_name ? fileStem(item.file_name) : `Episode ${item.episode_no||''}`.trim()),
+        overview: item.overview || item.description || item.extended || (item.file_name ? `Datei: ${item.file_name}` : ''),
+        released: item.released || item.air_date || '',
+        cover_url: explicitEpisodeImage || state.browser.currentSeriesCover || '',
+        backdrop_url: '',
+        preview_url: explicitEpisodeImage || '',
+        file_name: item.file_name || '',
+        file_path: item.file_path || '',
+        media_hash: item.media_hash || item.id || '',
+        id: item.media_hash || item.id || item.file_path || ''
+      };
+    });
+  }
+  episodes = episodes.filter(ep => !!ep.id);
+  episodes.sort((a,b)=>(parseInt(a.episode_no||0,10)||0)-(parseInt(b.episode_no||0,10)||0));
+  $('#seasonInfo').innerHTML = `Aktive Staffel: ${escapeHtml(String(season_no))}${episodes.length?` · ${escapeHtml(String(episodes.length))} Folgen`:''}${localItems.length?` · ${escapeHtml(String(localItems.length))} Dateien in DB`:''}`;
+  $('#episodesGrid').innerHTML = '';
+  state.browser.episodeItems = episodes;
+  const episodesBox = document.querySelector('.episodes-box');
+  if(episodesBox) episodesBox.style.display='block';
+  if(!episodes.length){
+    $('#episodesGrid').innerHTML = '<p class="muted">Keine abspielbaren Episoden im Bestand gefunden.</p>';
+    return;
+  }
+  renderEpisodeBatch(true);
+  if(episodesBox) episodesBox.scrollIntoView({block:'start', behavior:'smooth'});
+}
+
+
+function ensureBrowserGridFill(){
+  // Keep MediaBrowser lazy. Older versions tried to fill the viewport automatically
+  // and could issue many backend requests before the user saw the first page.
+  updateBrowserMoreButton();
+}
+function onBrowserGridScroll(){
+  const pane = $('#browserScrollArea');
+  if(!pane || state.browser.loading || !state.browser.hasMore) return;
+  if((pane.scrollTop + pane.clientHeight) >= (pane.scrollHeight - 320)){
+    loadBrowser(false);
+  }
+}
+
+const triggerBrowser = debounce(() => {
+  state.browser.type=$('#browserType').value;
+  const q=$('#browserSearch').value.trim();
+  state.browser.q=(q.length>=2||q.length===0)?q:'';
+  state.browser.year=$('#browserYear').value;
+  state.browser.genre=$('#browserGenre').value;
+  state.browser.cast=$('#browserCast').value || '';
+  loadBrowser(true);
+});
+$('#browserSearch').addEventListener('input', triggerBrowser); $('#browserType').addEventListener('change', triggerBrowser); $('#browserYear').addEventListener('change', triggerBrowser); $('#browserGenre').addEventListener('change', triggerBrowser); $('#browserCast').addEventListener('input', triggerBrowser); $('#browserCast').addEventListener('change', triggerBrowser);
+function setBrowserLetter(letter){ state.browser.letter=letter; renderAlpha($('#browserLetters'), letter, setBrowserLetter); loadBrowser(true); }
+renderAlpha($('#browserLetters'), '', setBrowserLetter);
+
+const browserScrollEl = $('#browserScrollArea');
+if(browserScrollEl){
+  browserScrollEl.addEventListener('scroll', onBrowserGridScroll, {passive:true});
+  browserScrollEl.addEventListener('wheel', () => { setTimeout(onBrowserGridScroll, 0); }, {passive:true});
+  browserScrollEl.addEventListener('touchmove', () => { setTimeout(onBrowserGridScroll, 0); }, {passive:true});
+}
+const browserSentinel = $('#browserSentinel');
+if(browserScrollEl && browserSentinel){
+  const browserObserver = new IntersectionObserver((entries) => {
+    if(entries[0] && entries[0].isIntersecting && state.browser.hasMore && !state.browser.loading){
+      loadBrowser(false);
+    }
+  }, {root: browserScrollEl, rootMargin: '600px 0px 600px 0px', threshold: 0.01});
+  browserObserver.observe(browserSentinel);
+}
+const browserLoadMoreBtn = $('#browserLoadMore');
+if(browserLoadMoreBtn){
+  browserLoadMoreBtn.onclick = () => loadBrowser(false);
+  browserLoadMoreBtn.textContent = window.e2mdbT('Mehr laden','Mehr laden');
+}
+window.addEventListener('resize', ensureBrowserGridFill, {passive:true});
+window.addEventListener('scroll', () => { if(document.getElementById('browser') && document.getElementById('browser').classList.contains('active')) setTimeout(onBrowserGridScroll, 0); }, {passive:true});
+
+
+function toolSetText(id, text, isError=false){
+  const el = $(id);
+  if(!el) return;
+  el.classList.toggle('tool-status-bad', !!isError);
+  el.classList.toggle('muted', !text);
+  el.textContent = text || 'Keine Daten.';
+}
+function toolPercent(value){
+  const n = parseInt(value || 0, 10);
+  if(!Number.isFinite(n)) return '0%';
+  return `${Math.max(0, Math.min(100, n))}%`;
+}
+function toolTime(value){
+  const n = parseInt(value || 0, 10);
+  if(!n) return '-';
+  try { return new Date(n * 1000).toLocaleString(); } catch(e) { return String(value); }
+}
+function toolFormatJob(job){
+  if(!job) return 'Kein Backend-Job aktiv.';
+  return [
+    `ID: ${job.id || '-'}`,
+    `Typ: ${job.type || '-'}`,
+    `Status: ${job.state || '-'}`,
+    `Phase: ${job.phase || '-'}`,
+    `Fortschritt: ${toolPercent(job.percent)} (${job.current || 0}/${job.total || 0})`,
+    `Meldung: ${job.message || '-'}`,
+    `Quelle: ${job.source || '-'}`,
+    `Start: ${toolTime(job.started)}`
+  ].join('\n');
+}
+function toolFormatKV(obj, keys){
+  if(!obj || typeof obj !== 'object') return 'Keine Daten.';
+  const rows = [];
+  (keys || Object.keys(obj)).forEach(key => {
+    const value = obj[key];
+    if(value === undefined || value === null || typeof value === 'object') return;
+    rows.push(`${key}: ${value}`);
+  });
+  return rows.length ? rows.join('\n') : JSON.stringify(obj, null, 2);
+}
+async function toolCall(endpoint, params={}, outId=null){
+  if(outId) toolSetText(outId, 'Lade…');
+  try{
+    const data = await apiJson(endpoint, params);
+    if(outId) toolSetText(outId, JSON.stringify(data, null, 2), !(data && data.success !== false));
+    return data;
+  }catch(e){
+    if(outId) toolSetText(outId, `Fehler: ${e}`, true);
+    return {success:false, error:String(e)};
+  }
+}
+async function loadToolsJobs(){
+  const out = '#toolsJobsOut';
+  toolSetText(out, 'Lade Backend-Jobs…');
+  const current = await toolCall('jobs/current');
+  const queue = await toolCall('jobs/queue');
+  const history = await toolCall('jobs/history');
+  const job = current && current.job;
+  const q = queue && queue.queue ? queue.queue : {};
+  const items = history && history.history && Array.isArray(history.history.items) ? history.history.items.slice(0, 8) : [];
+  const lines = [];
+  lines.push('Aktueller Job');
+  lines.push('------------');
+  lines.push(toolFormatJob(job));
+  lines.push('');
+  lines.push('Queue');
+  lines.push('-----');
+  lines.push(`Modus: ${q.mode || 'single_worker'}`);
+  lines.push(`Running: ${q.running ? 'ja' : 'nein'}`);
+  lines.push(`Pending: ${q.pending_count || 0}`);
+  if(q.note) lines.push(`Hinweis: ${q.note}`);
+  lines.push('');
+  lines.push('Verlauf');
+  lines.push('-------');
+  if(!items.length){
+    lines.push('Kein Verlauf vorhanden.');
+  } else {
+    items.forEach(item => lines.push(`${toolTime(item.finished || item.ended || item.updated)} · ${item.type || item.job_type || '-'} · ${item.success === false ? 'failed' : 'ok'} · ${item.message || ''}`));
+  }
+  toolSetText(out, lines.join('\n'));
+}
+async function loadToolsDb(){
+  const out = '#toolsDbOut';
+  toolSetText(out, 'Lade DB-Status…');
+  const db = await toolCall('database/status');
+  const status = db && (db.status || db.database || db);
+  const lines = ['DB-Status', '---------'];
+  lines.push(toolFormatKV(status));
+  toolSetText(out, lines.join('\n'), db && db.success === false);
+}
+async function loadToolsMedia(){
+  const out = '#toolsDbOut';
+  toolSetText(out, 'Lade Medienstatus…');
+  const data = await toolCall('media/status');
+  toolSetText(out, JSON.stringify(data, null, 2), data && data.success === false);
+}
+async function loadToolsLiveQueue(){
+  const out = '#toolsLiveOut';
+  const stateValue = ($('#toolsLiveState') && $('#toolsLiveState').value) || 'all';
+  const limitValue = ($('#toolsLiveLimit') && $('#toolsLiveLimit').value) || '30';
+  toolSetText(out, 'Lade Live/EPG Queue…');
+  const status = await toolCall('live/queue/status');
+  const list = await toolCall('live/queue/list', {state:stateValue, limit:limitValue});
+  const queue = status && status.queue ? status.queue : {};
+  const items = list && Array.isArray(list.items) ? list.items : (list && list.queue && Array.isArray(list.queue.items) ? list.queue.items : []);
+  const lines = [];
+  lines.push('Queue-Status');
+  lines.push('------------');
+  lines.push(toolFormatKV(queue));
+  lines.push('');
+  lines.push(`Einträge (${items.length})`);
+  lines.push('-------');
+  if(!items.length){
+    lines.push('Keine Einträge.');
+  } else {
+    items.slice(0, parseInt(limitValue, 10) || 30).forEach(item => {
+      lines.push(`${item.state || '-'} · ${item.title || item.search_title || item.source_key || '-'} · attempts=${item.attempts || 0} · ${item.last_error || ''}`);
+    });
+  }
+  toolSetText(out, lines.join('\n'), status && status.success === false);
+}
+async function loadToolsScanPaths(){
+  await toolCall('scanner/paths', {count_files:'0'}, '#toolsScanPathsOut');
+}
+async function loadToolsSummary(){
+  state.tools.loaded = true;
+  await Promise.allSettled([loadToolsJobs(), loadToolsDb(), loadToolsLiveQueue(), loadToolsScanPaths()]);
+}
+async function runToolAction(endpoint, params, outId, after){
+  const data = await toolCall(endpoint, params || {}, outId);
+  if(typeof after === 'function') await after(data);
+  return data;
+}
+function initToolsPage(){
+  if(state.tools.wired) return;
+  state.tools.wired = true;
+  const bind = (id, fn) => { const el = $(id); if(el) el.onclick = fn; };
+  bind('#toolsRefreshAll', () => loadToolsSummary());
+  bind('#toolsStopJob', () => runToolAction('jobs/scan/stop', {}, '#toolsJobsOut', loadToolsJobs));
+  bind('#toolsLoadJobs', () => loadToolsJobs());
+  bind('#toolsStartScan', () => runToolAction('jobs/scan-enrich/start', {limit:'100'}, '#toolsJobsOut', loadToolsJobs));
+  bind('#toolsStartLiveWorker', () => runToolAction('live/worker/start', {limit:'25'}, '#toolsJobsOut', loadToolsJobs));
+  bind('#toolsLoadDb', () => loadToolsDb());
+  bind('#toolsLoadMedia', () => loadToolsMedia());
+  bind('#toolsLoadLiveQueue', () => loadToolsLiveQueue());
+  bind('#toolsResetLiveRunning', () => runToolAction('live/queue/reset-running', {}, '#toolsLiveOut', loadToolsLiveQueue));
+  bind('#toolsClearLiveFailed', () => runToolAction('live/queue/clear', {mode:'failed'}, '#toolsLiveOut', loadToolsLiveQueue));
+  bind('#toolsDbMaintenance', () => runToolAction('database/maintenance', {vacuum:'1', reindex:'0'}, '#toolsMaintenanceOut'));
+  bind('#toolsCleanupDry', () => runToolAction('cleanup/run', {dry_run:'1'}, '#toolsMaintenanceOut'));
+  bind('#toolsCleanupRun', () => runToolAction('cleanup/run', {dry_run:'0'}, '#toolsMaintenanceOut'));
+  bind('#toolsCacheStatus', () => runToolAction('cache/status', {}, '#toolsMaintenanceOut'));
+  bind('#toolsCacheCleanup', () => runToolAction('cache/cleanup', {action:'all_cache', dry_run:'0'}, '#toolsMaintenanceOut'));
+  bind('#toolsLoadScanPaths', () => loadToolsScanPaths());
+  const liveState = $('#toolsLiveState');
+  if(liveState) liveState.onchange = loadToolsLiveQueue;
+  const liveLimit = $('#toolsLiveLimit');
+  if(liveLimit) liveLimit.onchange = loadToolsLiveQueue;
+}
+
+const storedTab = localStorage.getItem('e2mdb.activeTab');
+const initialTab = (storedTab === 'browser' || storedTab === 'tools') ? storedTab : 'editor';
+setActiveTab(initialTab, {initial:true});
+updateBrowserMoreButton();
+</script>
+</body>
+</html>

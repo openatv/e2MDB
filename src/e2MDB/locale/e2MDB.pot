@@ -1,0 +1,1110 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-19 09:15+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "%s / %s  %s%%  %s"
+msgstr ""
+
+msgid "%s / %s  %s%%  total %s%%  %s"
+msgstr ""
+
+msgid "%s%%  %s"
+msgstr ""
+
+msgid "--- Basic configuration ---"
+msgstr ""
+
+msgid "--- Expert and diagnostics ---"
+msgstr ""
+
+msgid "--- Live TV and EPG metadata ---"
+msgstr ""
+
+msgid "--- Metadata providers ---"
+msgstr ""
+
+msgid "Aborted"
+msgstr ""
+
+msgid "Actors"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Add e2MDB to the Enigma2 main menu. The plugin remains available in the plugin browser when this is disabled."
+msgstr ""
+
+msgid "Add from channel list"
+msgstr ""
+
+msgid "Add from current EPG titles"
+msgstr ""
+
+msgid "Add from media folders"
+msgstr ""
+
+msgid "Add ignore pattern"
+msgstr ""
+
+msgid "Add manually"
+msgstr ""
+
+msgid "Add path"
+msgstr ""
+
+msgid "Add pattern"
+msgstr ""
+
+msgid "Add selected"
+msgstr ""
+
+msgid "Advanced options are hidden by default. The old local Enigma2 worker/progress options were removed for clean-start backend mode."
+msgstr ""
+
+msgid "All cache (without database)"
+msgstr ""
+
+msgid "All cache + database"
+msgstr ""
+
+msgid "Anime Movie"
+msgstr ""
+
+msgid "Anime Series"
+msgstr ""
+
+msgid "Artwork: with artwork %s  missing artwork %s"
+msgstr ""
+
+msgid "Attach e2MDB metadata sources to ChannelSelection and queue missing entries for the backend daemon."
+msgstr ""
+
+msgid "Attach e2MDB metadata sources to live TV InfoBar and queue missing entries for the backend daemon."
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Backdrop only"
+msgstr ""
+
+msgid "Backdrop, fallback preview/still"
+msgstr ""
+
+msgid "Backend cleanup started. Please wait!"
+msgstr ""
+
+msgid "Backend is not available:"
+msgstr ""
+
+msgid "Backend job could not be started:"
+msgstr ""
+
+msgid "Backend job finished."
+msgstr ""
+
+msgid "Backend job will be started. Please wait!"
+msgstr ""
+
+msgid "Backend job will be stopped. Please wait!"
+msgstr ""
+
+msgid "Backend job: %s"
+msgstr ""
+
+msgid "Backend job: %s  Part %s/%s"
+msgstr ""
+
+msgid "Backend not running"
+msgstr ""
+
+msgid "Base path for e2MDB cache files, provider artwork, database and generated metadata."
+msgstr ""
+
+msgid "Both"
+msgstr ""
+
+msgid "Bouquet %d/%d: %s"
+msgstr ""
+
+msgid "Bouquets"
+msgstr ""
+
+msgid "Bouquets: %d   Full: %d   Partial: %d   Total selected services: %d"
+msgstr ""
+
+msgid "CPU load: %s  System load: %s / %d cores"
+msgstr ""
+
+msgid "Cache cleanup"
+msgstr ""
+
+msgid "Cache path"
+msgstr ""
+
+msgid "Channel names: %d   Selected: %d"
+msgstr ""
+
+msgid "Choose whether e2MDB log lines are written to e2MDB.log, the Enigma2 debug log, or both."
+msgstr ""
+
+msgid "Clean Cache"
+msgstr ""
+
+msgid "Cleaning cache"
+msgstr ""
+
+msgid "Cleanup candidates: expired Live/EPG %s  queue %s  primary cache %s"
+msgstr ""
+
+msgid "Cleanup finished: %s\nDeleted files: %d\nDeleted folders: %d"
+msgstr ""
+
+msgid "Clear failed"
+msgstr ""
+
+msgid "Clear prefill"
+msgstr ""
+
+msgid "Clear queue"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Close screen"
+msgstr ""
+
+msgid "Collecting media files"
+msgstr ""
+
+msgid "Configured services"
+msgstr ""
+
+msgid "Core settings used by e2MDB. Heavy scan, provider, artwork, cleanup and scheduler work is handled by the backend daemon."
+msgstr ""
+
+msgid "Could not save ignore list:\n%s"
+msgstr ""
+
+msgid "Could not start missing media metadata/artwork retry:\n%s"
+msgstr ""
+
+msgid "Covers/artwork only"
+msgstr ""
+
+msgid "DB maintenance"
+msgstr ""
+
+msgid "DB status and maintenance"
+msgstr ""
+
+msgid "DB status could not be read: %s"
+msgstr ""
+
+msgid "Database is currently busy; refresh again for detailed counters."
+msgstr ""
+
+msgid "Database only"
+msgstr ""
+
+msgid "Database: %s  Size: %s  Free inside DB: %s"
+msgstr ""
+
+msgid "Define if the path contains movies, series or both. This is used to optimize the scan process."
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Delete '%s'?\n\nThis cannot be undone."
+msgstr ""
+
+msgid "Deselect all"
+msgstr ""
+
+msgid "Director"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Duration"
+msgstr ""
+
+msgid "EPG titles: %d   Selected: %d"
+msgstr ""
+
+msgid "ERROR trying to remove pictures and data from cache.: %s"
+msgstr ""
+
+msgid "Edit pattern"
+msgstr ""
+
+msgid "Enable ChannelSelection metadata"
+msgstr ""
+
+msgid "Enable InfoBar metadata"
+msgstr ""
+
+msgid "Enable Live/EPG metadata cache"
+msgstr ""
+
+msgid "Enable Live/EPG prefill"
+msgstr ""
+
+msgid "Enable Media Database"
+msgstr ""
+
+msgid "Enable e2MDB database/cache integration. Provider and scan work runs in the backend daemon, not in the Enigma2 GUI process."
+msgstr ""
+
+msgid "Enable short-lived metadata caching for Live TV and EPG events."
+msgstr ""
+
+msgid "English metadata text fallback"
+msgstr ""
+
+msgid "Enigma2 debug log"
+msgstr ""
+
+msgid "Enigma2 only collects Live/EPG candidates. Provider processing is backend-only."
+msgstr ""
+
+msgid "Enter your personal API key for OMDb."
+msgstr ""
+
+msgid "Enter your personal API key for TMDb."
+msgstr ""
+
+msgid "Enter your personal API key for TVDb."
+msgstr ""
+
+msgid "Enter your personal FanArt.tv API key."
+msgstr ""
+
+msgid "Episode"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Event View"
+msgstr ""
+
+msgid "Event View Actions"
+msgstr ""
+
+msgid "Exclude"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Failed to read DB status: %s"
+msgstr ""
+
+msgid "Failed to read prefill status: %s"
+msgstr ""
+
+msgid "Failed to read worker queue: %s"
+msgstr ""
+
+msgid "FanArt.tv API key"
+msgstr ""
+
+msgid "FanArt.tv artwork mode"
+msgstr ""
+
+msgid "File split: TS recordings %s  media files %s"
+msgstr ""
+
+msgid "Fill missing artwork only"
+msgstr ""
+
+msgid "Fill only missing artwork, or prefer FanArt.tv artwork over artwork from the metadata provider."
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Folder names: %d   Selected: %d"
+msgstr ""
+
+msgid "Google title translation fallback"
+msgstr ""
+
+msgid "Google title translation target language"
+msgstr ""
+
+msgid "Hour of day used for night prefill checks."
+msgstr ""
+
+msgid "INFO"
+msgstr ""
+
+msgid "Idle time"
+msgstr ""
+
+msgid "If the selected provider language returns artwork but no usable text, retry provider metadata once in English."
+msgstr ""
+
+msgid "Ignored EPG title patterns"
+msgstr ""
+
+msgid "Ignored folder name patterns"
+msgstr ""
+
+msgid "Ignored service name patterns"
+msgstr ""
+
+msgid "Imported files: %s  Media entries: %s  Browser-ready: %s"
+msgstr ""
+
+msgid "Importing scan data"
+msgstr ""
+
+msgid "Include subdirectories"
+msgstr ""
+
+msgid "Keep matched Live/EPG metadata for this number of days after the event ended."
+msgstr ""
+
+msgid "Language used for provider searches and provider API requests."
+msgstr ""
+
+msgid "Last SQLite maintenance: %s"
+msgstr ""
+
+msgid "Last action failed: %s"
+msgstr ""
+
+msgid "Last action: %s removed %d queue entries."
+msgstr ""
+
+msgid "Last action: no active no-match entries found."
+msgstr ""
+
+msgid "Last action: refreshed at %s"
+msgstr ""
+
+msgid "Last action: requeued %d active no-match entries, %s."
+msgstr ""
+
+msgid "Last cleanup stats:"
+msgstr ""
+
+msgid "Last cleanup: %s"
+msgstr ""
+
+msgid "Last manual action result:"
+msgstr ""
+
+msgid "Last no-EPG: %s   Last service with events: %s"
+msgstr ""
+
+msgid "Last prefill run: %s"
+msgstr ""
+
+msgid "Last scan"
+msgstr ""
+
+msgid "Live/EPG Prefill status"
+msgstr ""
+
+msgid "Live/EPG Worker queue"
+msgstr ""
+
+msgid "Live/EPG cache"
+msgstr ""
+
+msgid "Live/EPG cleanup"
+msgstr ""
+
+msgid "Live/EPG metadata worker"
+msgstr ""
+
+msgid "Live/EPG prefill days"
+msgstr ""
+
+msgid "Live/EPG retention in days"
+msgstr ""
+
+msgid "Live/EPG worker aborted"
+msgstr ""
+
+msgid "Live/EPG worker queue"
+msgstr ""
+
+msgid "Live/EPG: active %s  expired %s  queue %s"
+msgstr ""
+
+msgid "Log mode"
+msgstr ""
+
+msgid "Log output"
+msgstr ""
+
+msgid "MENU"
+msgstr ""
+
+msgid "Maintenance: enabled %s  VACUUM %s  REINDEX %s"
+msgstr ""
+
+msgid "Manga Movie"
+msgstr ""
+
+msgid "Manga Series"
+msgstr ""
+
+msgid "Manual Live/EPG prefill services"
+msgstr ""
+
+msgid "Manual selected services: %d"
+msgstr ""
+
+msgid "Mark all"
+msgstr ""
+
+msgid "Mark bouquet"
+msgstr ""
+
+msgid "Maximum events per prefill service"
+msgstr ""
+
+msgid "Maximum number of EPG events to queue per prefill run across all channels."
+msgstr ""
+
+msgid "Maximum number of future EPG events inspected per service."
+msgstr ""
+
+msgid "Maximum number of preferred channels selected from zap/watch history."
+msgstr ""
+
+msgid "Maximum prefill events"
+msgstr ""
+
+msgid "Media path scan completed:"
+msgstr ""
+
+msgid "Media refresh"
+msgstr ""
+
+msgid "Media scan"
+msgstr ""
+
+msgid "Media scan finished"
+msgstr ""
+
+msgid "Media types: movies %s  series %s  episodes %s  unknown %s"
+msgstr ""
+
+msgid "Metadata download"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "More..."
+msgstr ""
+
+msgid "Movie"
+msgstr ""
+
+msgid "Movie cache"
+msgstr ""
+
+msgid "Movie/Series"
+msgstr ""
+
+msgid "Music"
+msgstr ""
+
+msgid "Night prefill"
+msgstr ""
+
+msgid "Night prefill start hour"
+msgstr ""
+
+msgid "Night window"
+msgstr ""
+
+msgid "Night window is recommended for backend-only processing."
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "No TV bouquets found"
+msgstr ""
+
+msgid "No media files found in configured scan paths"
+msgstr ""
+
+msgid "No media path selected."
+msgstr ""
+
+msgid "No patterns configured"
+msgstr ""
+
+msgid "No pending queue entries."
+msgstr ""
+
+msgid "No prefill queue entries."
+msgstr ""
+
+msgid "No queue entries."
+msgstr ""
+
+msgid "No recent prefill queue entries."
+msgstr ""
+
+msgid "No recent queue entries."
+msgstr ""
+
+msgid "No recordings need provider enrichment"
+msgstr ""
+
+msgid "No selectable entries found"
+msgstr ""
+
+msgid "No valid recording/media scan paths found"
+msgstr ""
+
+msgid "No-EPG tracked: %d   blocked now: %d"
+msgstr ""
+
+msgid "Non-recursive"
+msgstr ""
+
+msgid "Nothing found!"
+msgstr ""
+
+msgid "Novel"
+msgstr ""
+
+msgid "Number of future EPG days to inspect for preferred channels."
+msgstr ""
+
+msgid "OK = Edit"
+msgstr ""
+
+msgid "OK = Mark"
+msgstr ""
+
+msgid "OK = Open"
+msgstr ""
+
+msgid "OMDb API key"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "Off keeps existing DB metadata/artwork and only scans new or changed files. On reprocesses existing entries and may download metadata/artwork again."
+msgstr ""
+
+msgid "Off writes nothing. On writes real errors only. Verbose writes the full diagnostic log."
+msgstr ""
+
+msgid "On"
+msgstr ""
+
+msgid "Open the e2MDB EventView for EPG events when metadata exists."
+msgstr ""
+
+msgid "Open the e2MDB media EventView for recordings/media when metadata exists."
+msgstr ""
+
+msgid "Optimize e2MDB database"
+msgstr ""
+
+msgid "Optional fallback provider. OMDb requires an API key and is not localized."
+msgstr ""
+
+msgid "Paths"
+msgstr ""
+
+msgid "Patterns: %d   Stored in %s"
+msgstr ""
+
+msgid "Pending worker queue:"
+msgstr ""
+
+msgid "Please add all missing personal provider API-Key(s)s in e2MDB settings or deactivate providers."
+msgstr ""
+
+msgid "Prefer FanArt artwork"
+msgstr ""
+
+msgid "Prefill busy"
+msgstr ""
+
+msgid "Prefill channels"
+msgstr ""
+
+msgid "Prefill mode"
+msgstr ""
+
+msgid "Prefill queue summary:"
+msgstr ""
+
+msgid "Prefill request failed"
+msgstr ""
+
+msgid "Prefill requested"
+msgstr ""
+
+msgid "Prefill runs should collect enough future EPG events during the night. Only candidate creation happens in Enigma2; provider work stays in the backend daemon."
+msgstr ""
+
+msgid "Prefill selected/preferred Live/EPG metadata"
+msgstr ""
+
+msgid "Prefill state error: %s"
+msgstr ""
+
+msgid "Prefill state file: %s"
+msgstr ""
+
+msgid "Prefill state: tracked %s  blocked now %s"
+msgstr ""
+
+msgid "Prefill status / diagnostics"
+msgstr ""
+
+msgid "Preparing Live/EPG cleanup"
+msgstr ""
+
+msgid "Preparing Live/EPG queue"
+msgstr ""
+
+msgid "Preparing Live/EPG queue worker"
+msgstr ""
+
+msgid "Preparing provider search"
+msgstr ""
+
+msgid "Preview/still, fallback backdrop"
+msgstr ""
+
+msgid "Processing Live/EPG metadata"
+msgstr ""
+
+msgid "Processing:"
+msgstr ""
+
+msgid "Provider enrichment completed:"
+msgstr ""
+
+msgid "Provider search finished"
+msgstr ""
+
+msgid "Provider search language"
+msgstr ""
+
+msgid "Provider: done %s  pending %s  missing %s  errors %s"
+msgstr ""
+
+msgid "Queue future EPG events for selected/preferred channels so the backend can process them overnight."
+msgstr ""
+
+msgid "Queue state summary:"
+msgstr ""
+
+msgid "Queue states: %s"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Re-scan existing media entries"
+msgstr ""
+
+msgid "Ready"
+msgstr ""
+
+msgid "Rebuild SQLite indexes during backend maintenance. Usually not needed."
+msgstr ""
+
+msgid "Recent Live/EPG events:"
+msgstr ""
+
+msgid "Recent prefill queue entries:"
+msgstr ""
+
+msgid "Recently updated queue entries:"
+msgstr ""
+
+msgid "Recursive"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Remove expired Live/EPG metadata and queue entries"
+msgstr ""
+
+msgid "Remove path"
+msgstr ""
+
+msgid "Reset No-EPG"
+msgstr ""
+
+msgid "Retry missing media metadata/artwork"
+msgstr ""
+
+msgid "Retry no match"
+msgstr ""
+
+msgid "Retry no-match after hours"
+msgstr ""
+
+msgid "Retry of missing media metadata/artwork started."
+msgstr ""
+
+msgid "Rotate e2MDB.log when this size is reached."
+msgstr ""
+
+msgid "Run Live/EPG prefill now"
+msgstr ""
+
+msgid "Run cleanup"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "Running SQLite maintenance"
+msgstr ""
+
+msgid "SQLite REINDEX"
+msgstr ""
+
+msgid "SQLite VACUUM"
+msgstr ""
+
+msgid "SQLite maintenance"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Scan e2MDB media folders"
+msgstr ""
+
+msgid "Scan selected media paths + provider metadata"
+msgstr ""
+
+msgid "Scan successfully finished."
+msgstr ""
+
+msgid "Scan was canceled by user."
+msgstr ""
+
+msgid "Scanning TS recordings"
+msgstr ""
+
+msgid "Scanning media files"
+msgstr ""
+
+msgid "Scanning:"
+msgstr ""
+
+msgid "Search in AniList Anime/Manga"
+msgstr ""
+
+msgid "Search in IMDb"
+msgstr ""
+
+msgid "Search in Kitsu Anime/Manga"
+msgstr ""
+
+msgid "Search in OMDb"
+msgstr ""
+
+msgid "Search in TMDb"
+msgstr ""
+
+msgid "Search in TVDb"
+msgstr ""
+
+msgid "Search in TVSpielfilm for German Live/EPG"
+msgstr ""
+
+msgid "Search in TVmaze"
+msgstr ""
+
+msgid "Searching Live/EPG metadata"
+msgstr ""
+
+msgid "Searching internet metadata"
+msgstr ""
+
+msgid "Season"
+msgstr ""
+
+msgid "Select EPG titles to ignore"
+msgstr ""
+
+msgid "Select folder names to ignore"
+msgstr ""
+
+msgid "Select manual Live/EPG prefill channels"
+msgstr ""
+
+msgid "Select path for media"
+msgstr ""
+
+msgid "Select service names to ignore"
+msgstr ""
+
+msgid "Select which image type should be preferred for service-list previews."
+msgstr ""
+
+msgid "Select which online providers e2MDB may use. Keep the default providers enabled for best automatic matching."
+msgstr ""
+
+msgid "Selected in bouquet: %d / %d   Total selected services: %d"
+msgstr ""
+
+msgid "Series"
+msgstr ""
+
+msgid "Series cache"
+msgstr ""
+
+msgid "Service list preview image"
+msgstr ""
+
+msgid "Show e2MDB EventView for EPG events"
+msgstr ""
+
+msgid "Show e2MDB EventView for media events"
+msgstr ""
+
+msgid "Show in main menu"
+msgstr ""
+
+msgid "Show next page"
+msgstr ""
+
+msgid "Show previous page"
+msgstr ""
+
+msgid "Shrink e2MDB SQLite database files during backend maintenance."
+msgstr ""
+
+msgid "Skipping unchanged media files"
+msgstr ""
+
+msgid "Standby only"
+msgstr ""
+
+msgid "Start scan"
+msgstr ""
+
+msgid "Stop scan"
+msgstr ""
+
+msgid "Succesful"
+msgstr ""
+
+msgid "Successful"
+msgstr ""
+
+msgid "TCP port used by the e2MDB backend web interface. Default is 6066."
+msgstr ""
+
+msgid "TMDb API key"
+msgstr ""
+
+msgid "TVDb API key"
+msgstr ""
+
+msgid "Target language for fallback search titles."
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Translate English metadata fallback"
+msgstr ""
+
+msgid "Translate only the title when normal provider search finds no result."
+msgstr ""
+
+msgid "Translate overview and tagline from the English fallback into the selected provider language before storing them."
+msgstr ""
+
+msgid "Treat a negative Live/EPG provider result as cached for this many hours, then allow another lookup."
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Unmark all"
+msgstr ""
+
+msgid "Unmark bouquet"
+msgstr ""
+
+msgid "Use AniList for Anime/Manga path modes."
+msgstr ""
+
+msgid "Use FanArt.tv after another provider matched a movie or series."
+msgstr ""
+
+msgid "Use FanArt.tv artwork fallback"
+msgstr ""
+
+msgid "Use IMDb as an additional movie and series fallback provider."
+msgstr ""
+
+msgid "Use Kitsu for Anime/Manga path modes."
+msgstr ""
+
+msgid "Use TMDb for movie and series metadata. Recommended as the primary provider."
+msgstr ""
+
+msgid "Use TVDb for series metadata and episode/season artwork."
+msgstr ""
+
+msgid "Use TVSpielfilm as preferred provider for German Live/EPG metadata."
+msgstr ""
+
+msgid "Use TVmaze as a free series fallback provider without API key."
+msgstr ""
+
+msgid "Use Wikimedia/Wikipedia as Live/EPG fallback artwork provider."
+msgstr ""
+
+msgid "Use Wikimedia/Wikipedia image fallback for Live/EPG"
+msgstr ""
+
+msgid "Use fernsehserien.de as German Live/EPG image fallback."
+msgstr ""
+
+msgid "Use fernsehserien.de image fallback for German Live/EPG"
+msgstr ""
+
+msgid "Use preferred channels from zap/watch history for prefill decisions."
+msgstr ""
+
+msgid "Use zap history"
+msgstr ""
+
+msgid "Validating media scan paths"
+msgstr ""
+
+msgid "Verbose"
+msgstr ""
+
+msgid "Web interface port"
+msgstr ""
+
+msgid "What should be deleted?"
+msgstr ""
+
+msgid "Writer"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "Zap history top channels"
+msgstr ""
+
+msgid "as"
+msgstr ""
+
+msgid "available"
+msgstr ""
+
+msgid "e2MDB"
+msgstr ""
+
+msgid "e2MDB EventView"
+msgstr ""
+
+msgid "e2MDB Live/EPG Cleanup"
+msgstr ""
+
+msgid "e2MDB Live/EPG Prefill"
+msgstr ""
+
+msgid "e2MDB Refresh"
+msgstr ""
+
+msgid "e2MDB SQLite Maintenance"
+msgstr ""
+
+msgid "e2MDB Settings"
+msgstr ""
+
+msgid "e2MDB Single EPG"
+msgstr ""
+
+msgid "e2MDB tools"
+msgstr ""
+
+msgid "e2MDB.log"
+msgstr ""
+
+msgid "e2MDB.log max size (MB)"
+msgstr ""
+
+msgid "episode"
+msgstr ""
+
+msgid "failed/error"
+msgstr ""
+
+msgid "finished"
+msgstr ""
+
+msgid "min"
+msgstr ""
+
+msgid "not available"
+msgstr ""
+
+msgid "per record"
+msgstr ""
+
+msgid "prefill"
+msgstr ""
+
+msgid "season"
+msgstr ""
+
+msgid "unkown"
+msgstr ""
+
+msgid "worker request failed"
+msgstr ""
+
+msgid "worker requested"
+msgstr ""
+
+msgid "{not yet}"
+msgstr ""

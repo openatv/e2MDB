@@ -1,0 +1,83 @@
+<setupxml>
+	<setup key="e2MDB" title="e2MDB Settings" showOpenWebif="1" allowDefault="1">
+		<item text="--- Basic configuration ---" description="Core settings used by e2MDB. Heavy scan, provider, artwork, cleanup and scheduler work is handled by the backend daemon." />
+		<item level="0" text="Enable Media Database" description="Enable e2MDB database/cache integration. Provider and scan work runs in the backend daemon, not in the Enigma2 GUI process.">config.plugins.e2mdb.enableDatabase</item>
+		<item level="0" text="Show in main menu" description="Add e2MDB to the Enigma2 main menu. The plugin remains available in the plugin browser when this is disabled.">config.plugins.e2mdb.showInMainMenu</item>
+		<item level="1" text="Re-scan existing media entries" description="Off keeps existing DB metadata/artwork and only scans new or changed files. On reprocesses existing entries and may download metadata/artwork again.">config.plugins.e2mdb.scannerRescanExisting</item>
+		<item level="0" text="Cache path" description="Base path for e2MDB cache files, provider artwork, database and generated metadata.">config.plugins.e2mdb.cachePath</item>
+		<item level="1" text="Web interface port" description="TCP port used by the e2MDB backend web interface. Default is 6066.">config.plugins.e2mdb.webPort</item>
+		<item level="0" text="Provider search language" description="Language used for provider searches and provider API requests.">config.plugins.e2mdb.lang</item>
+
+		<item text="--- Metadata providers ---" description="Select which online providers e2MDB may use. Keep the default providers enabled for best automatic matching." />
+		<item level="0" text="Search in TMDb" description="Use TMDb for movie and series metadata. Recommended as the primary provider.">config.plugins.e2mdb.tmdbactive</item>
+		<if conditional="config.plugins.e2mdb.tmdbactive.value">
+			<item level="0" text="TMDb API key" indent="1" description="Enter your personal API key for TMDb.">config.plugins.e2mdb.tmdbapikey</item>
+		</if>
+		<item level="0" text="Search in TVDb" description="Use TVDb for series metadata and episode/season artwork.">config.plugins.e2mdb.tvdbactive</item>
+		<if conditional="config.plugins.e2mdb.tvdbactive.value">
+			<item level="0" text="TVDb API key" indent="1" description="Enter your personal API key for TVDb.">config.plugins.e2mdb.tvdbapikey</item>
+		</if>
+		<!-- IMDB provider disabled, keep provider/IMDB.py in place: <item level="0" text="Search in IMDb" description="Use IMDb as an additional movie and series fallback provider.">config.plugins.e2mdb.imdbactive</item> -->
+		<item level="0" text="Search in TVmaze" description="Use TVmaze as a free series fallback provider without API key.">config.plugins.e2mdb.tvmazeactive</item>
+		<item level="0" text="Search in Cinemeta" description="Use Cinemeta (Stremio addon) as a free movie and series fallback provider without API key. English metadata only.">config.plugins.e2mdb.cinemetaactive</item>
+		<item level="0" text="Search in TVSpielfilm for German Live/EPG" description="Use TVSpielfilm as preferred provider for German Live/EPG metadata.">config.plugins.e2mdb.tvspielfilmactive</item>
+		<item level="0" text="Use fernsehserien.de image fallback for German Live/EPG" description="Use fernsehserien.de as German Live/EPG image fallback.">config.plugins.e2mdb.fernsehserienactive</item>
+		<item level="0" text="Search in OMDb" description="Optional fallback provider. OMDb requires an API key and is not localized.">config.plugins.e2mdb.omdbactive</item>
+		<if conditional="config.plugins.e2mdb.omdbactive.value">
+			<item level="0" text="OMDb API key" indent="1" description="Enter your personal API key for OMDb.">config.plugins.e2mdb.omdbapikey</item>
+		</if>
+		<item level="0" text="Search in AniList Anime/Manga" description="Use AniList for Anime/Manga path modes.">config.plugins.e2mdb.animeactive</item>
+		<item level="0" text="Search in Kitsu Anime/Manga" description="Use Kitsu for Anime/Manga path modes.">config.plugins.e2mdb.kitsuactive</item>
+		<item level="0" text="Use Wikimedia/Wikipedia image fallback for Live/EPG" description="Use Wikimedia/Wikipedia as Live/EPG fallback artwork provider.">config.plugins.e2mdb.wikimediaactive</item>
+		<item level="0" text="Use FanArt.tv artwork fallback" description="Use FanArt.tv after another provider matched a movie or series.">config.plugins.e2mdb.fanartactive</item>
+		<if conditional="config.plugins.e2mdb.fanartactive.value">
+			<item level="0" text="FanArt.tv API key" indent="1" description="Enter your personal FanArt.tv API key.">config.plugins.e2mdb.fanartapikey</item>
+			<item level="0" text="FanArt.tv artwork mode" description="Fill only missing artwork, or prefer FanArt.tv artwork over artwork from the metadata provider.">config.plugins.e2mdb.fanartmode</item>
+		</if>
+
+		<item text="--- Live TV and EPG metadata ---" description="Enigma2 only collects Live/EPG candidates. Provider processing is backend-only." />
+		<item level="0" text="Enable Live/EPG metadata cache" description="Enable short-lived metadata caching for Live TV and EPG events.">config.plugins.e2mdb.epgMetaEnabled</item>
+		<if conditional="config.plugins.e2mdb.epgMetaEnabled.value">
+			<item level="0" text="Show e2MDB EventView for EPG events" indent="1" description="Open the e2MDB EventView for EPG events when metadata exists.">config.plugins.e2mdb.epgEventViewUseE2MDB</item>
+			<item level="0" text="Show e2MDB EventView for media events" indent="1" description="Open the e2MDB media EventView for recordings/media when metadata exists.">config.plugins.e2mdb.mediaEventViewUseE2MDB</item>
+			<item level="0" text="Enable InfoBar metadata" indent="1" description="Attach e2MDB metadata sources to live TV InfoBar and queue missing entries for the backend daemon.">config.plugins.e2mdb.epgInfoBarEnabled</item>
+			<item level="0" text="Enable ChannelSelection metadata" indent="1" description="Attach e2MDB metadata sources to ChannelSelection and queue missing entries for the backend daemon.">config.plugins.e2mdb.epgChannelSelectionEnabled</item>
+			<item level="0" text="Service list preview image" indent="1" description="Select which image type should be preferred for service-list previews.">config.plugins.e2mdb.epgServiceListPreviewMode</item>
+			<item level="0" text="Live/EPG retention in days" indent="1" description="Keep matched Live/EPG metadata for this number of days after the event ended.">config.plugins.e2mdb.epgRetentionDays</item>
+			<item level="0" text="No-match retention in hours" indent="1" description="Keep no-match Live/EPG entries for this number of hours after the event ended.">config.plugins.e2mdb.epgNoMatchRetentionHours</item>
+
+			<item text="Night prefill" indent="1" description="Prefill runs should collect enough future EPG events during the night. Only candidate creation happens in Enigma2; provider work stays in the backend daemon." />
+			<item level="0" text="Enable Live/EPG prefill" indent="1" description="Queue future EPG events for selected/preferred channels so the backend can process them overnight.">config.plugins.e2mdb.epgPrefillEnabled</item>
+			<if conditional="config.plugins.e2mdb.epgPrefillEnabled.value">
+				<item level="0" text="Prefill mode" indent="2" description="Night window is recommended for backend-only processing.">config.plugins.e2mdb.epgPrefillMode</item>
+				<item level="0" text="Night prefill start hour" indent="2" description="Hour of day used for night prefill checks.">config.plugins.e2mdb.epgPrefillStartHour</item>
+				<item level="0" text="Live/EPG prefill days" indent="2" description="Number of future EPG days to inspect for preferred channels.">config.plugins.e2mdb.epgPrefillHorizonDays</item>
+				<item level="0" text="Maximum prefill events" indent="2" description="Maximum number of EPG events to queue per prefill run across all channels.">config.plugins.e2mdb.epgPrefillMaxEvents</item>
+				<item level="0" text="Maximum events per prefill service" indent="2" description="Maximum number of future EPG events inspected per service.">config.plugins.e2mdb.epgPrefillMaxEventsPerService</item>
+				<item level="0" text="Use zap history" indent="2" description="Use preferred channels from zap/watch history for prefill decisions.">config.plugins.e2mdb.epgUseZapHistory</item>
+				<if conditional="config.plugins.e2mdb.epgUseZapHistory.value">
+					<item level="0" text="Zap history top channels" indent="3" description="Maximum number of preferred channels selected from zap/watch history.">config.plugins.e2mdb.epgZapHistoryTopN</item>
+				</if>
+			</if>
+		</if>
+
+		<item text="--- Expert and diagnostics ---" description="Advanced options are hidden by default. The old local Enigma2 worker/progress options were removed for clean-start backend mode." />
+		<item level="0" text="Log mode" description="Off writes nothing. On writes real errors only. Verbose writes the full diagnostic log.">config.plugins.e2mdb.debugLog</item>
+		<if conditional="config.plugins.e2mdb.debugLog.value != 0">
+			<item level="1" text="Log output" indent="1" description="Choose whether e2MDB log lines are written to e2MDB.log, the Enigma2 debug log, or both.">config.plugins.e2mdb.logTarget</item>
+			<if conditional="config.plugins.e2mdb.logTarget.value != 'debuglog'">
+				<item level="1" text="e2MDB.log max size (MB)" indent="1" description="Rotate e2MDB.log when this size is reached.">config.plugins.e2mdb.logRotateSizeMb</item>
+			</if>
+		</if>
+		<item level="2" text="Google title translation fallback" description="Translate only the title when normal provider search finds no result.">config.plugins.e2mdb.translateTitleSearch</item>
+		<if conditional="config.plugins.e2mdb.translateTitleSearch.value">
+			<item level="2" text="Google title translation target language" indent="1" description="Target language for fallback search titles.">config.plugins.e2mdb.translateTitleSearchLanguage</item>
+		</if>
+		<item level="2" text="English metadata text fallback" description="If the selected provider language returns artwork but no usable text, retry provider metadata once in English.">config.plugins.e2mdb.providerEnglishTextFallback</item>
+		<if conditional="config.plugins.e2mdb.providerEnglishTextFallback.value">
+			<item level="2" text="Translate English metadata fallback" indent="1" description="Translate overview and tagline from the English fallback into the selected provider language before storing them.">config.plugins.e2mdb.translateMetadataFallback</item>
+		</if>
+		<item level="2" text="SQLite VACUUM" description="Shrink e2MDB SQLite database files during backend maintenance.">config.plugins.e2mdb.epgCleanupSqliteVacuum</item>
+		<item level="2" text="SQLite REINDEX" description="Rebuild SQLite indexes during backend maintenance. Usually not needed.">config.plugins.e2mdb.epgCleanupSqliteReindex</item>
+	</setup>
+</setupxml>
