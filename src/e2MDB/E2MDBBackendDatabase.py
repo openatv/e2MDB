@@ -23,7 +23,6 @@ CACHE_DIRS = ("data", "index", "series", "seasons", "backdrop", "cover", "titlel
 ARTWORK_CACHE_DIRS = ("cover", "backdrop", "titlelogo", "image", "preview", "fanart", "fernsehserien", "wikimedia", "wikipedia")
 PRIMARY_HASH_CACHE_DIRS = ("data", "results", "cover", "backdrop", "titlelogo", "image")
 
-
 def safe_int(value, default=0):
 	try:
 		return int(value)
@@ -247,6 +246,7 @@ class BackendDatabase:
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_provider_matches_best ON e2mdb_provider_matches(media_hash, is_best)")
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_provider_matches_provider ON e2mdb_provider_matches(provider)")
 
+
 	def _create_live_epg_display_schema(self, conn):
 		"""Create the clean-start Live/EPG display tables used by the Enigma2 GUI."""
 		conn.execute("""
@@ -343,6 +343,7 @@ class BackendDatabase:
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_epg_events_search_title ON e2mdb_epg_events(search_title)")
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_epg_events_expires ON e2mdb_epg_events(expires_at)")
 
+
 	def _create_live_epg_queue_schema(self, conn):
 		"""Create the clean-start Live/EPG queue table owned by the backend."""
 		conn.execute("""
@@ -370,6 +371,7 @@ class BackendDatabase:
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_fetch_queue_event_end ON e2mdb_fetch_queue(event_end)")
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_fetch_queue_updated ON e2mdb_fetch_queue(updated_at DESC)")
 
+
 	def _create_state_schema(self, conn):
 		conn.execute("""
 			CREATE TABLE IF NOT EXISTS e2mdb_backend_state (
@@ -391,6 +393,7 @@ class BackendDatabase:
 			return dumps(payload, ensure_ascii=False, sort_keys=True)
 		except Exception:
 			return "{}"
+
 
 	def _media_fields_from_recording(self, item):
 		hash_id = str(item.get("id") or "").strip()
@@ -823,6 +826,7 @@ class BackendDatabase:
 				})
 				conn.commit()
 		return {"success": True, "status": status, "media_hash": media_hash, "matches": len(matches)}
+
 
 	def _decode_json_value(self, value, fallback=None):
 		if fallback is None:
@@ -1840,6 +1844,7 @@ class BackendDatabase:
 			state = {}
 		return {"success": True, "state": state, "counts": counts}
 
+
 	def schema(self):
 		self.ensure_schema()
 		with self.lock:
@@ -2080,6 +2085,7 @@ class BackendDatabase:
 				conn.commit()
 				return {"success": True, "reset": int(cur.rowcount or 0)}
 
+
 	def live_epg_queue_retry_no_match(self, active_only=True, priority=90):
 		"""Requeue cached Live/EPG no-match rows for a deliberate provider retry.
 
@@ -2149,6 +2155,7 @@ class BackendDatabase:
 					"priority": priority,
 				}
 
+
 	def live_epg_queue_clear(self, mode="failed"):
 		"""Delete Live/EPG queue rows owned by the backend.
 
@@ -2178,6 +2185,7 @@ class BackendDatabase:
 				cur = conn.execute("DELETE FROM e2mdb_fetch_queue WHERE " + where)
 				conn.commit()
 				return {"success": True, "mode": mode, "label": label, "removed": int(cur.rowcount or 0)}
+
 
 	def live_epg_queue_next_item(self, now=None, min_priority=None):
 		"""Claim the next pending Live/EPG queue item for daemon-side processing.
@@ -2532,6 +2540,7 @@ class BackendDatabase:
 					""", (event_id, asset_id, confidence, metadata.get("provider", ""), now))
 		return {"success": True, "source_key": source_key, "status": status, "asset_id": asset_id}
 
+
 	def live_epg_queue_upsert_backend_result(self, queue_item, provider_result):
 		"""Store a daemon-side Live/EPG provider result without making it a MediaBrowser row.
 
@@ -2592,6 +2601,7 @@ class BackendDatabase:
 				})
 				conn.commit()
 		return result
+
 
 	def _live_epg_classify_artwork_path(self, path):
 		text = str(path or "").strip().lower()
@@ -2974,6 +2984,7 @@ class BackendDatabase:
 			except Exception:
 				pass
 		return base
+
 
 	def _count_table_rows(self, conn, table, where="", params=None):
 		params = params or []
@@ -3585,6 +3596,7 @@ class BackendDatabase:
 				self.cleanup_state_set("last_epg_cleanup", str(now))
 				self.cleanup_state_set("last_epg_cleanup_stats", dumps(result, sort_keys=True))
 			return result
+
 
 	def _is_safe_cache_base(self, cache_base):
 		try:

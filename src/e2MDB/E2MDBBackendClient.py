@@ -38,11 +38,9 @@ class E2MDBBackendClient:
 			except Exception:
 				pass
 
-
 def backend_request(command, timeout=None, **payload):
 	client = E2MDBBackendClient(timeout=timeout if timeout is not None else 2.0)
 	return client.request(command, **payload)
-
 
 def _serialize_paths(paths):
 	items = []

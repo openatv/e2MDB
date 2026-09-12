@@ -154,10 +154,10 @@ class E2MDBHelper:
 			episode_number = ep_details.episode_number
 			if season_number and episode_number:
 				se_ep = f"S{season_number:02d}E{episode_number:02d}"
-# elif season_number:
-# se_ep = f"S{season_number:02d}"
-# elif episode_number:
-# se_ep = f"E{episode_number:02d}"
+#			elif season_number:
+#				se_ep = f"S{season_number:02d}"
+#			elif episode_number:
+#				se_ep = f"E{episode_number:02d}"
 		return se_ep
 
 	def read_json_file(self, curr_file):

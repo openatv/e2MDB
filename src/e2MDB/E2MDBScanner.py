@@ -1216,3 +1216,4 @@ class E2MDBScanner(E2MDBHelper):
 			# "imdb": config.plugins.e2mdb.imdbactive.value,  # IMDB provider disabled, keep provider/IMDB.py in place
 		}
 		return providers.start(self.language, api_keys, series_search_order, movie_search_order)  # start all providers with default language
+

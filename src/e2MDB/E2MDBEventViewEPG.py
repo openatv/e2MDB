@@ -70,7 +70,6 @@ def _source_text(screen, source_name):
 		except Exception:
 			return ""
 
-
 def _ensure_neutral_button_sources(screen):
 	for widget in ("key_red", "key_green", "key_yellow", "key_blue"):
 		try:

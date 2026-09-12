@@ -73,6 +73,7 @@ class E2MDBLiveEPG(E2MDBHelper):
 		value = sub(r"[^a-z0-9äöüß ]+", " ", value)
 		return sub(r"\s+", " ", value).strip()
 
+
 	def epg_search_title(self, title):
 		"""Return a provider-friendly title for EPG events without changing the stable source key."""
 		cleaned = (title or "").strip()
@@ -102,6 +103,7 @@ class E2MDBLiveEPG(E2MDBHelper):
 			pass
 		cleaned = sub(r"\s+", " ", cleaned).strip(" -:;,.\t")
 		return cleaned or (title or "").strip()
+
 
 	def _ignored_title_patterns(self):
 		try:

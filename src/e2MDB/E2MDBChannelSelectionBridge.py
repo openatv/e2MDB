@@ -114,6 +114,7 @@ class E2MDBChannelSelectionBridge:
 		except Exception:
 			return True
 
+
 	def _mark_standard_sources_deferred(self, reason="selection"):
 		"""Keep Event/Service converters cache-only until the selection is stable.
 

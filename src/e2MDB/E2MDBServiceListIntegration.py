@@ -32,6 +32,7 @@ def _service_to_string(service):
 			return ""
 
 
+
 class E2MDBServiceListEventPixmapProvider:
 	def buildServiceListEventPixmap(self, service, begin_time=0, duration=0, title="", short_description="", extended_description="", size=None, next_event=False, fallback_to_picon=False):
 		service_ref = _service_to_string(service)

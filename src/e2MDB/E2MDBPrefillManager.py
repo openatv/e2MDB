@@ -419,6 +419,7 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 		except Exception as err:
 			self.log(f"STANDBY handler failed error={err}\n{format_exc()}", force=True)
 
+
 	def _request_timer_fired(self):
 		try:
 			if exists(PREFILL_REQUEST_FILE):
@@ -444,6 +445,7 @@ class E2MDBPrefillManager(E2MDBLiveEPG):
 			self.request_timer.startLongTimer(5)
 		except Exception:
 			pass
+
 
 	def _boost_state(self, now=None):
 		try:
@@ -1169,7 +1171,6 @@ class E2MDBPrefillBackgroundJob:
 			self.result["queued"] = int(self.result.get("queued", 0) or 0) + 1
 			manager.log(f"QUEUE UPSERT source_key={candidate.source_key} priority={manager._priority()} service='{candidate.service_name}' begin='{manager._format_time(candidate.begin_time)}' title='{candidate.title}' search_title='{candidate.search_title}'")
 			manager._poke_worker_after_queue(candidate.source_key, reason=self.reason)
-
 
 def get_prefill_background_job():
 	global _PREFILL_BACKGROUND

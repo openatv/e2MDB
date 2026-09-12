@@ -42,6 +42,8 @@ _DATA_NO_PREVIEW_TTL = 15
 _DB_TIMEOUT = 0.03
 
 
+
+
 MODULE_NAME = "[e2MDB][SERVICELIST]"
 
 
@@ -138,6 +140,7 @@ def _full_cache_path(path):
 	return path
 
 
+
 def _is_portrait_artwork_path(path):
 	try:
 		text = str(path or "").lower()
@@ -187,7 +190,6 @@ def _landscape_artwork_path(path):
 	# basename; do not drop those valid DB paths here. _preview_path() still
 	# verifies that the local file exists before loading a pixmap.
 	return path
-
 
 def _event_value(event, index, default=""):
 	try:
@@ -403,7 +405,6 @@ def _lookup_best_row(candidate):
 		_log_once(f"db-best-error-{getattr(candidate, "source_key", "")}", f"DB_LOOKUP_BEST_ERROR source_key='{getattr(candidate, "source_key", "")}' error={err}", force=True)
 		return {}, "error"
 
-
 def _build_data_from_row(candidate, row):
 	if not row:
 		return {}
@@ -529,6 +530,7 @@ def _get_entry_data(service_ref, event):
 	return data, candidate
 
 
+
 def _get_entry_data_from_values(service_ref, begin_time=0, duration=0, title="", short_desc="", extended_desc=""):
 	try:
 		debug_service = _normalize_service_ref(service_ref)
@@ -568,7 +570,6 @@ def _get_entry_data_from_values(service_ref, begin_time=0, duration=0, title="",
 	_log_once(f"values-result-{candidate.source_key}-{bool(data)}", lambda: f"VALUES_RESULT source_key={candidate.source_key} method={lookup_method} hit={bool(data)} service='{_short_service(candidate.service_ref)}' begin={candidate.begin_time} title='{candidate.title}' {_describe_data(data)}", force=True)
 	data = _set_cached_data(cache_key, data, source_key=candidate.source_key)
 	return data, candidate
-
 
 def _valid_file(path):
 	try:
@@ -646,7 +647,6 @@ def notifyE2MDBServiceListUpdated(source_key="", reason="worker"):
 		except Exception:
 			pass
 	return True
-
 
 def _normalize_size(size):
 	try:

@@ -72,6 +72,7 @@ class E2MDBInfoBarBridge:
 		except Exception:
 			return True
 
+
 	def _service_ref_to_string(self, ref):
 		try:
 			return ref.toString() if ref else ""
