@@ -89,6 +89,13 @@ class BackendDatabase:
 			pass
 		return conn
 
+	def _ensure_columns(self, conn, table, columns):
+		"""Backfill columns missing on an existing table (SQLite has no ADD COLUMN IF NOT EXISTS)."""
+		existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+		for name, ddl in columns:
+			if name not in existing:
+				conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
+
 	def create_schema(self):
 		with self.lock:
 			self._schema_ready = False
@@ -170,6 +177,9 @@ class BackendDatabase:
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
 		""")
+		self._ensure_columns(conn, "e2mdb_media", (
+			("browser_ready", "TEXT DEFAULT ''"),
+		))
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_media_hash ON e2mdb_media(hash)")
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_media_file_path ON e2mdb_media(file_path)")
 		conn.execute("CREATE INDEX IF NOT EXISTS idx_e2mdb_media_search_norm ON e2mdb_media(search_string_norm)")
@@ -1437,7 +1447,8 @@ class BackendDatabase:
 		if not item_id:
 			return []
 		where_ready, ready_params = self._browser_where_sql(include_pending=include_pending)
-		base_select = self._browser_select_sql(where_ready)
+		# TODO: base_select
+		base_select = self._browser_select_sql(where_ready)  # noqa F841
 		with self.lock:
 			with self._connect() as conn:
 				# Fast path for an exact media hash or file path. This is used by episode play buttons
@@ -2371,7 +2382,8 @@ class BackendDatabase:
 		artwork = provider_result.get("artwork") if isinstance(provider_result.get("artwork"), dict) else {}
 		provider_ids = best.get("provider_ids") if isinstance(best.get("provider_ids"), dict) else {}
 		title = self._first_non_empty(best.get("title"), best.get("name"), best.get("episode_name"), queue_item.get("search_title"), queue_item.get("title"))
-		subtitle = self._first_non_empty(best.get("episode_name"), best.get("tagline"), best.get("series_title"), best.get("show_title"))
+		# TODO: subtitle
+		subtitle = self._first_non_empty(best.get("episode_name"), best.get("tagline"), best.get("series_title"), best.get("show_title"))  # noqa F841
 		cover_path = self._first_portrait_artwork(*self._live_epg_cover_candidates(artwork, best))
 		image_src = str(best.get("image_src") or best.get("image_provider") or "").strip().lower()
 		image_path = self._first_landscape_artwork(
@@ -2486,7 +2498,8 @@ class BackendDatabase:
 		asset_id = None
 		if provider_result.get("success") and metadata.get("provider") and metadata.get("provider_id"):
 			asset_key = f"{metadata.get("media_type") or "multi"}|{metadata.get("provider")}|{metadata.get("provider_id")}"
-			artwork = metadata.get("artwork") if isinstance(metadata.get("artwork"), dict) else {}
+			# TODO: artwork
+			artwork = metadata.get("artwork") if isinstance(metadata.get("artwork"), dict) else {}  # noqa F841
 			best = metadata.get("best") if isinstance(metadata.get("best"), dict) else {}
 			# Do not persist provider artwork URLs/provenance in SQLite.
 			# Raw provider payloads are only kept as provider_result.json when debug is enabled.

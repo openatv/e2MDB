@@ -11,14 +11,12 @@
 from hashlib import md5
 from os import makedirs
 from os.path import isfile, isdir, join
-from time import localtime, strftime
 from PIL import Image
 from twisted.internet.reactor import callInThread
 
 # ENIGMA IMPORTS
 from enigma import eLabel, eServiceReference, eListboxPythonMultiContent, eListbox, eSize, gFont, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_BLEND, BT_SCALE, BT_KEEP_ASPECT_RATIO
 from Components.ActionMap import ActionMap, HelpableActionMap
-from Components.config import config
 from Components.GUIComponent import GUIComponent
 from Components.Pixmap import Pixmap
 from Components.ScrollLabel import ScrollLabel
@@ -27,16 +25,8 @@ from Components.Sources.Event import Event
 from Components.Sources.ServiceEvent import ServiceEvent
 from Components.Sources.StaticText import StaticText
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
-from Components.UsageConfig import preferredTimerPath
-from Components.PluginComponent import plugins
-from Plugins.Plugin import PluginDescriptor
-from RecordTimer import RecordTimerEntry, parseEvent
 from skin import parseColor, parseFont
-from Screens.ChoiceBox import ChoiceBox
-from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
-from Screens.TimerEntry import TimerEntry
-from Tools.BoundFunction import boundFunction
 from Tools.LoadPixmap import LoadPixmap
 
 # PLUGIN IMPORTS

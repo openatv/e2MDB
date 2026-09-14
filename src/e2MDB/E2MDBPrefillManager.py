@@ -23,7 +23,7 @@ from .E2MDBLiveEPG import E2MDBEPGCandidate, E2MDBLiveEPG
 from .E2MDBEPGBridge import _ensure_resultsdb_ready
 from .E2MDBPrefillConfig import E2MDBPrefillServices
 from .E2MDBIgnoreConfig import E2MDBIgnorePatterns
-from .E2MDBPriority import PRIORITY_PREFILL, PRIORITY_PREFILL_IDLE, PRIORITY_PREFILL_STANDBY, clamp_priority
+from .E2MDBPriority import PRIORITY_PREFILL, PRIORITY_PREFILL_IDLE, PRIORITY_PREFILL_STANDBY
 
 
 _PREFILL_MANAGER = None

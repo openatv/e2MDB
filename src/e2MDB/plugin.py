@@ -270,7 +270,7 @@ class E2MDBMain(E2MDBHelper, Screen):
 		else:
 			self["key_blue"].setText(_("Start scan"))
 
-	def check_settings(self):
+	def check_settings(self):  # TODO
 		err_msg = self.create_cache_paths()
 		if err_msg:
 			self.e2mdb_infobox.showDialog(_(f"The cache paths could not be created: {err_msg}"))

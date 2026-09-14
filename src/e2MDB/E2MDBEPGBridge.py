@@ -239,9 +239,9 @@ def _apply_standard_epg_meta(screen, event=None, service=None, candidate=None, e
 	"""Attach selected EPG metadata to the normal OpenATV Event/Service sources.
 
 	This lets standard EPG skins add optional panels such as:
-	  <widget source="Event" render="Pixmap" condition="config.plugins.e2mdb.epgMetaEnabled.value">
-	      <convert type="E2MDBEventInfo">Cover</convert>
-	  </widget>
+	<widget source="Event" render="Pixmap" condition="config.plugins.e2mdb.epgMetaEnabled.value">
+		<convert type="E2MDBEventInfo">Cover</convert>
+	</widget>
 	without requiring any E2MDB-specific EPG screen aliases.
 	"""
 	try:

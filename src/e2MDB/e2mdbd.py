@@ -950,7 +950,6 @@ class JobManager:
 		payload = self._require_metadata_scanner().scan_path_diagnostics(scan_paths, count_files=count_files, checkpoint=checkpoint)
 		payload["version"] = 1
 		payload["updated"] = int(time())
-		payload["scanner_module"] = "E2MDBScanner.py"
 		return payload
 
 	def get_scan_paths_status(self, count_files=False):
@@ -992,7 +991,6 @@ class JobManager:
 				"errors": path_status.get("invalid_count", 0),
 				"paths": scan_paths,
 				"path_status": path_status,
-				"scanner_module": "E2MDBScanner.py",
 				"message": "No valid recording/media scan paths found",
 			}
 			atomic_write_json(SCAN_STATE_FILE, summary)
@@ -1016,8 +1014,6 @@ class JobManager:
 		)
 		self._media_live_epg_checkpoint(reason="scan-file-collect-done", force=True)
 		total = len(files)
-		ts_total = len([path for path, _item in files if scanner.has_sidecar_infos(path)])
-		media_total = total - ts_total  # TODO
 		rescan_existing = self._scanner_rescan_existing(options)
 		existing_index = {}
 		if self.database and not rescan_existing:
@@ -1031,8 +1027,6 @@ class JobManager:
 			count_files=True,
 			checkpoint=lambda: self._media_live_epg_checkpoint(reason="scan-path-diagnostics"),
 		)
-		# TS recordings are parsed by E2MDBScanner.py.  Non-media sidecars and random
-		# files in recording folders are filtered before this point.
 		if scanner.native_parser_required_missing(files):
 			raise RuntimeError(scanner.native_parser_missing_message())
 		if total <= 0:
@@ -1046,7 +1040,6 @@ class JobManager:
 				"errors": len(path_status.get("errors", [])),
 				"paths": scan_paths,
 				"path_status": path_status,
-				"scanner_module": "E2MDBScanner.py",
 				"message": "No media files found in configured scan paths",
 			}
 			atomic_write_json(SCAN_STATE_FILE, summary)
@@ -1165,7 +1158,6 @@ class JobManager:
 			"parse_errors": error_count,
 			"paths": scan_paths,
 			"path_status": path_status,
-			"scanner_module": "E2MDBScanner.py",
 		}
 		payload = dict(summary)
 		payload["items"] = recordings
@@ -1523,6 +1515,9 @@ class JobManager:
 					log(f"live epg preempt claim recovery failed source_key={source_key}: {release_err}")
 				entry.update({"state": "pending", "success": False, "error": str(err)})
 				log(f"live epg preempt worker failed source_key={source_key}: {err}")
+			if not finalized:
+				# TODO: row stuck on state='running', no reaper resets it yet (see stale_running counter)
+				log(f"live epg preempt item not finalized, queue row stuck running source_key={source_key}")
 			items.append(entry)
 		payload = {
 			"success": True,
@@ -1636,6 +1631,9 @@ class JobManager:
 				except Exception as release_err:
 					log(f"live epg backend claim recovery failed source_key='{source_key}': {release_err}")
 				log(f"live epg backend worker failed source_key='{source_key}': {err}")
+			if not finalized:
+				# TODO: row stuck on state='running', no reaper resets it yet (see stale_running counter)
+				log(f"live epg worker item not finalized, queue row stuck running source_key='{source_key}'")
 			if self._media_waiting():
 				log(f"live epg worker yielding after item for waiting job={self.media_waiting_job}")
 				break

@@ -20,7 +20,7 @@ from . import write_log
 from .E2MDBDatabase import resultsdb
 from .E2MDBLiveEPG import E2MDBEPGCandidate, E2MDBLiveEPG
 from .E2MDBEPGBridge import _actionable_missing_images, _apply_standard_epg_meta, _clear_standard_epg_meta, _ensure_resultsdb_ready, _unregister_standard_epg_sources
-from .E2MDBPriority import PRIORITY_ADHOC_NOW, PRIORITY_CHANNEL_SELECTION, PRIORITY_SERVICELIST_NEXT, PRIORITY_SERVICELIST_NOW, clamp_priority
+from .E2MDBPriority import PRIORITY_ADHOC_NOW, PRIORITY_CHANNEL_SELECTION, PRIORITY_SERVICELIST_NEXT, PRIORITY_SERVICELIST_NOW
 
 
 _old_channel_selection_init = None
@@ -682,7 +682,7 @@ class E2MDBChannelSelectionBridge:
 		try:
 			from .E2MDBServiceListPreview import _full_cache_path
 		except Exception:
-			_full_cache_path = lambda value: value or ""
+			_full_cache_path = lambda value: value or ""  # noqa E731
 		for key in ("metadata_backdrop_path", "metadata_image_path"):
 			path = _full_cache_path(row.get(key) or "")
 			if path:
@@ -875,12 +875,6 @@ class E2MDBChannelSelectionBridge:
 		left_reserve_start = max(0, left_reserve_end - left_reserve_size)
 
 		epgg = eEPGCache.getInstance()
-		queued_visible_now = 0
-		queued_right_reserve_now = 0
-		queued_left_reserve_now = 0
-		queued_visible_next = 0
-		queued_right_reserve_next = 0
-		queued_left_reserve_next = 0
 
 		def candidate_debug_text(candidate):
 			try:

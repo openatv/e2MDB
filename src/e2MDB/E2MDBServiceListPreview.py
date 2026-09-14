@@ -499,6 +499,7 @@ def _get_entry_data(service_ref, event):
 	except Exception:
 		debug_service = str(service_ref or "")
 	if not event:
+		_log_once(f"event-skip-{debug_service}", f"EVENT_SKIP reason=missing-event service='{_short_service(debug_service)}'", force=True)
 		return {}, None
 	try:
 		debug_begin = int(_event_value(event, 0, 0) or 0)
@@ -507,17 +508,22 @@ def _get_entry_data(service_ref, event):
 		debug_begin = 0
 		debug_title = ""
 	if not e2mdbServiceListEnabled():
+		_log_once(f"event-disabled-{debug_service}-{debug_begin}-{debug_title}", f"EVENT_SKIP reason=servicelist-disabled service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, None
 	db_path = _db_path()
 	if not db_path:
+		_log_once(f"event-nodb-{debug_service}-{debug_begin}-{debug_title}", f"EVENT_SKIP reason=no-db service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, None
 	try:
 		candidate = _candidate_from_tuple(service_ref, event)
 	except Exception as err:
+		_log_once(f"event-candidate-error-{debug_service}-{debug_begin}-{debug_title}", f"EVENT_CANDIDATE_ERROR service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}' error={err}", force=True)
 		return {}, None
 	if not candidate:
+		_log_once(f"event-nocandidate-{debug_service}-{debug_begin}-{debug_title}", f"EVENT_SKIP reason=no-candidate service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, None
 	if not candidate.source_key or not candidate.begin_time or not candidate.title:
+		_log_once(f"event-incomplete-{debug_service}-{debug_begin}-{debug_title}", f"EVENT_SKIP reason=incomplete-candidate service='{_short_service(debug_service)}' begin={debug_begin} title='{debug_title}'", force=True)
 		return {}, candidate
 	cache_key = f"{candidate.service_ref}|{candidate.begin_time}|{candidate.duration}|{candidate.title}"
 	cached = _get_cached_data(cache_key)

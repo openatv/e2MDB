@@ -5,7 +5,7 @@
 # metadata changed. Enigma2 keeps one blocking listener thread; there is no GUI polling loop.           #
 ########################################################################################################
 
-from json import dumps, loads
+from json import loads
 from os import makedirs, remove
 from os.path import dirname, exists
 from socket import AF_UNIX, SOCK_DGRAM, socket, timeout as SocketTimeout

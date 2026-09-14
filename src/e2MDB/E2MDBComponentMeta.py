@@ -6,7 +6,7 @@
 # screen-source hook when the extended OpenATV components are available.                                #
 ########################################################################################################
 
-from os.path import basename, isfile, splitext
+from os.path import basename, splitext
 from time import time
 from urllib.parse import unquote
 
@@ -19,7 +19,7 @@ from .E2MDBDatabase import resultsdb
 from .E2MDBEPGBridge import _actionable_missing_images, _ensure_resultsdb_ready, is_epg_worker_paused_for_open_epg
 from .E2MDBLiveEPG import E2MDBLiveEPG
 from .E2MDBSkin import build_epg_skin_data, _full_cache_path
-from .E2MDBPriority import PRIORITY_ADHOC_NOW, PRIORITY_INFOBAR_NOW, clamp_priority
+from .E2MDBPriority import PRIORITY_ADHOC_NOW, PRIORITY_INFOBAR_NOW
 from .E2MDBBackendNotify import register_meta_source, unregister_meta_source
 
 
@@ -278,8 +278,7 @@ def _find_media_metadata_by_path(media_path):
 			row = conn.execute("""
 				SELECT *
 				FROM e2mdb_media
-				WHERE (file_path = ? AND file_name = ?)
-				   OR (? = file_path || '/' || file_name)
+				WHERE (file_path = ? AND file_name = ?) OR (? = file_path || '/' || file_name)
 				ORDER BY updated_at DESC
 				LIMIT 1
 			""", (folder, name, media_path)).fetchone()
@@ -1018,7 +1017,6 @@ def component_meta_supported():
 		from Components.Sources.EventInfo import EventInfo
 		from Components.Sources.ServiceEvent import ServiceEvent
 		from Components.Sources.Event import Event
-		from Screens.InfoBar import InfoBar
 		return all(hasattr(cls, "getMeta") and hasattr(cls, "setMeta") and hasattr(cls, "refreshData") for cls in (Event, EventInfo, ServiceEvent))
 	except Exception:
 		return False

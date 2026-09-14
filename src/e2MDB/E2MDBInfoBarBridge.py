@@ -19,7 +19,7 @@ from . import write_log
 from .E2MDBDatabase import resultsdb
 from .E2MDBLiveEPG import E2MDBLiveEPG
 from .E2MDBEPGBridge import _actionable_missing_images, _ensure_resultsdb_ready
-from .E2MDBPriority import PRIORITY_ADHOC_NOW, PRIORITY_INFOBAR_NOW, clamp_priority
+from .E2MDBPriority import PRIORITY_ADHOC_NOW, PRIORITY_INFOBAR_NOW
 
 
 _old_infobar_init = None
@@ -328,7 +328,9 @@ class E2MDBInfoBarBridge:
 		row = resultsdb.get_epg_event(source_key)
 		if not row:
 			return
-		candidate = self._candidate_from_current_event()
+		# TODO: unreachable - _request_ad_hoc() passes callback=None and request_backend_live_epg_processing()
+		# is fire-and-forget and never invokes its callback. candidate below is also unused.
+		candidate = self._candidate_from_current_event()  # noqa F841
 		self.log(f"ADHOC FINISH source_key={source_key} result={result} status={row.get("status") or "unknown"} json='{row.get("json_path") or ""}' error={error or ""}", force=True)
 
 	def _preview_current_event(self, reason="schedule"):
@@ -344,7 +346,10 @@ class E2MDBInfoBarBridge:
 		# Do not blank/repaint the same event; this avoids flicker when the InfoBar is simply shown again.
 		if candidate.source_key == self.last_source_key or candidate.source_key == self.last_preview_source_key:
 			return False
-		row = {
+		# TODO: row is built but never applied to the skin - this file never imports/calls
+		# build_epg_skin_data()/apply_epg_skin_data() (unlike E2MDBEventViewBridge), so the
+		# docstring's "immediately replace stale data" doesn't actually happen yet.
+		row = {   # noqa F841
 			"source_key": candidate.source_key,
 			"title": candidate.title,
 			"search_title": candidate.search_title,

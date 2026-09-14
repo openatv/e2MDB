@@ -148,6 +148,8 @@ class E2MDBEventViewBridge:
 			return False
 
 	def _ad_hoc_finished(self, source_key, result, error=""):
+		# TODO: unreachable - _request_ad_hoc() passes callback=None and request_backend_live_epg_processing()
+		# is fire-and-forget and never invokes its callback.
 		self.ad_hoc_running.discard(source_key)
 		if self.closed:
 			return

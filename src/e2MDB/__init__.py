@@ -6,13 +6,12 @@ from os.path import dirname, join, isfile, getsize, basename
 from secrets import choice
 from sys import modules
 from enigma import getDesktop
-from Components.config import config, ConfigInteger, ConfigSelection, ConfigSubsection, ConfigText, ConfigYesNo, NoSave
+from Components.config import config, ConfigInteger, ConfigSelection, ConfigSubsection, ConfigText, ConfigYesNo
 from Components.Language import language
 from Components.International import international
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS
-from .E2MDBPriority import PRIORITY_CHANNEL_SELECTION, PRIORITY_INFOBAR_NOW, PRIORITY_PREFILL, PRIORITY_PREFILL_IDLE, PRIORITY_PREFILL_STANDBY
 
-__version__ = "1.0"
+__version__ = "1.1"
 PluginLanguageDomain = "e2MDB"
 PluginLanguageDir = "Extensions/e2MDB/locale"
 
