@@ -171,11 +171,13 @@ class E2MDBProviders:
 		return err_msg, artwork_dict
 
 	def get_desired_provider(self, pvr_name):
+		if pvr_name not in self.ready_providers:  # not started, e.g. missing API key
+			return None
 		search_order = self.series_search_order or self.movie_search_order or {}
 		for name, active in search_order.items():
 			if name == pvr_name and active:
 				return self.providers_dict.get(pvr_name)
-		return self.providers_dict.get(pvr_name) if pvr_name in self.providers_dict else None
+		return None
 
 	def get_active_provider_order(self, source_order, special_first=False, manga_only=False):
 		"""Return an ordered provider map without forcing TMDB ahead of the configured order."""
