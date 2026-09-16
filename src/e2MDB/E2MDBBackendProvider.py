@@ -28,6 +28,10 @@ else:
 	PROVIDER_IMPORT_ERROR = None
 
 try:
+	from provider.TVSPIELFILM import provider_tvspielfilm
+except Exception:
+	provider_tvspielfilm = None
+try:
 	from provider.FERNSEHSERIEN import provider_fernsehserien
 except Exception:
 	provider_fernsehserien = None
@@ -921,12 +925,30 @@ class BackendProviderEnricher:
 			return [], translated
 		return [dict(result) for result in results if isinstance(result, dict)] if results else [], translated
 
+	def _tvspielfilm_channel_time_fallback(self, item):
+		"""TVSpielfilm has no title search - it resolves a recording/event by
+		channel + EPG start time instead. Use it as a last-resort match when the
+		normal title-search providers found nothing (e.g. no TMDB/TVDB/OMDB key
+		configured), for both Live/EPG events and EIT-scanned recordings."""
+		if provider_tvspielfilm is None or not self._provider_option("tvspielfilm_enabled", True):
+			return None
+		candidate = _LiveFallbackCandidate(item)
+		if not candidate.service_ref or not candidate.begin_time:
+			return None
+		try:
+			provider_tvspielfilm.start(self.provider_language)
+			err_msg, final_dict = provider_tvspielfilm.lookup_epg_event(candidate)
+		except Exception:
+			return None
+		return final_dict if isinstance(final_dict, dict) and final_dict else None
+
 	def search_item(self, item):
 		start_error = self.start()
 		if start_error and providers is None:
 			return {"success": False, "error": start_error, "matches": [], "best": {}}
 		ready_providers = getattr(providers, "ready_providers", None)
-		if ready_providers is not None and not ready_providers:
+		tvspielfilm_available = provider_tvspielfilm is not None and self._provider_option("tvspielfilm_enabled", True)
+		if ready_providers is not None and not ready_providers and not tvspielfilm_available:
 			return {
 				"success": False,
 				"error": start_error or "no enabled metadata provider is ready",
@@ -970,6 +992,13 @@ class BackendProviderEnricher:
 				if translation_best:
 					unique = self._deduplicate_matches(unique + translation_unique)
 					best = translation_best
+		if not best:
+			tvspielfilm_best = self._tvspielfilm_channel_time_fallback(item)
+			if tvspielfilm_best:
+				tvspielfilm_best = self._complete_best_metadata(item, tvspielfilm_best, media_type, unique)
+				if tvspielfilm_best:
+					unique = self._deduplicate_matches(unique + [tvspielfilm_best])
+					best = tvspielfilm_best
 		english_fallback_used = False
 		english_fallback_mode = ""
 		metadata_translated = False
