@@ -17,7 +17,7 @@
 		<if conditional="config.plugins.e2mdb.tvdbactive.value">
 			<item level="0" text="TVDb API key" indent="1" description="Enter your personal API key for TVDb.">config.plugins.e2mdb.tvdbapikey</item>
 		</if>
-		<!-- IMDB provider disabled, keep provider/IMDB.py in place: <item level="0" text="Search in IMDb" description="Use IMDb as an additional movie and series fallback provider.">config.plugins.e2mdb.imdbactive</item> -->
+		<item level="0" text="Search in IMDb" description="Use IMDb as an additional movie and series fallback provider without API key.">config.plugins.e2mdb.imdbactive</item>
 		<item level="0" text="Search in TVmaze" description="Use TVmaze as a free series fallback provider without API key.">config.plugins.e2mdb.tvmazeactive</item>
 		<item level="0" text="Search in Cinemeta" description="Use Cinemeta (Stremio addon) as a free movie and series fallback provider without API key. English metadata only.">config.plugins.e2mdb.cinemetaactive</item>
 		<item level="0" text="Search in TVSpielfilm for German Live/EPG" description="Use TVSpielfilm as preferred provider for German Live/EPG metadata.">config.plugins.e2mdb.tvspielfilmactive</item>

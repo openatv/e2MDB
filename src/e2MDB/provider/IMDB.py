@@ -426,6 +426,7 @@ query TitleStorylineMinimal {
 		# responses on caching.graphql.imdb.com with some schema revisions.
 		return {
 			"content-type": "application/json",
+			"referer": "https://www.imdb.com/",
 			"user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
 			"X-Imdb-User-Language": self.language,
 			"X-Imdb-User-Country": self.country,

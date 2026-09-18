@@ -2499,7 +2499,7 @@ def ensure_default_files():
 				"tmdb_enabled": True, "tmdb_api_key": "",
 				"tvdb_enabled": True, "tvdb_api_key": "",
 				"omdb_enabled": False, "omdb_api_key": "",
-				# "imdb_enabled": False,  # IMDB provider disabled, keep provider/IMDB.py in place
+				"imdb_enabled": False,
 				"tvmaze_enabled": False, "cinemeta_enabled": False,
 				"anime_enabled": False, "kitsu_enabled": False,
 				"english_text_fallback": True,

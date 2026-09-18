@@ -19,7 +19,7 @@ try:
 	from .provider.TMDB import provider_tmdb
 	from .provider.TVDB import provider_tvdb
 	from .provider.OMDB import provider_omdb
-	# from .provider.IMDB import provider_imdb  # IMDB provider disabled, keep provider/IMDB.py in place
+	from .provider.IMDB import provider_imdb
 	from .provider.TVMAZE import provider_tvmaze
 	from .provider.CINEMETA import provider_cinemeta
 	from .provider.ANIME import provider_anime
@@ -29,7 +29,7 @@ except ImportError:
 	from provider.TMDB import provider_tmdb
 	from provider.TVDB import provider_tvdb
 	from provider.OMDB import provider_omdb
-	# from provider.IMDB import provider_imdb  # IMDB provider disabled, keep provider/IMDB.py in place
+	from provider.IMDB import provider_imdb
 	from provider.TVMAZE import provider_tvmaze
 	from provider.CINEMETA import provider_cinemeta
 	from provider.ANIME import provider_anime
@@ -47,15 +47,15 @@ MODULE_NAME = f"[{__name__.split(".")[-1]}] ".replace("[__main__] ", "")
 
 class E2MDBProviders:
 	def __init__(self):
-		self.series_search_order = {"tvdb": True, "tmdb": True, "tvmaze": False, "cinemeta": False, "anime": False, "kitsu": False, "omdb": True}  # "imdb" disabled
-		self.movie_search_order = {"tmdb": True, "cinemeta": False, "anime": False, "kitsu": False, "tvdb": True, "omdb": True}  # "imdb" disabled
+		self.series_search_order = {"tvdb": True, "tmdb": True, "tvmaze": False, "cinemeta": False, "anime": False, "kitsu": False, "omdb": True, "imdb": False}
+		self.movie_search_order = {"tmdb": True, "cinemeta": False, "anime": False, "kitsu": False, "tvdb": True, "omdb": True, "imdb": False}
 		self.language = "en-US"
 		self.all_keys = [
 						"countries", "releaseDate", "media_type", "genres", "vote_average",
 						"vote_count", "cover_url", "backdrop_url", "titlelogo_url", "provider_ids"
 						]  # with exception of 'Title' and 'Description', as these receive special treatment
-		self.all_prov_ids = ["tmdb", "tvdb", "tvmaze", "cinemeta", "anime", "anilist", "kitsu"]  # "imdb" disabled
-		self.providers_dict = {"tmdb": provider_tmdb, "tvdb": provider_tvdb, "tvmaze": provider_tvmaze, "cinemeta": provider_cinemeta, "anime": provider_anime, "kitsu": provider_kitsu, "omdb": provider_omdb}  # "imdb" disabled
+		self.all_prov_ids = ["tmdb", "tvdb", "tvmaze", "cinemeta", "anime", "anilist", "kitsu", "imdb"]
+		self.providers_dict = {"tmdb": provider_tmdb, "tvdb": provider_tvdb, "tvmaze": provider_tvmaze, "cinemeta": provider_cinemeta, "anime": provider_anime, "kitsu": provider_kitsu, "omdb": provider_omdb, "imdb": provider_imdb}
 		self.artwork_provider = provider_fanart
 		self.ready_providers = set()
 		self.start_errors = []

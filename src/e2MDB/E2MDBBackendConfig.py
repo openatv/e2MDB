@@ -113,7 +113,7 @@ def build_settings_payload():
 			"tvdb_api_key": _get_value(config.plugins.e2mdb.tvdbapikey, ""),
 			"omdb_enabled": bool(_get_value(config.plugins.e2mdb.omdbactive, False)),
 			"omdb_api_key": _get_value(config.plugins.e2mdb.omdbapikey, ""),
-			# "imdb_enabled": bool(_get_value(config.plugins.e2mdb.imdbactive, False)),  # IMDB provider disabled, keep provider/IMDB.py in place
+			"imdb_enabled": bool(_get_value(config.plugins.e2mdb.imdbactive, False)),
 			"tvmaze_enabled": bool(_get_value(config.plugins.e2mdb.tvmazeactive, False)),
 			"cinemeta_enabled": bool(_get_value(config.plugins.e2mdb.cinemetaactive, False)),
 			"tvspielfilm_enabled": bool(_get_value(config.plugins.e2mdb.tvspielfilmactive, True)),
