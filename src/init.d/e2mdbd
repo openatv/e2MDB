@@ -29,6 +29,14 @@ start_daemon() {
 		"$PYTHON" "$DAEMON_SCRIPT" >> "$LOGFILE" 2>&1 &
 		echo $! > "$PIDFILE"
 	fi
+	# Under memory pressure the kernel OOM-killer picks the largest process not
+	# explicitly protected. enigma2 runs at oom_score_adj=-999, so e2mdbd (the
+	# next-largest resident process) becomes the default victim even when the
+	# actual memory hog is something else. -300 makes it a less obvious target
+	# without hiding it from the OOM-killer entirely.
+	if [ -f "$PIDFILE" ]; then
+		echo -300 > "/proc/$(cat "$PIDFILE")/oom_score_adj" 2>/dev/null
+	fi
 	echo "Started $DAEMON_NAME"
 }
 

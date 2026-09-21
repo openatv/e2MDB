@@ -9,6 +9,7 @@ from mimetypes import guess_type
 from json import dump, dumps, load, loads
 from os import fsync, getpid, makedirs, remove, rename
 from os.path import abspath, basename, dirname, exists, getmtime, getsize, isfile, join, realpath
+from signal import SIGHUP, SIGTERM, signal
 from socket import AF_UNIX, SOCK_DGRAM, SOCK_STREAM, socket, timeout as SocketTimeout
 from sys import exit, stdout
 from threading import Event, Lock, Thread, current_thread
@@ -2558,10 +2559,21 @@ def main():
 	live_auto_worker.start()
 	web_server.start()
 	log(f"started pid={getpid()}")
+
+	def _handle_signal(signum, _frame):
+		# Without this, SIGTERM (the normal way init/systemd/a supervisor stops
+		# a daemon) kills the process instantly with no log line at all - the
+		# "just disappears, logs show nothing" symptom.
+		log(f"received signal={signum}, stopping")
+		stop_event.set()
+
+	signal(SIGTERM, _handle_signal)
+	signal(SIGHUP, _handle_signal)
 	try:
 		while not stop_event.is_set():
 			sleep(1.0)
 	except KeyboardInterrupt:
+		log("received signal=SIGINT, stopping")
 		stop_event.set()
 	try:
 		if exists(COMMAND_SOCKET):

@@ -60,6 +60,7 @@ DEFAULT_MOVIE_ORDER = {
 	"omdb": True,
 	"imdb": False,
 }
+SERIES_CACHE_MAX = 20  # episode indexes can run into thousands of entries (e.g. daily shows), cap memory use
 
 
 def safe_int(value, default=0):
@@ -573,6 +574,8 @@ class BackendProviderEnricher:
 		except Exception as err:
 			err_msg, series_details, episode_index = str(err), {}, {}
 		result = (err_msg or "", series_details if isinstance(series_details, dict) else {}, episode_index if isinstance(episode_index, dict) else {})
+		if len(self.series_cache) >= SERIES_CACHE_MAX:
+			self.series_cache.pop(next(iter(self.series_cache)))
 		self.series_cache[cache_key] = result
 		return result
 
