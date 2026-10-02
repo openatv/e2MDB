@@ -1,0 +1,1196 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: e2MDB\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2026-10-02 16:06+0800\n"
+"Last-Translator: OpenATV Team\n"
+"Language-Team: German\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.9\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: .\n"
+
+msgid "%s / %s  %s%%  %s"
+msgstr "%s / %s  %s%%  %s"
+
+msgid "%s / %s  %s%%  total %s%%  %s"
+msgstr "%s / %s  %s%%  gesamt %s%%  %s"
+
+msgid "%s%%  %s"
+msgstr "%s%%  %s"
+
+msgid "--- Basic configuration ---"
+msgstr "--- 基本配置 ---"
+
+msgid "--- Expert and diagnostics ---"
+msgstr "--- 专家模式和诊断 ---"
+
+msgid "--- Live TV and EPG metadata ---"
+msgstr "--- 直播电视和EPG元数据 ---"
+
+msgid "--- Metadata providers ---"
+msgstr "--- 元数据提供者 ---"
+
+msgid "Aborted"
+msgstr "取消"
+
+msgid "Actors"
+msgstr "演员"
+
+msgid "Add"
+msgstr "添加"
+
+msgid ""
+"Add e2MDB to the Enigma2 main menu. The plugin remains available in the "
+"plugin browser when this is disabled."
+msgstr ""
+"将 e2MDB 添加到 Enigma2 主菜单。如果禁用此选项，该插件仍可在插件浏览器中使"
+"用。"
+
+msgid "Add from channel list"
+msgstr "从频道列表添加"
+
+msgid "Add from current EPG titles"
+msgstr "从当前 EPG 标题中添加"
+
+msgid "Add from media folders"
+msgstr "从媒体文件夹添加"
+
+msgid "Add ignore pattern"
+msgstr "添加忽略模式"
+
+msgid "Add manually"
+msgstr "手动添加"
+
+msgid "Add path"
+msgstr "添加路径"
+
+msgid "Add pattern"
+msgstr "添加图案"
+
+msgid "Add selected"
+msgstr "添加选择"
+
+msgid ""
+"Advanced options are hidden by default. The old local Enigma2 worker/"
+"progress options were removed for clean-start backend mode."
+msgstr ""
+"高级选项默认隐藏。在全新的后台模式下，已移除之前本地 Enigma2 工作进程/进度选"
+"项。"
+
+msgid "All cache (without database)"
+msgstr "所有缓存（不含数据库）"
+
+msgid "All cache + database"
+msgstr "所有缓存 + 数据库"
+
+msgid "Anime Movie"
+msgstr "动漫电影"
+
+msgid "Anime Series"
+msgstr "动漫系列"
+
+msgid "Artwork: with artwork %s  missing artwork %s"
+msgstr "封面：封面作品%s缺失的封面%s"
+
+msgid ""
+"Attach e2MDB metadata sources to ChannelSelection and queue missing entries "
+"for the backend daemon."
+msgstr "将 e2MDB 元数据源集成到通道列表中，并为后台守护程序添加缺失的条目。"
+
+msgid ""
+"Attach e2MDB metadata sources to live TV InfoBar and queue missing entries "
+"for the backend daemon."
+msgstr ""
+"将 e2MDB 元数据源集成到直播电视信息栏中，并为后台守护程序添加缺失的条目。"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Backdrop only"
+msgstr "仅有背景"
+
+msgid "Backdrop, fallback preview/still"
+msgstr "背景图片，或者预览/静态图片"
+
+msgid "Backend cleanup started. Please wait!"
+msgstr "后台清理工作已开始，请稍候！"
+
+msgid "Backend is not available:"
+msgstr "后台无法访问："
+
+msgid "Backend job could not be started:"
+msgstr "后台作业无法启动："
+
+msgid "Backend job finished."
+msgstr "后台任务已完成。"
+
+msgid "Backend job will be started. Please wait!"
+msgstr "后台任务正在启动，请稍候！"
+
+msgid "Backend job will be stopped. Please wait!"
+msgstr "后台任务正在完成，请稍候！"
+
+msgid "Backend job: %s"
+msgstr "后台：%s"
+
+msgid "Backend job: %s  Part %s/%s"
+msgstr "后台：%s 部分 %s/%s"
+
+msgid "Backend not running"
+msgstr "后台未运行"
+
+msgid ""
+"Base path for e2MDB cache files, provider artwork, database and generated "
+"metadata."
+msgstr "e2MDB 缓存文件、提供商图像、数据库和生成的元数据的基本路径。"
+
+msgid "Both"
+msgstr "两者"
+
+msgid "Bouquet %d/%d: %s"
+msgstr "花束%d/%d：%s"
+
+msgid "Bouquets"
+msgstr "频道分组"
+
+msgid "Bouquets: %d   Full: %d   Partial: %d   Total selected services: %d"
+msgstr "频道组合：%d 完整频道组合：%d 部分频道组合：%d 已选频道总数：%d"
+
+msgid "CPU load: %s  System load: %s / %d cores"
+msgstr "CPU负载：%s 系统负载：%s / %d 个核心"
+
+msgid "Cache cleanup"
+msgstr "清除缓存"
+
+msgid "Cache path"
+msgstr "缓存路径"
+
+msgid "Channel names: %d   Selected: %d"
+msgstr "频道名称：%d 已选：%d"
+
+msgid ""
+"Choose whether e2MDB log lines are written to e2MDB.log, the Enigma2 debug "
+"log, or both."
+msgstr "选择是将 e2MDB 日志行写入 e2MDB.log、Enigma2 调试日志还是两者都写入。"
+
+msgid "Clean Cache"
+msgstr "清除缓存"
+
+msgid "Cleaning cache"
+msgstr "清理缓存"
+
+msgid "Cleanup candidates: expired Live/EPG %s  queue %s  primary cache %s"
+msgstr "清理候选列表：直播/EPG %s 队列 %s 主缓存 %s"
+
+msgid ""
+"Cleanup finished: %s\n"
+"Deleted files: %d\n"
+"Deleted folders: %d"
+msgstr ""
+"清理完成：%s\n"
+"已删除文件：%d\n"
+"已删除文件夹：%d"
+
+msgid "Clear failed"
+msgstr "失败清空"
+
+msgid "Clear prefill"
+msgstr "清除预填充"
+
+msgid "Clear queue"
+msgstr "清除队列"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Close screen"
+msgstr "关闭屏幕"
+
+msgid "Collecting media files"
+msgstr "收集媒体文件"
+
+msgid "Configured services"
+msgstr "配置服务"
+
+msgid ""
+"Core settings used by e2MDB. Heavy scan, provider, artwork, cleanup and "
+"scheduler work is handled by the backend daemon."
+msgstr ""
+"e2MDB 的基本设置。后台守护进程处理复杂的扫描、供应商、镜像、清理和调度任务。"
+
+msgid ""
+"Could not save ignore list:\n"
+"%s"
+msgstr ""
+"忽略列表无法保存：\n"
+"%s"
+
+msgid ""
+"Could not start missing media metadata/artwork retry:\n"
+"%s"
+msgstr ""
+"无法重新启动对缺失媒体元数据/图像的搜索：\n"
+"%s"
+
+msgid "Covers/artwork only"
+msgstr "仅限封面/插图"
+
+msgid "DB maintenance"
+msgstr "数据库维护"
+
+msgid "DB status and maintenance"
+msgstr "数据库状态和维护"
+
+msgid "DB status could not be read: %s"
+msgstr "无法读取数据库状态：%s"
+
+msgid "Database is currently busy; refresh again for detailed counters."
+msgstr "数据库当前繁忙，请稍后再刷新以获取详细计数器。"
+
+msgid "Database only"
+msgstr "仅数据库"
+
+msgid "Database: %s  Size: %s  Free inside DB: %s"
+msgstr "数据库：%s 大小：%s 数据库可用空间：%s"
+
+msgid ""
+"Define if the path contains movies, series or both. This is used to optimize "
+"the scan process."
+msgstr "指定路径中包含的是电影、电视剧还是两者都包含。这用于优化扫描过程。"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid ""
+"Delete '%s'?\n"
+"\n"
+"This cannot be undone."
+msgstr ""
+"删除“%s”？\n"
+"\n"
+"这无法挽回。"
+
+msgid "Deselect all"
+msgstr "取消选择所有"
+
+msgid "Director"
+msgstr "导演"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Duration"
+msgstr "持续时间"
+
+msgid "EPG titles: %d   Selected: %d"
+msgstr "EPG标题：%d 已选：%d"
+
+msgid "ERROR trying to remove pictures and data from cache.: %s"
+msgstr "尝试从缓存中移除图片和数据时出现错误。： %s"
+
+msgid "Edit pattern"
+msgstr "编辑模式"
+
+msgid "Enable ChannelSelection metadata"
+msgstr "启用通道选择元数据"
+
+msgid "Enable InfoBar metadata"
+msgstr "启用信息栏元数据"
+
+msgid "Enable Live/EPG metadata cache"
+msgstr "启用直播/EPG 元数据缓存"
+
+msgid "Enable Live/EPG prefill"
+msgstr "启用直播/EPG 预填充"
+
+msgid "Enable Media Database"
+msgstr "启用媒体数据库"
+
+msgid ""
+"Enable e2MDB database/cache integration. Provider and scan work runs in the "
+"backend daemon, not in the Enigma2 GUI process."
+msgstr ""
+"启用 e2MDB 数据库/缓存集成。提供程序和扫描任务在后台守护进程中运行，而不是在 "
+"Enigma2 GUI 进程中运行。"
+
+msgid "Enable short-lived metadata caching for Live TV and EPG events."
+msgstr "启用直播电视和EPG事件的短暂元数据缓存。"
+
+msgid "English metadata text fallback"
+msgstr "英文元数据文本回退"
+
+msgid "Enigma2 debug log"
+msgstr "Enigma2 调试日志"
+
+msgid ""
+"Enigma2 only collects Live/EPG candidates. Provider processing is backend-"
+"only."
+msgstr "Enigma2 仅收集直播/EPG候选人信息。提供商处理完全在后台进行。"
+
+msgid "Enter your personal API key for OMDb."
+msgstr "请输入您的 OMDb 个人 API 密钥。"
+
+msgid "Enter your personal API key for TMDb."
+msgstr "请输入您的TMDb个人API密钥。"
+
+msgid "Enter your personal API key for TVDb."
+msgstr "请输入您的 TVDb 个人 API 密钥。"
+
+msgid "Enter your personal FanArt.tv API key."
+msgstr "请输入您的 FanArt.tv API 密钥。"
+
+msgid "Episode"
+msgstr "节目介绍"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Event View"
+msgstr "事件视图"
+
+msgid "Event View Actions"
+msgstr "事件视图操作"
+
+msgid "Exclude"
+msgstr "排除"
+
+msgid "Failed"
+msgstr "失败"
+
+msgid "Failed to read DB status: %s"
+msgstr "无法读取数据库状态：%s"
+
+msgid "Failed to read prefill status: %s"
+msgstr "无法读取预填充状态：%s"
+
+msgid "Failed to read worker queue: %s"
+msgstr "无法读取工作队列：%s"
+
+msgid "FanArt.tv API key"
+msgstr "FanArt.tv API密钥"
+
+msgid "FanArt.tv artwork mode"
+msgstr "FanArt.tv 图片模式"
+
+msgid "File split: TS recordings %s  media files %s"
+msgstr "文件：TS 录音 %s 媒体文件 %s"
+
+msgid "Fill missing artwork only"
+msgstr "只需添加缺失的艺术作品即可"
+
+msgid ""
+"Fill only missing artwork, or prefer FanArt.tv artwork over artwork from the "
+"metadata provider."
+msgstr ""
+"仅添加缺失的图片，或优先使用 FanArt.tv 的图片，而不是来自元数据提供商的图片。"
+
+msgid "Finished"
+msgstr "已完成"
+
+msgid "Folder names: %d   Selected: %d"
+msgstr "文件夹名称：%d 已选：%d"
+
+msgid "Google title translation fallback"
+msgstr "谷歌标题翻译回归"
+
+msgid "Google title translation target language"
+msgstr "谷歌标题翻译目标语言"
+
+msgid "Hour of day used for night prefill checks."
+msgstr "用于夜间预填充检查的一天中的时刻。"
+
+msgid "INFO"
+msgstr "信息"
+
+msgid "Idle time"
+msgstr "空闲时间"
+
+msgid ""
+"If the selected provider language returns artwork but no usable text, retry "
+"provider metadata once in English."
+msgstr ""
+"如果所选提供商语言提供了图片但没有可用的文本，则会再次请求提供英文的提供商元"
+"数据。"
+
+msgid "Ignored EPG title patterns"
+msgstr "忽略的EPG标题模式"
+
+msgid "Ignored folder name patterns"
+msgstr "忽略的文件夹名称模式"
+
+msgid "Ignored service name patterns"
+msgstr "忽略的服务名称模式"
+
+msgid "Imported files: %s  Media entries: %s  Browser-ready: %s"
+msgstr "已导入文件：%s 媒体条目：%s 浏览器可用：%s"
+
+msgid "Importing scan data"
+msgstr "导入扫描数据"
+
+msgid "Include subdirectories"
+msgstr "包含子目录"
+
+msgid ""
+"Keep matched Live/EPG metadata for this number of days after the event ended."
+msgstr "在活动结束后，保留匹配的直播/EPG元数据，保留时长为指定天数。"
+
+msgid "Language used for provider searches and provider API requests."
+msgstr "用于提供商搜索和提供商 API 查询的语言。"
+
+msgid "Last SQLite maintenance: %s"
+msgstr "SQLite 上次维护时间：%s"
+
+msgid "Last action failed: %s"
+msgstr "上次操作失败：%s"
+
+msgid "Last action: %s removed %d queue entries."
+msgstr "最后操作：%s 移除了 % 个队列条目。"
+
+msgid "Last action: no active no-match entries found."
+msgstr "最后操作：未找到任何无匹配项的活动条目。"
+
+msgid "Last action: refreshed at %s"
+msgstr "最后操作：已于 %s 更新"
+
+msgid "Last action: requeued %d active no-match entries, %s."
+msgstr "最后操作：对 %d 个没有匹配项的活动条目重新排序，%s。"
+
+msgid "Last cleanup stats:"
+msgstr "最新清理统计数据："
+
+msgid "Last cleanup: %s"
+msgstr "最后清理：%s"
+
+msgid "Last manual action result:"
+msgstr "最后的手动操作结果："
+
+msgid "Last no-EPG: %s   Last service with events: %s"
+msgstr "最后一次无EPG：%s 最后一次有事件的服务：%s"
+
+msgid "Last prefill run: %s"
+msgstr "最后一次预填运行：%s"
+
+msgid "Last scan"
+msgstr "上次扫描"
+
+msgid "Live/EPG Prefill status"
+msgstr "直播/EPG 预补状态"
+
+msgid "Live/EPG Worker queue"
+msgstr "直播/EPG 工作队列"
+
+msgid "Live/EPG cache"
+msgstr "直播/EPG缓存"
+
+msgid "Live/EPG cleanup"
+msgstr "直播/EPG清理"
+
+msgid "Live/EPG metadata worker"
+msgstr "直播/EPG 元数据处理程序"
+
+msgid "Live/EPG prefill days"
+msgstr "直播/EPG 预填充天数"
+
+msgid "Live/EPG retention in days"
+msgstr "直播/EPG 保留天数"
+
+msgid "Live/EPG worker aborted"
+msgstr "直播/EPG 工作进程已中止"
+
+msgid "Live/EPG worker queue"
+msgstr "直播/EPG 工作队列"
+
+msgid "Live/EPG: active %s  expired %s  queue %s"
+msgstr "直播/EPG：活跃 %s  过期 %s  队列 %s"
+
+msgid "Log mode"
+msgstr "日志模式"
+
+msgid "Log output"
+msgstr "对数输出"
+
+msgid "MENU"
+msgstr "菜单"
+
+msgid "Maintenance: enabled %s  VACUUM %s  REINDEX %s"
+msgstr "维护：启用%s空间%s重新索引%s"
+
+msgid "Manga Movie"
+msgstr "漫画电影"
+
+msgid "Manga Series"
+msgstr "漫画系列"
+
+msgid "Manual Live/EPG prefill services"
+msgstr "手动直播/EPG预填充服务"
+
+msgid "Manual selected services: %d"
+msgstr "手动选择服务：%d"
+
+msgid "Mark all"
+msgstr "全部标记"
+
+msgid "Mark bouquet"
+msgstr "标记花束"
+
+msgid "Maximum events per prefill service"
+msgstr "每次预填充服务的最大事件数"
+
+msgid ""
+"Maximum number of EPG events to queue per prefill run across all channels."
+msgstr "每次预填充时，所有频道中要排队的 EPG 事件的最大数量。"
+
+msgid "Maximum number of future EPG events inspected per service."
+msgstr "每个频道要检查的未来 EPG 事件的最大数量。"
+
+msgid "Maximum number of preferred channels selected from zap/watch history."
+msgstr "从频道浏览/观看历史记录中选择的最大首选频道数。"
+
+msgid "Maximum prefill events"
+msgstr "最大预填充事件"
+
+msgid "Media path scan completed:"
+msgstr "媒体路径扫描完成："
+
+msgid "Media refresh"
+msgstr "媒体刷新"
+
+msgid "Media scan"
+msgstr "媒体扫描"
+
+msgid "Media scan finished"
+msgstr "媒体扫描完成"
+
+msgid "Media types: movies %s  series %s  episodes %s  unknown %s"
+msgstr "媒体类型：电影%s系列%s剧集%s未知%s"
+
+msgid "Metadata download"
+msgstr "元数据下载"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "More..."
+msgstr "更多..."
+
+msgid "Movie"
+msgstr "电影"
+
+msgid "Movie cache"
+msgstr "电影缓存"
+
+msgid "Movie/Series"
+msgstr "电影/系列"
+
+msgid "Music"
+msgstr "音乐"
+
+msgid "Night prefill"
+msgstr "夜间预填充"
+
+msgid "Night prefill start hour"
+msgstr "夜间预充开始时间"
+
+msgid "Night window"
+msgstr "夜间"
+
+msgid "Night window is recommended for backend-only processing."
+msgstr "建议在夜间时段进行纯后台处理。"
+
+msgid "No"
+msgstr "否"
+
+msgid "No TV bouquets found"
+msgstr "未发现电视花束"
+
+msgid "No media files found in configured scan paths"
+msgstr "在配置好的扫描路径中找不到任何媒体文件"
+
+msgid "No media path selected."
+msgstr "未选择媒体路径。"
+
+msgid "No patterns configured"
+msgstr "未配置任何模式"
+
+msgid "No pending queue entries."
+msgstr "没有待处理的排队条目。"
+
+msgid "No prefill queue entries."
+msgstr "没有预填队列条目。"
+
+msgid "No queue entries."
+msgstr "没有排队记录。"
+
+msgid "No recent prefill queue entries."
+msgstr "没有近期预填队列的记录。"
+
+msgid "No recent queue entries."
+msgstr "当前没有排队记录。"
+
+msgid "No recordings need provider enrichment"
+msgstr "提供商元数据不需要录制"
+
+msgid "No selectable entries found"
+msgstr "未找到可选择条目"
+
+msgid "No valid recording/media scan paths found"
+msgstr "未找到有效的录制/媒体扫描路径"
+
+msgid "No-EPG tracked: %d   blocked now: %d"
+msgstr "未检测到EPG：%d 当前已阻止：%d"
+
+msgid "Non-recursive"
+msgstr "无循环"
+
+msgid "Nothing found!"
+msgstr "未找到任何结果！"
+
+msgid "Novel"
+msgstr "新颖"
+
+msgid "Number of future EPG days to inspect for preferred channels."
+msgstr "要检查的未来 EPG 天数，以确定哪些频道是首选频道。"
+
+msgid "OK = Edit"
+msgstr "确定 = 编辑"
+
+msgid "OK = Mark"
+msgstr "确定 = 选择"
+
+msgid "OK = Open"
+msgstr "确定 = 打开"
+
+msgid "OMDb API key"
+msgstr "OMDb API 密钥"
+
+msgid "Off"
+msgstr "关"
+
+msgid ""
+"Off keeps existing DB metadata/artwork and only scans new or changed files. "
+"On reprocesses existing entries and may download metadata/artwork again."
+msgstr ""
+"关闭时保留现有数据库的元数据/插图，只扫描新文件或更改文件。重新处理现有条目，"
+"可能会再次下载元数据/插图。"
+
+msgid ""
+"Off writes nothing. On writes real errors only. Verbose writes the full "
+"diagnostic log."
+msgstr ""
+"关闭模式不写入任何内容。开启模式仅写入实际错误信息。详细模式写入完整的诊断日"
+"志。"
+
+msgid "On"
+msgstr "开"
+
+msgid "Open the e2MDB EventView for EPG events when metadata exists."
+msgstr "当存在元数据时，打开e2MDB事件视图以查看EPG事件。"
+
+msgid ""
+"Open the e2MDB media EventView for recordings/media when metadata exists."
+msgstr "当存在元数据时，打开e2MDB媒体事件视图以查看录制内容/媒体。"
+
+msgid "Optimize e2MDB database"
+msgstr "优化e2MDB数据库"
+
+msgid ""
+"Optional fallback provider. OMDb requires an API key and is not localized."
+msgstr "可选的备用服务提供者。OMDb 需要 API 密钥，且没有本地化。"
+
+msgid "Paths"
+msgstr "路径"
+
+msgid "Patterns: %d   Stored in %s"
+msgstr "模式：%d   存储于 %s"
+
+msgid "Pending worker queue:"
+msgstr "待处理工作队列："
+
+msgid ""
+"Please add all missing personal provider API-Key(s)s in e2MDB settings or "
+"deactivate providers."
+msgstr "请在 e2MDB 设置中添加所有缺失的个人服务提供商 API-Key，或停用提供者。"
+
+msgid "Prefer FanArt artwork"
+msgstr "偏好同人艺术作品"
+
+msgid "Prefill busy"
+msgstr "预填充正在进行中"
+
+msgid "Prefill channels"
+msgstr "预填充通道"
+
+msgid "Prefill mode"
+msgstr "预填充模式"
+
+msgid "Prefill queue summary:"
+msgstr "预填充队列概要："
+
+msgid "Prefill request failed"
+msgstr "预填充请求失败"
+
+msgid "Prefill requested"
+msgstr "请求补充"
+
+msgid ""
+"Prefill runs should collect enough future EPG events during the night. Only "
+"candidate creation happens in Enigma2; provider work stays in the backend "
+"daemon."
+msgstr ""
+"预填充运行应在夜间收集足够的未来EPG事件。只有候选项目的创建会在Enigma2中完成;"
+"提供者工作则留在后端守护进程中。"
+
+msgid "Prefill selected/preferred Live/EPG metadata"
+msgstr "预填充选定/偏好直播/EPG元数据"
+
+msgid "Prefill state error: %s"
+msgstr "预填充状态错误：%s"
+
+msgid "Prefill state file: %s"
+msgstr "预填充状态文件：%s"
+
+msgid "Prefill state: tracked %s  blocked now %s"
+msgstr "预填充状态：已追踪%s现已封锁%s"
+
+msgid "Prefill status / diagnostics"
+msgstr "预填状态 / 诊断"
+
+msgid "Preparing Live/EPG cleanup"
+msgstr "准备直播/EPG 队列"
+
+msgid "Preparing Live/EPG queue"
+msgstr "准备直播/EPG 队列"
+
+msgid "Preparing Live/EPG queue worker"
+msgstr "准备直播/EPG 队列工作进程"
+
+msgid "Preparing provider search"
+msgstr "准备服务提供方搜索"
+
+msgid "Preview/still, fallback backdrop"
+msgstr "预览/静帧，备用背景图"
+
+msgid "Processing Live/EPG metadata"
+msgstr "处理直播/EPG元数据"
+
+msgid "Processing:"
+msgstr "处理:"
+
+msgid "Provider enrichment completed:"
+msgstr "供应商信息完善完成："
+
+msgid "Provider search finished"
+msgstr "服务提供方搜索已完成"
+
+msgid "Provider search language"
+msgstr "服务提供方搜索语言"
+
+msgid "Provider: done %s  pending %s  missing %s  errors %s"
+msgstr "提供者：已完成%s待处理%s缺少%s错误%s"
+
+msgid ""
+"Queue future EPG events for selected/preferred channels so the backend can "
+"process them overnight."
+msgstr "针对选定或首选频道将未来的 EPG 事件加入队列，以便后台在夜间进行处理。"
+
+msgid "Queue state summary:"
+msgstr "队列状态摘要："
+
+msgid "Queue states: %s"
+msgstr "队列状态：%s"
+
+msgid "Queued"
+msgstr "排队"
+
+msgid "Re-scan existing media entries"
+msgstr "重新扫描现有的媒体条目"
+
+msgid "Ready"
+msgstr "准备就绪"
+
+msgid "Rebuild SQLite indexes during backend maintenance. Usually not needed."
+msgstr "后台维护期间重建 SQLite 索引。通常情况下没有必要。"
+
+msgid "Recent Live/EPG events:"
+msgstr "当前直播/EPG活动："
+
+msgid "Recent prefill queue entries:"
+msgstr "最近的预填充队列条目："
+
+msgid "Recently updated queue entries:"
+msgstr "最近更新的队列条目："
+
+msgid "Recursive"
+msgstr "循环"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Remove"
+msgstr "删除"
+
+msgid "Remove expired Live/EPG metadata and queue entries"
+msgstr "删除已过期的直播/EPG 元数据和队列条目"
+
+msgid "Remove path"
+msgstr "移除路径"
+
+msgid "Reset No-EPG"
+msgstr "重置无 EPG 状态"
+
+msgid "Retry missing media metadata/artwork"
+msgstr "重试缺失的媒体元数据/封面"
+
+msgid "Retry no match"
+msgstr "重试无匹配"
+
+msgid "Retry no-match after hours"
+msgstr "数小时后重试未匹配项"
+
+msgid "Retry of missing media metadata/artwork started."
+msgstr "已开始重试缺失的媒体元数据/封面。"
+
+msgid "Rotate e2MDB.log when this size is reached."
+msgstr "当文件大小达到指定值时，对e2MDB.log进行轮转。"
+
+msgid "Run Live/EPG prefill now"
+msgstr "立即运行直播/EPG预填充"
+
+msgid "Run cleanup"
+msgstr "运行清理"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Running SQLite maintenance"
+msgstr "正在运行SQLite维护"
+
+msgid "SQLite REINDEX"
+msgstr "SQLite 重新索引"
+
+msgid "SQLite VACUUM"
+msgstr "SQLite 空间"
+
+msgid "SQLite maintenance"
+msgstr "SQLite 维护"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Scan e2MDB media folders"
+msgstr "扫描 e2MDB 媒体文件夹"
+
+msgid "Scan selected media paths + provider metadata"
+msgstr "扫描选定的媒体路径 + 提供者元数据"
+
+msgid "Scan successfully finished."
+msgstr "扫描成功完成。"
+
+msgid "Scan was canceled by user."
+msgstr "扫描已被用户取消。"
+
+msgid "Scanning TS recordings"
+msgstr "扫描TS录音"
+
+msgid "Scanning media files"
+msgstr "扫描媒体文件"
+
+msgid "Scanning:"
+msgstr "扫描："
+
+msgid "Search in AniList Anime/Manga"
+msgstr "在 AniList 上搜索动漫/漫画"
+
+msgid "Search in IMDb"
+msgstr "在 IMDb 上搜索"
+
+msgid "Search in Kitsu Anime/Manga"
+msgstr "在《Kitsu》中搜索动漫/漫画"
+
+msgid "Search in OMDb"
+msgstr "在 OMDb 中搜索"
+
+msgid "Search in TMDb"
+msgstr "在TMDb中搜索"
+
+msgid "Search in TVDb"
+msgstr "在TVDb中搜索"
+
+msgid "Search in TVSpielfilm for German Live/EPG"
+msgstr "在TVSpielfilm中搜索德语直播/EPG"
+
+msgid "Search in TVmaze"
+msgstr "在TVmaze中搜索"
+
+msgid "Searching Live/EPG metadata"
+msgstr "搜索直播/EPG元数据"
+
+msgid "Searching internet metadata"
+msgstr "搜索互联网元数据"
+
+msgid "Season"
+msgstr "季节"
+
+msgid "Select EPG titles to ignore"
+msgstr "选择要忽略的 EPG 标题"
+
+msgid "Select folder names to ignore"
+msgstr "选择要忽略的文件夹名称"
+
+msgid "Select manual Live/EPG prefill channels"
+msgstr "选择手动直播/EPG预填充频道"
+
+msgid "Select path for media"
+msgstr "媒体选择路径"
+
+msgid "Select service names to ignore"
+msgstr "选择要忽略的服务名称"
+
+msgid "Select which image type should be preferred for service-list previews."
+msgstr "选择服务列表预览时首选的图像类型。"
+
+msgid ""
+"Select which online providers e2MDB may use. Keep the default providers "
+"enabled for best automatic matching."
+msgstr ""
+"选择e2MDB可以使用的在线提供商。为获得最佳自动匹配效果，请保持默认提供商启用状"
+"态。"
+
+msgid "Selected in bouquet: %d / %d   Total selected services: %d"
+msgstr "在花束中选中：%d / %d 总选中服务：%d"
+
+msgid "Series"
+msgstr "系列"
+
+msgid "Series cache"
+msgstr "系列缓存"
+
+msgid "Service list preview image"
+msgstr "服务列表预览图"
+
+msgid "Show e2MDB EventView for EPG events"
+msgstr "显示 EPG 事件的 e2MDB 事件视图"
+
+msgid "Show e2MDB EventView for media events"
+msgstr "显示 e2MDB 事件视图以查看媒体事件"
+
+msgid "Show in main menu"
+msgstr "在主菜单中显示"
+
+msgid "Show next page"
+msgstr "显示下一页"
+
+msgid "Show previous page"
+msgstr "显示上一页"
+
+msgid "Shrink e2MDB SQLite database files during backend maintenance."
+msgstr "在后台维护期间收缩 e2MDB SQLite 数据库文件。"
+
+msgid "Skipping unchanged media files"
+msgstr "跳过未更改的媒体文件"
+
+msgid "Standby only"
+msgstr "仅限候补"
+
+msgid "Start scan"
+msgstr "开始扫描"
+
+msgid "Stop scan"
+msgstr "停止扫描"
+
+msgid "Succesful"
+msgstr "成功"
+
+msgid "Successful"
+msgstr "成功"
+
+msgid "TCP port used by the e2MDB backend web interface. Default is 6066."
+msgstr "e2MDB后端Web界面的TCP端口。默认值为6066。"
+
+msgid "TMDb API key"
+msgstr "TMDb API 密钥"
+
+msgid "TVDb API key"
+msgstr "TVDb API 密钥"
+
+msgid "Target language for fallback search titles."
+msgstr "翻译后的搜索标题的目标语言作为备用语言。"
+
+msgid "Total"
+msgstr "总计"
+
+msgid "Translate English metadata fallback"
+msgstr "翻译英语元数据回退"
+
+msgid "Translate only the title when normal provider search finds no result."
+msgstr "仅在常规服务提供方搜索未找到结果时，翻译标题。"
+
+msgid ""
+"Translate overview and tagline from the English fallback into the selected "
+"provider language before storing them."
+msgstr "在存储之前，先将英语备用版本中的概述和标语翻译成所选服务商的语言。"
+
+msgid ""
+"Treat a negative Live/EPG provider result as cached for this many hours, "
+"then allow another lookup."
+msgstr ""
+"将 直播/EPG 提供商返回的“无结果”视为缓存状态，保持该状态指定的时长，之后允许"
+"再次查询。"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Unmark all"
+msgstr "取消所有标记"
+
+msgid "Unmark bouquet"
+msgstr "取消选择花束"
+
+msgid "Use AniList for Anime/Manga path modes."
+msgstr "使用 AniList 进行动漫/漫画路径模式设置。"
+
+msgid "Use FanArt.tv after another provider matched a movie or series."
+msgstr "如果其他服务商已分配了电影或剧集，请使用 FanArt.tv。"
+
+msgid "Use FanArt.tv artwork fallback"
+msgstr "使用 FanArt.tv 图片备用方案"
+
+msgid "Use IMDb as an additional movie and series fallback provider."
+msgstr "使用 IMDb 作为电影和剧集的额外备用数据源。"
+
+msgid "Use Kitsu for Anime/Manga path modes."
+msgstr "使用 Kitsu 进行动漫/漫画路径模式。"
+
+msgid ""
+"Use TMDb for movie and series metadata. Recommended as the primary provider."
+msgstr "使用 TMDb 获取电影和剧集的元数据。推荐将其作为主要数据源。"
+
+msgid "Use TVDb for series metadata and episode/season artwork."
+msgstr "使用 TVDb 获取剧集元数据以及分集/分季的封面图。"
+
+msgid "Use TVSpielfilm as preferred provider for German Live/EPG metadata."
+msgstr "使用 TVSpielfilm 作为德国直播/EPG 元数据的首选提供商。"
+
+msgid "Use TVmaze as a free series fallback provider without API key."
+msgstr "使用TVmaze 用作无需 API 密钥的免费剧集备用数据源。"
+
+msgid "Use Wikimedia/Wikipedia as Live/EPG fallback artwork provider."
+msgstr "使用维基媒体/维基百科作为实时/EPG的备选艺术作品。"
+
+msgid "Use Wikimedia/Wikipedia image fallback for Live/EPG"
+msgstr "使用维基媒体/维基百科图片备份来获取实时/电子节目指南"
+
+msgid "Use fernsehserien.de as German Live/EPG image fallback."
+msgstr "使用 fernsehserien.de 作为德国实时/EPG 图片的备用来源。"
+
+msgid "Use fernsehserien.de image fallback for German Live/EPG"
+msgstr "使用 fernsehserien.de 图片作为德语直播/电子节目指南的备用图片"
+
+msgid "Use preferred channels from zap/watch history for prefill decisions."
+msgstr "根据 Zap 或观看历史记录中的首选频道来决定预填内容。"
+
+msgid "Use zap history"
+msgstr "使用 Zap 历史记录"
+
+msgid "Validating media scan paths"
+msgstr "检查扫描路径"
+
+msgid "Verbose"
+msgstr "详细"
+
+msgid "Web interface port"
+msgstr "Web 界面端口"
+
+msgid "What should be deleted?"
+msgstr "哪些内容应该删除？"
+
+msgid "Writer"
+msgstr "作者"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "Zap history top channels"
+msgstr "频道历史热门频道"
+
+msgid "as"
+msgstr "作为"
+
+msgid "available"
+msgstr "可用"
+
+msgid "e2MDB"
+msgstr "e2MDB"
+
+msgid "e2MDB EventView"
+msgstr "e2MDB 事件视图"
+
+msgid "e2MDB Live/EPG Cleanup"
+msgstr "e2MDB 直播/EPG 清理"
+
+msgid "e2MDB Live/EPG Prefill"
+msgstr "e2MDB 实时/EPG 预填充"
+
+msgid "e2MDB Refresh"
+msgstr "e2MDB 刷新"
+
+msgid "e2MDB SQLite Maintenance"
+msgstr "e2MDB SQLite 维护"
+
+msgid "e2MDB Settings"
+msgstr "e2MDB 设置"
+
+msgid "e2MDB Single EPG"
+msgstr "e2MDB 单 EPG"
+
+msgid "e2MDB tools"
+msgstr "e2MDB 工具"
+
+msgid "e2MDB.log"
+msgstr "e2MDB.log"
+
+msgid "e2MDB.log max size (MB)"
+msgstr "e2MDB.log 最大大小 (MB)"
+
+msgid "episode"
+msgstr "单集"
+
+msgid "failed/error"
+msgstr "失败/错误"
+
+msgid "finished"
+msgstr "已完成"
+
+msgid "min"
+msgstr "分钟"
+
+msgid "not available"
+msgstr "不可用"
+
+msgid "per record"
+msgstr "每条记录"
+
+msgid "prefill"
+msgstr "预填充"
+
+msgid "season"
+msgstr "季"
+
+msgid "unkown"
+msgstr "未知"
+
+msgid "worker request failed"
+msgstr "工人请求失败"
+
+msgid "worker requested"
+msgstr "请求工作人员"
+
+msgid "{not yet}"
+msgstr "{还没有}"
