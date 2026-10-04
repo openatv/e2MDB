@@ -1,0 +1,1130 @@
+# Polish translation for e2MDB.
+# This file is distributed under the same license as the e2MDB package.
+# StreamF, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: e2MDB\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-19 09:15+0200\n"
+"PO-Revision-Date: 2026-10-04 12:10+0100\n"
+"Last-Translator: StreamF\n"
+"Language-Team: Polish\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 3.9\n"
+
+msgid "%s / %s  %s%%  %s"
+msgstr "%s / %s  %s%%  %s"
+
+msgid "%s / %s  %s%%  total %s%%  %s"
+msgstr "%s / %s  %s%%  łącznie %s%%  %s"
+
+msgid "%s%%  %s"
+msgstr "%s%%  %s"
+
+msgid "--- Basic configuration ---"
+msgstr "--- Konfiguracja podstawowa ---"
+
+msgid "--- Expert and diagnostics ---"
+msgstr "--- Ustawienia eksperckie i diagnostyka ---"
+
+msgid "--- Live TV and EPG metadata ---"
+msgstr "--- Metadane TV na żywo i EPG ---"
+
+msgid "--- Metadata providers ---"
+msgstr "--- Dostawcy metadanych ---"
+
+msgid "Aborted"
+msgstr "Przerwano"
+
+msgid "Actors"
+msgstr "Aktorzy"
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "Add e2MDB to the Enigma2 main menu. The plugin remains available in the plugin browser when this is disabled."
+msgstr "Dodaj e2MDB do menu głównego Enigma2. Po wyłączeniu tej opcji wtyczka pozostaje dostępna w przeglądarce wtyczek."
+
+msgid "Add from channel list"
+msgstr "Dodaj z listy kanałów"
+
+msgid "Add from current EPG titles"
+msgstr "Dodaj z bieżących tytułów EPG"
+
+msgid "Add from media folders"
+msgstr "Dodaj z folderów multimediów"
+
+msgid "Add ignore pattern"
+msgstr "Dodaj wzorzec ignorowania"
+
+msgid "Add manually"
+msgstr "Dodaj ręcznie"
+
+msgid "Add path"
+msgstr "Dodaj ścieżkę"
+
+msgid "Add pattern"
+msgstr "Dodaj wzorzec"
+
+msgid "Add selected"
+msgstr "Dodaj wybrane"
+
+msgid "Advanced options are hidden by default. The old local Enigma2 worker/progress options were removed for clean-start backend mode."
+msgstr "Opcje zaawansowane są domyślnie ukryte. Stare lokalne opcje zadań i postępu Enigma2 zostały usunięte na rzecz czystego trybu z usługą w tle."
+
+msgid "All cache (without database)"
+msgstr "Cała pamięć podręczna (bez bazy danych)"
+
+msgid "All cache + database"
+msgstr "Cała pamięć podręczna + baza danych"
+
+msgid "Anime Movie"
+msgstr "Film anime"
+
+msgid "Anime Series"
+msgstr "Serial anime"
+
+msgid "Artwork: with artwork %s  missing artwork %s"
+msgstr "Grafiki: z grafiką %s  bez grafiki %s"
+
+msgid "Attach e2MDB metadata sources to ChannelSelection and queue missing entries for the backend daemon."
+msgstr "Podłącz źródła metadanych e2MDB do listy kanałów i dodaj brakujące wpisy do kolejki usługi w tle."
+
+msgid "Attach e2MDB metadata sources to live TV InfoBar and queue missing entries for the backend daemon."
+msgstr "Podłącz źródła metadanych e2MDB do paska informacji TV na żywo i dodaj brakujące wpisy do kolejki usługi w tle."
+
+msgid "Back"
+msgstr "Wstecz"
+
+msgid "Backdrop only"
+msgstr "Tylko tło"
+
+msgid "Backdrop, fallback preview/still"
+msgstr "Tło, zapasowo podgląd/kadr"
+
+msgid "Backend cleanup started. Please wait!"
+msgstr "Rozpoczęto czyszczenie w usłudze w tle. Proszę czekać!"
+
+msgid "Backend is not available:"
+msgstr "Usługa w tle jest niedostępna:"
+
+msgid "Backend job could not be started:"
+msgstr "Nie można uruchomić zadania usługi w tle:"
+
+msgid "Backend job finished."
+msgstr "Zadanie usługi w tle zakończone."
+
+msgid "Backend job will be started. Please wait!"
+msgstr "Zadanie usługi w tle zostanie uruchomione. Proszę czekać!"
+
+msgid "Backend job will be stopped. Please wait!"
+msgstr "Zadanie usługi w tle zostanie zatrzymane. Proszę czekać!"
+
+msgid "Backend job: %s"
+msgstr "Zadanie usługi w tle: %s"
+
+msgid "Backend job: %s  Part %s/%s"
+msgstr "Zadanie usługi w tle: %s  Część %s/%s"
+
+msgid "Backend not running"
+msgstr "Usługa w tle nie działa"
+
+msgid "Base path for e2MDB cache files, provider artwork, database and generated metadata."
+msgstr "Ścieżka bazowa dla plików pamięci podręcznej e2MDB, grafik dostawców, bazy danych i wygenerowanych metadanych."
+
+msgid "Both"
+msgstr "Oba"
+
+msgid "Bouquet %d/%d: %s"
+msgstr "Lista %d/%d: %s"
+
+msgid "Bouquets"
+msgstr "Listy"
+
+msgid "Bouquets: %d   Full: %d   Partial: %d   Total selected services: %d"
+msgstr "Listy: %d   Pełne: %d   Częściowe: %d   Łącznie wybranych kanałów: %d"
+
+msgid "CPU load: %s  System load: %s / %d cores"
+msgstr "Obciążenie CPU: %s  Obciążenie systemu: %s / rdzenie: %d"
+
+msgid "Cache cleanup"
+msgstr "Czyszczenie pamięci podręcznej"
+
+msgid "Cache path"
+msgstr "Ścieżka pamięci podręcznej"
+
+msgid "Channel names: %d   Selected: %d"
+msgstr "Nazwy kanałów: %d   Wybrane: %d"
+
+msgid "Choose whether e2MDB log lines are written to e2MDB.log, the Enigma2 debug log, or both."
+msgstr "Wybierz, czy wpisy logu e2MDB mają być zapisywane do e2MDB.log, do logu debugowania Enigma2, czy do obu."
+
+msgid "Clean Cache"
+msgstr "Wyczyść pamięć podręczną"
+
+msgid "Cleaning cache"
+msgstr "Czyszczenie pamięci podręcznej"
+
+msgid "Cleanup candidates: expired Live/EPG %s  queue %s  primary cache %s"
+msgstr "Do wyczyszczenia: wygasłe Live/EPG %s  kolejka %s  główna pamięć podręczna %s"
+
+msgid ""
+"Cleanup finished: %s\n"
+"Deleted files: %d\n"
+"Deleted folders: %d"
+msgstr ""
+"Czyszczenie zakończone: %s\n"
+"Usunięte pliki: %d\n"
+"Usunięte foldery: %d"
+
+msgid "Clear failed"
+msgstr "Wyczyść nieudane"
+
+msgid "Clear prefill"
+msgstr "Wyczyść wstępne pobieranie"
+
+msgid "Clear queue"
+msgstr "Wyczyść kolejkę"
+
+msgid "Close"
+msgstr "Zamknij"
+
+msgid "Close screen"
+msgstr "Zamknij ekran"
+
+msgid "Collecting media files"
+msgstr "Zbieranie plików multimedialnych"
+
+msgid "Configured services"
+msgstr "Skonfigurowane kanały"
+
+msgid "Core settings used by e2MDB. Heavy scan, provider, artwork, cleanup and scheduler work is handled by the backend daemon."
+msgstr "Podstawowe ustawienia e2MDB. Ciężkie zadania skanowania, pobierania od dostawców, grafik, czyszczenia i harmonogramu wykonuje usługa w tle."
+
+msgid ""
+"Could not save ignore list:\n"
+"%s"
+msgstr ""
+"Nie można zapisać listy ignorowanych:\n"
+"%s"
+
+msgid ""
+"Could not start missing media metadata/artwork retry:\n"
+"%s"
+msgstr ""
+"Nie można uruchomić ponownej próby pobrania brakujących metadanych/grafik multimediów:\n"
+"%s"
+
+msgid "Covers/artwork only"
+msgstr "Tylko okładki/grafiki"
+
+msgid "DB maintenance"
+msgstr "Konserwacja bazy danych"
+
+msgid "DB status and maintenance"
+msgstr "Stan i konserwacja bazy danych"
+
+msgid "DB status could not be read: %s"
+msgstr "Nie można odczytać stanu bazy danych: %s"
+
+msgid "Database is currently busy; refresh again for detailed counters."
+msgstr "Baza danych jest obecnie zajęta; odśwież ponownie, aby zobaczyć szczegółowe liczniki."
+
+msgid "Database only"
+msgstr "Tylko baza danych"
+
+msgid "Database: %s  Size: %s  Free inside DB: %s"
+msgstr "Baza danych: %s  Rozmiar: %s  Wolne w bazie: %s"
+
+msgid "Define if the path contains movies, series or both. This is used to optimize the scan process."
+msgstr "Określ, czy ścieżka zawiera filmy, seriale, czy oba. Służy to optymalizacji skanowania."
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid ""
+"Delete '%s'?\n"
+"\n"
+"This cannot be undone."
+msgstr ""
+"Usunąć '%s'?\n"
+"\n"
+"Tej operacji nie można cofnąć."
+
+msgid "Deselect all"
+msgstr "Odznacz wszystko"
+
+msgid "Director"
+msgstr "Reżyser"
+
+msgid "Done"
+msgstr "Gotowe"
+
+msgid "Duration"
+msgstr "Czas trwania"
+
+msgid "EPG titles: %d   Selected: %d"
+msgstr "Tytuły EPG: %d   Wybrane: %d"
+
+msgid "ERROR trying to remove pictures and data from cache.: %s"
+msgstr "BŁĄD podczas usuwania obrazów i danych z pamięci podręcznej.: %s"
+
+msgid "Edit pattern"
+msgstr "Edytuj wzorzec"
+
+msgid "Enable ChannelSelection metadata"
+msgstr "Włącz metadane na liście kanałów"
+
+msgid "Enable InfoBar metadata"
+msgstr "Włącz metadane na pasku informacji"
+
+msgid "Enable Live/EPG metadata cache"
+msgstr "Włącz pamięć podręczną metadanych Live/EPG"
+
+msgid "Enable Live/EPG prefill"
+msgstr "Włącz wstępne pobieranie Live/EPG"
+
+msgid "Enable Media Database"
+msgstr "Włącz bazę multimediów"
+
+msgid "Enable e2MDB database/cache integration. Provider and scan work runs in the backend daemon, not in the Enigma2 GUI process."
+msgstr "Włącz integrację bazy danych i pamięci podręcznej e2MDB. Pobieranie od dostawców i skanowanie działa w usłudze w tle, a nie w procesie interfejsu Enigma2."
+
+msgid "Enable short-lived metadata caching for Live TV and EPG events."
+msgstr "Włącz krótkotrwałe przechowywanie metadanych dla TV na żywo i audycji EPG."
+
+msgid "English metadata text fallback"
+msgstr "Zapasowe teksty metadanych po angielsku"
+
+msgid "Enigma2 debug log"
+msgstr "Log debugowania Enigma2"
+
+msgid "Enigma2 only collects Live/EPG candidates. Provider processing is backend-only."
+msgstr "Enigma2 tylko zbiera kandydatów Live/EPG. Przetwarzanie u dostawców odbywa się wyłącznie w usłudze w tle."
+
+msgid "Enter your personal API key for OMDb."
+msgstr "Wprowadź swój osobisty klucz API dla OMDb."
+
+msgid "Enter your personal API key for TMDb."
+msgstr "Wprowadź swój osobisty klucz API dla TMDb."
+
+msgid "Enter your personal API key for TVDb."
+msgstr "Wprowadź swój osobisty klucz API dla TVDb."
+
+msgid "Enter your personal FanArt.tv API key."
+msgstr "Wprowadź swój osobisty klucz API FanArt.tv."
+
+msgid "Episode"
+msgstr "Odcinek"
+
+msgid "Error"
+msgstr "Błąd"
+
+msgid "Event View"
+msgstr "Widok audycji"
+
+msgid "Event View Actions"
+msgstr "Akcje widoku audycji"
+
+msgid "Exclude"
+msgstr "Wyklucz"
+
+msgid "Failed"
+msgstr "Niepowodzenie"
+
+msgid "Failed to read DB status: %s"
+msgstr "Nie udało się odczytać stanu bazy danych: %s"
+
+msgid "Failed to read prefill status: %s"
+msgstr "Nie udało się odczytać stanu wstępnego pobierania: %s"
+
+msgid "Failed to read worker queue: %s"
+msgstr "Nie udało się odczytać kolejki zadań: %s"
+
+msgid "FanArt.tv API key"
+msgstr "Klucz API FanArt.tv"
+
+msgid "FanArt.tv artwork mode"
+msgstr "Tryb grafik FanArt.tv"
+
+msgid "File split: TS recordings %s  media files %s"
+msgstr "Podział plików: nagrania TS %s  pliki multimedialne %s"
+
+msgid "Fill missing artwork only"
+msgstr "Uzupełniaj tylko brakujące grafiki"
+
+msgid "Fill only missing artwork, or prefer FanArt.tv artwork over artwork from the metadata provider."
+msgstr "Uzupełniaj tylko brakujące grafiki lub preferuj grafiki z FanArt.tv zamiast grafik od dostawcy metadanych."
+
+msgid "Finished"
+msgstr "Zakończono"
+
+msgid "Folder names: %d   Selected: %d"
+msgstr "Nazwy folderów: %d   Wybrane: %d"
+
+msgid "Google title translation fallback"
+msgstr "Zapasowe tłumaczenie tytułów przez Google"
+
+msgid "Google title translation target language"
+msgstr "Język docelowy tłumaczenia tytułów przez Google"
+
+msgid "Hour of day used for night prefill checks."
+msgstr "Godzina, o której wykonywane jest nocne wstępne pobieranie."
+
+msgid "INFO"
+msgstr "INFO"
+
+msgid "Idle time"
+msgstr "Czas bezczynności"
+
+msgid "If the selected provider language returns artwork but no usable text, retry provider metadata once in English."
+msgstr "Jeśli dla wybranego języka dostawca zwraca grafiki, ale bez użytecznego tekstu, ponów raz pobranie metadanych po angielsku."
+
+msgid "Ignored EPG title patterns"
+msgstr "Ignorowane wzorce tytułów EPG"
+
+msgid "Ignored folder name patterns"
+msgstr "Ignorowane wzorce nazw folderów"
+
+msgid "Ignored service name patterns"
+msgstr "Ignorowane wzorce nazw kanałów"
+
+msgid "Imported files: %s  Media entries: %s  Browser-ready: %s"
+msgstr "Zaimportowane pliki: %s  Wpisy multimediów: %s  Gotowe do przeglądania: %s"
+
+msgid "Importing scan data"
+msgstr "Importowanie danych skanowania"
+
+msgid "Include subdirectories"
+msgstr "Uwzględnij podkatalogi"
+
+msgid "Keep matched Live/EPG metadata for this number of days after the event ended."
+msgstr "Przechowuj dopasowane metadane Live/EPG przez tyle dni po zakończeniu audycji."
+
+msgid "Language used for provider searches and provider API requests."
+msgstr "Język używany do wyszukiwania i zapytań API u dostawców."
+
+msgid "Last SQLite maintenance: %s"
+msgstr "Ostatnia konserwacja SQLite: %s"
+
+msgid "Last action failed: %s"
+msgstr "Ostatnia akcja nie powiodła się: %s"
+
+msgid "Last action: %s removed %d queue entries."
+msgstr "Ostatnia akcja: %s usunięto wpisy z kolejki: %d."
+
+msgid "Last action: no active no-match entries found."
+msgstr "Ostatnia akcja: nie znaleziono aktywnych wpisów bez dopasowania."
+
+msgid "Last action: refreshed at %s"
+msgstr "Ostatnia akcja: odświeżono o %s"
+
+msgid "Last action: requeued %d active no-match entries, %s."
+msgstr "Ostatnia akcja: ponownie dodano do kolejki aktywne wpisy bez dopasowania: %d, %s."
+
+msgid "Last cleanup stats:"
+msgstr "Statystyki ostatniego czyszczenia:"
+
+msgid "Last cleanup: %s"
+msgstr "Ostatnie czyszczenie: %s"
+
+msgid "Last manual action result:"
+msgstr "Wynik ostatniej ręcznej akcji:"
+
+msgid "Last no-EPG: %s   Last service with events: %s"
+msgstr "Ostatni bez EPG: %s   Ostatni kanał z audycjami: %s"
+
+msgid "Last prefill run: %s"
+msgstr "Ostatnie wstępne pobieranie: %s"
+
+msgid "Last scan"
+msgstr "Ostatnie skanowanie"
+
+msgid "Live/EPG Prefill status"
+msgstr "Stan wstępnego pobierania Live/EPG"
+
+msgid "Live/EPG Worker queue"
+msgstr "Kolejka zadań Live/EPG"
+
+msgid "Live/EPG cache"
+msgstr "Pamięć podręczna Live/EPG"
+
+msgid "Live/EPG cleanup"
+msgstr "Czyszczenie Live/EPG"
+
+msgid "Live/EPG metadata worker"
+msgstr "Zadanie metadanych Live/EPG"
+
+msgid "Live/EPG prefill days"
+msgstr "Dni wstępnego pobierania Live/EPG"
+
+msgid "Live/EPG retention in days"
+msgstr "Przechowywanie Live/EPG w dniach"
+
+msgid "Live/EPG worker aborted"
+msgstr "Zadanie Live/EPG przerwane"
+
+msgid "Live/EPG worker queue"
+msgstr "Kolejka zadań Live/EPG"
+
+msgid "Live/EPG: active %s  expired %s  queue %s"
+msgstr "Live/EPG: aktywne %s  wygasłe %s  kolejka %s"
+
+msgid "Log mode"
+msgstr "Tryb logowania"
+
+msgid "Log output"
+msgstr "Miejsce zapisu logu"
+
+msgid "MENU"
+msgstr "MENU"
+
+msgid "Maintenance: enabled %s  VACUUM %s  REINDEX %s"
+msgstr "Konserwacja: włączona %s  VACUUM %s  REINDEX %s"
+
+msgid "Manga Movie"
+msgstr "Film manga"
+
+msgid "Manga Series"
+msgstr "Serial manga"
+
+msgid "Manual Live/EPG prefill services"
+msgstr "Ręcznie wybrane kanały do wstępnego pobierania Live/EPG"
+
+msgid "Manual selected services: %d"
+msgstr "Ręcznie wybrane kanały: %d"
+
+msgid "Mark all"
+msgstr "Zaznacz wszystko"
+
+msgid "Mark bouquet"
+msgstr "Zaznacz listę"
+
+msgid "Maximum events per prefill service"
+msgstr "Maks. audycji na kanał przy wstępnym pobieraniu"
+
+msgid "Maximum number of EPG events to queue per prefill run across all channels."
+msgstr "Maksymalna liczba audycji EPG dodawanych do kolejki podczas jednego wstępnego pobierania dla wszystkich kanałów."
+
+msgid "Maximum number of future EPG events inspected per service."
+msgstr "Maksymalna liczba przyszłych audycji EPG sprawdzanych na kanał."
+
+msgid "Maximum number of preferred channels selected from zap/watch history."
+msgstr "Maksymalna liczba preferowanych kanałów wybieranych z historii przełączeń i oglądania."
+
+msgid "Maximum prefill events"
+msgstr "Maks. audycji przy wstępnym pobieraniu"
+
+msgid "Media path scan completed:"
+msgstr "Skanowanie ścieżek multimediów zakończone:"
+
+msgid "Media refresh"
+msgstr "Odświeżanie multimediów"
+
+msgid "Media scan"
+msgstr "Skanowanie multimediów"
+
+msgid "Media scan finished"
+msgstr "Skanowanie multimediów zakończone"
+
+msgid "Media types: movies %s  series %s  episodes %s  unknown %s"
+msgstr "Typy multimediów: filmy %s  seriale %s  odcinki %s  nieznane %s"
+
+msgid "Metadata download"
+msgstr "Pobieranie metadanych"
+
+msgid "Mode"
+msgstr "Tryb"
+
+msgid "More..."
+msgstr "Więcej..."
+
+msgid "Movie"
+msgstr "Film"
+
+msgid "Movie cache"
+msgstr "Pamięć podręczna filmów"
+
+msgid "Movie/Series"
+msgstr "Film/Serial"
+
+msgid "Music"
+msgstr "Muzyka"
+
+msgid "Night prefill"
+msgstr "Nocne wstępne pobieranie"
+
+msgid "Night prefill start hour"
+msgstr "Godzina rozpoczęcia nocnego wstępnego pobierania"
+
+msgid "Night window"
+msgstr "Okno nocne"
+
+msgid "Night window is recommended for backend-only processing."
+msgstr "Okno nocne jest zalecane przy przetwarzaniu wyłącznie w usłudze w tle."
+
+msgid "No"
+msgstr "Nie"
+
+msgid "No TV bouquets found"
+msgstr "Nie znaleziono list TV"
+
+msgid "No media files found in configured scan paths"
+msgstr "Nie znaleziono plików multimedialnych w skonfigurowanych ścieżkach skanowania"
+
+msgid "No media path selected."
+msgstr "Nie wybrano ścieżki multimediów."
+
+msgid "No patterns configured"
+msgstr "Brak skonfigurowanych wzorców"
+
+msgid "No pending queue entries."
+msgstr "Brak oczekujących wpisów w kolejce."
+
+msgid "No prefill queue entries."
+msgstr "Brak wpisów w kolejce wstępnego pobierania."
+
+msgid "No queue entries."
+msgstr "Brak wpisów w kolejce."
+
+msgid "No recent prefill queue entries."
+msgstr "Brak ostatnich wpisów w kolejce wstępnego pobierania."
+
+msgid "No recent queue entries."
+msgstr "Brak ostatnich wpisów w kolejce."
+
+msgid "No recordings need provider enrichment"
+msgstr "Żadne nagranie nie wymaga uzupełnienia danymi od dostawców"
+
+msgid "No selectable entries found"
+msgstr "Nie znaleziono wpisów do wyboru"
+
+msgid "No valid recording/media scan paths found"
+msgstr "Nie znaleziono prawidłowych ścieżek skanowania nagrań/multimediów"
+
+msgid "No-EPG tracked: %d   blocked now: %d"
+msgstr "Śledzone bez EPG: %d   obecnie zablokowane: %d"
+
+msgid "Non-recursive"
+msgstr "Bez podkatalogów"
+
+msgid "Nothing found!"
+msgstr "Nic nie znaleziono!"
+
+msgid "Novel"
+msgstr "Powieść"
+
+msgid "Number of future EPG days to inspect for preferred channels."
+msgstr "Liczba przyszłych dni EPG sprawdzanych dla preferowanych kanałów."
+
+msgid "OK = Edit"
+msgstr "OK = Edytuj"
+
+msgid "OK = Mark"
+msgstr "OK = Zaznacz"
+
+msgid "OK = Open"
+msgstr "OK = Otwórz"
+
+msgid "OMDb API key"
+msgstr "Klucz API OMDb"
+
+msgid "Off"
+msgstr "Wyłączone"
+
+msgid "Off keeps existing DB metadata/artwork and only scans new or changed files. On reprocesses existing entries and may download metadata/artwork again."
+msgstr "Wyłączone zachowuje istniejące metadane/grafiki w bazie i skanuje tylko nowe lub zmienione pliki. Włączone ponownie przetwarza istniejące wpisy i może ponownie pobrać metadane/grafiki."
+
+msgid "Off writes nothing. On writes real errors only. Verbose writes the full diagnostic log."
+msgstr "Wyłączone nic nie zapisuje. Włączone zapisuje tylko rzeczywiste błędy. Szczegółowy zapisuje pełny log diagnostyczny."
+
+msgid "On"
+msgstr "Włączone"
+
+msgid "Open the e2MDB EventView for EPG events when metadata exists."
+msgstr "Otwieraj widok audycji e2MDB dla audycji EPG, gdy istnieją metadane."
+
+msgid "Open the e2MDB media EventView for recordings/media when metadata exists."
+msgstr "Otwieraj widok multimediów e2MDB dla nagrań/multimediów, gdy istnieją metadane."
+
+msgid "Optimize e2MDB database"
+msgstr "Optymalizuj bazę danych e2MDB"
+
+msgid "Optional fallback provider. OMDb requires an API key and is not localized."
+msgstr "Opcjonalny zapasowy dostawca. OMDb wymaga klucza API i nie jest zlokalizowany."
+
+msgid "Paths"
+msgstr "Ścieżki"
+
+msgid "Patterns: %d   Stored in %s"
+msgstr "Wzorce: %d   Zapisane w %s"
+
+msgid "Pending worker queue:"
+msgstr "Oczekująca kolejka zadań:"
+
+msgid "Please add all missing personal provider API-Key(s)s in e2MDB settings or deactivate providers."
+msgstr "Dodaj wszystkie brakujące osobiste klucze API dostawców w ustawieniach e2MDB lub wyłącz tych dostawców."
+
+msgid "Prefer FanArt artwork"
+msgstr "Preferuj grafiki FanArt"
+
+msgid "Prefill busy"
+msgstr "Wstępne pobieranie zajęte"
+
+msgid "Prefill channels"
+msgstr "Kanały do wstępnego pobierania"
+
+msgid "Prefill mode"
+msgstr "Tryb wstępnego pobierania"
+
+msgid "Prefill queue summary:"
+msgstr "Podsumowanie kolejki wstępnego pobierania:"
+
+msgid "Prefill request failed"
+msgstr "Żądanie wstępnego pobierania nie powiodło się"
+
+msgid "Prefill requested"
+msgstr "Zażądano wstępnego pobierania"
+
+msgid "Prefill runs should collect enough future EPG events during the night. Only candidate creation happens in Enigma2; provider work stays in the backend daemon."
+msgstr "Wstępne pobieranie powinno w nocy zebrać wystarczająco dużo przyszłych audycji EPG. W Enigma2 tworzone są tylko kandydaty; praca z dostawcami pozostaje w usłudze w tle."
+
+msgid "Prefill selected/preferred Live/EPG metadata"
+msgstr "Wstępnie pobierz metadane Live/EPG dla wybranych/preferowanych kanałów"
+
+msgid "Prefill state error: %s"
+msgstr "Błąd stanu wstępnego pobierania: %s"
+
+msgid "Prefill state file: %s"
+msgstr "Plik stanu wstępnego pobierania: %s"
+
+msgid "Prefill state: tracked %s  blocked now %s"
+msgstr "Stan wstępnego pobierania: śledzone %s  obecnie zablokowane %s"
+
+msgid "Prefill status / diagnostics"
+msgstr "Stan wstępnego pobierania / diagnostyka"
+
+msgid "Preparing Live/EPG cleanup"
+msgstr "Przygotowywanie czyszczenia Live/EPG"
+
+msgid "Preparing Live/EPG queue"
+msgstr "Przygotowywanie kolejki Live/EPG"
+
+msgid "Preparing Live/EPG queue worker"
+msgstr "Przygotowywanie zadania kolejki Live/EPG"
+
+msgid "Preparing provider search"
+msgstr "Przygotowywanie wyszukiwania u dostawców"
+
+msgid "Preview/still, fallback backdrop"
+msgstr "Podgląd/kadr, zapasowo tło"
+
+msgid "Processing Live/EPG metadata"
+msgstr "Przetwarzanie metadanych Live/EPG"
+
+msgid "Processing:"
+msgstr "Przetwarzanie:"
+
+msgid "Provider enrichment completed:"
+msgstr "Uzupełnianie danymi od dostawców zakończone:"
+
+msgid "Provider search finished"
+msgstr "Wyszukiwanie u dostawców zakończone"
+
+msgid "Provider search language"
+msgstr "Język wyszukiwania u dostawców"
+
+msgid "Provider: done %s  pending %s  missing %s  errors %s"
+msgstr "Dostawca: gotowe %s  oczekujące %s  brakujące %s  błędy %s"
+
+msgid "Queue future EPG events for selected/preferred channels so the backend can process them overnight."
+msgstr "Dodawaj przyszłe audycje EPG wybranych/preferowanych kanałów do kolejki, aby usługa w tle mogła je przetworzyć w nocy."
+
+msgid "Queue state summary:"
+msgstr "Podsumowanie stanu kolejki:"
+
+msgid "Queue states: %s"
+msgstr "Stany kolejki: %s"
+
+msgid "Queued"
+msgstr "W kolejce"
+
+msgid "Re-scan existing media entries"
+msgstr "Ponownie skanuj istniejące wpisy multimediów"
+
+msgid "Ready"
+msgstr "Gotowe"
+
+msgid "Rebuild SQLite indexes during backend maintenance. Usually not needed."
+msgstr "Przebuduj indeksy SQLite podczas konserwacji w usłudze w tle. Zwykle niepotrzebne."
+
+msgid "Recent Live/EPG events:"
+msgstr "Ostatnie audycje Live/EPG:"
+
+msgid "Recent prefill queue entries:"
+msgstr "Ostatnie wpisy w kolejce wstępnego pobierania:"
+
+msgid "Recently updated queue entries:"
+msgstr "Ostatnio zaktualizowane wpisy w kolejce:"
+
+msgid "Recursive"
+msgstr "Z podkatalogami"
+
+msgid "Refresh"
+msgstr "Odśwież"
+
+msgid "Remove"
+msgstr "Usuń"
+
+msgid "Remove expired Live/EPG metadata and queue entries"
+msgstr "Usuń wygasłe metadane Live/EPG i wpisy w kolejce"
+
+msgid "Remove path"
+msgstr "Usuń ścieżkę"
+
+msgid "Reset No-EPG"
+msgstr "Resetuj brak EPG"
+
+msgid "Retry missing media metadata/artwork"
+msgstr "Ponów pobieranie brakujących metadanych/grafik multimediów"
+
+msgid "Retry no match"
+msgstr "Ponów bez dopasowania"
+
+msgid "Retry no-match after hours"
+msgstr "Ponów bez dopasowania po godzinach"
+
+msgid "Retry of missing media metadata/artwork started."
+msgstr "Rozpoczęto ponowne pobieranie brakujących metadanych/grafik multimediów."
+
+msgid "Rotate e2MDB.log when this size is reached."
+msgstr "Rotuj e2MDB.log po osiągnięciu tego rozmiaru."
+
+msgid "Run Live/EPG prefill now"
+msgstr "Uruchom teraz wstępne pobieranie Live/EPG"
+
+msgid "Run cleanup"
+msgstr "Uruchom czyszczenie"
+
+msgid "Running"
+msgstr "Działa"
+
+msgid "Running SQLite maintenance"
+msgstr "Trwa konserwacja SQLite"
+
+msgid "SQLite REINDEX"
+msgstr "SQLite REINDEX"
+
+msgid "SQLite VACUUM"
+msgstr "SQLite VACUUM"
+
+msgid "SQLite maintenance"
+msgstr "Konserwacja SQLite"
+
+msgid "Save"
+msgstr "Zapisz"
+
+msgid "Scan e2MDB media folders"
+msgstr "Skanuj foldery multimediów e2MDB"
+
+msgid "Scan selected media paths + provider metadata"
+msgstr "Skanuj wybrane ścieżki multimediów + metadane od dostawców"
+
+msgid "Scan successfully finished."
+msgstr "Skanowanie zakończone pomyślnie."
+
+msgid "Scan was canceled by user."
+msgstr "Skanowanie zostało anulowane przez użytkownika."
+
+msgid "Scanning TS recordings"
+msgstr "Skanowanie nagrań TS"
+
+msgid "Scanning media files"
+msgstr "Skanowanie plików multimedialnych"
+
+msgid "Scanning:"
+msgstr "Skanowanie:"
+
+msgid "Search in AniList Anime/Manga"
+msgstr "Szukaj w AniList Anime/Manga"
+
+msgid "Search in IMDb"
+msgstr "Szukaj w IMDb"
+
+msgid "Search in Kitsu Anime/Manga"
+msgstr "Szukaj w Kitsu Anime/Manga"
+
+msgid "Search in OMDb"
+msgstr "Szukaj w OMDb"
+
+msgid "Search in TMDb"
+msgstr "Szukaj w TMDb"
+
+msgid "Search in TVDb"
+msgstr "Szukaj w TVDb"
+
+msgid "Search in TVSpielfilm for German Live/EPG"
+msgstr "Szukaj w TVSpielfilm dla niemieckich Live/EPG"
+
+msgid "Search in TVmaze"
+msgstr "Szukaj w TVmaze"
+
+msgid "Searching Live/EPG metadata"
+msgstr "Wyszukiwanie metadanych Live/EPG"
+
+msgid "Searching internet metadata"
+msgstr "Wyszukiwanie metadanych w internecie"
+
+msgid "Season"
+msgstr "Sezon"
+
+msgid "Select EPG titles to ignore"
+msgstr "Wybierz tytuły EPG do ignorowania"
+
+msgid "Select folder names to ignore"
+msgstr "Wybierz nazwy folderów do ignorowania"
+
+msgid "Select manual Live/EPG prefill channels"
+msgstr "Wybierz ręcznie kanały do wstępnego pobierania Live/EPG"
+
+msgid "Select path for media"
+msgstr "Wybierz ścieżkę multimediów"
+
+msgid "Select service names to ignore"
+msgstr "Wybierz nazwy kanałów do ignorowania"
+
+msgid "Select which image type should be preferred for service-list previews."
+msgstr "Wybierz, który typ obrazu ma być preferowany w podglądach na liście kanałów."
+
+msgid "Select which online providers e2MDB may use. Keep the default providers enabled for best automatic matching."
+msgstr "Wybierz, z których dostawców online może korzystać e2MDB. Pozostaw domyślnych dostawców włączonych, aby uzyskać najlepsze automatyczne dopasowanie."
+
+msgid "Selected in bouquet: %d / %d   Total selected services: %d"
+msgstr "Wybrane na liście: %d / %d   Łącznie wybranych kanałów: %d"
+
+msgid "Series"
+msgstr "Serial"
+
+msgid "Series cache"
+msgstr "Pamięć podręczna seriali"
+
+msgid "Service list preview image"
+msgstr "Obraz podglądu na liście kanałów"
+
+msgid "Show e2MDB EventView for EPG events"
+msgstr "Pokaż widok audycji e2MDB dla audycji EPG"
+
+msgid "Show e2MDB EventView for media events"
+msgstr "Pokaż widok audycji e2MDB dla multimediów"
+
+msgid "Show in main menu"
+msgstr "Pokaż w menu głównym"
+
+msgid "Show next page"
+msgstr "Pokaż następną stronę"
+
+msgid "Show previous page"
+msgstr "Pokaż poprzednią stronę"
+
+msgid "Shrink e2MDB SQLite database files during backend maintenance."
+msgstr "Zmniejszaj pliki bazy danych SQLite e2MDB podczas konserwacji w usłudze w tle."
+
+msgid "Skipping unchanged media files"
+msgstr "Pomijanie niezmienionych plików multimedialnych"
+
+msgid "Standby only"
+msgstr "Tylko w trybie czuwania"
+
+msgid "Start scan"
+msgstr "Rozpocznij skanowanie"
+
+msgid "Stop scan"
+msgstr "Zatrzymaj skanowanie"
+
+msgid "Succesful"
+msgstr "Pomyślnie"
+
+msgid "Successful"
+msgstr "Pomyślnie"
+
+msgid "TCP port used by the e2MDB backend web interface. Default is 6066."
+msgstr "Port TCP interfejsu WWW usługi e2MDB w tle. Domyślnie 6066."
+
+msgid "TMDb API key"
+msgstr "Klucz API TMDb"
+
+msgid "TVDb API key"
+msgstr "Klucz API TVDb"
+
+msgid "Target language for fallback search titles."
+msgstr "Język docelowy dla zapasowych tytułów wyszukiwania."
+
+msgid "Total"
+msgstr "Łącznie"
+
+msgid "Translate English metadata fallback"
+msgstr "Tłumacz zapasowe metadane angielskie"
+
+msgid "Translate only the title when normal provider search finds no result."
+msgstr "Tłumacz tylko tytuł, gdy zwykłe wyszukiwanie u dostawcy nie daje wyniku."
+
+msgid "Translate overview and tagline from the English fallback into the selected provider language before storing them."
+msgstr "Przed zapisaniem tłumacz opis i hasło z zapasowej wersji angielskiej na wybrany język dostawcy."
+
+msgid "Treat a negative Live/EPG provider result as cached for this many hours, then allow another lookup."
+msgstr "Traktuj negatywny wynik dostawcy Live/EPG jako zapamiętany przez tyle godzin, potem zezwól na ponowne wyszukanie."
+
+msgid "Unknown"
+msgstr "Nieznany"
+
+msgid "Unmark all"
+msgstr "Odznacz wszystko"
+
+msgid "Unmark bouquet"
+msgstr "Odznacz listę"
+
+msgid "Use AniList for Anime/Manga path modes."
+msgstr "Używaj AniList dla ścieżek w trybie Anime/Manga."
+
+msgid "Use FanArt.tv after another provider matched a movie or series."
+msgstr "Używaj FanArt.tv po dopasowaniu filmu lub serialu przez innego dostawcę."
+
+msgid "Use FanArt.tv artwork fallback"
+msgstr "Używaj FanArt.tv jako zapasowego źródła grafik"
+
+msgid "Use IMDb as an additional movie and series fallback provider."
+msgstr "Używaj IMDb jako dodatkowego zapasowego dostawcy filmów i seriali."
+
+msgid "Use Kitsu for Anime/Manga path modes."
+msgstr "Używaj Kitsu dla ścieżek w trybie Anime/Manga."
+
+msgid "Use TMDb for movie and series metadata. Recommended as the primary provider."
+msgstr "Używaj TMDb dla metadanych filmów i seriali. Zalecany jako główny dostawca."
+
+msgid "Use TVDb for series metadata and episode/season artwork."
+msgstr "Używaj TVDb dla metadanych seriali oraz grafik odcinków/sezonów."
+
+msgid "Use TVSpielfilm as preferred provider for German Live/EPG metadata."
+msgstr "Używaj TVSpielfilm jako preferowanego dostawcy niemieckich metadanych Live/EPG."
+
+msgid "Use TVmaze as a free series fallback provider without API key."
+msgstr "Używaj TVmaze jako darmowego zapasowego dostawcy seriali bez klucza API."
+
+msgid "Use Wikimedia/Wikipedia as Live/EPG fallback artwork provider."
+msgstr "Używaj Wikimedia/Wikipedii jako zapasowego dostawcy grafik Live/EPG."
+
+msgid "Use Wikimedia/Wikipedia image fallback for Live/EPG"
+msgstr "Używaj zapasowych obrazów z Wikimedia/Wikipedii dla Live/EPG"
+
+msgid "Use fernsehserien.de as German Live/EPG image fallback."
+msgstr "Używaj fernsehserien.de jako zapasowego źródła obrazów dla niemieckich Live/EPG."
+
+msgid "Use fernsehserien.de image fallback for German Live/EPG"
+msgstr "Używaj zapasowych obrazów z fernsehserien.de dla niemieckich Live/EPG"
+
+msgid "Use preferred channels from zap/watch history for prefill decisions."
+msgstr "Używaj preferowanych kanałów z historii przełączeń i oglądania przy wstępnym pobieraniu."
+
+msgid "Use zap history"
+msgstr "Używaj historii przełączeń"
+
+msgid "Validating media scan paths"
+msgstr "Sprawdzanie ścieżek skanowania multimediów"
+
+msgid "Verbose"
+msgstr "Szczegółowy"
+
+msgid "Web interface port"
+msgstr "Port interfejsu WWW"
+
+msgid "What should be deleted?"
+msgstr "Co usunąć?"
+
+msgid "Writer"
+msgstr "Scenarzysta"
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "Zap history top channels"
+msgstr "Najczęstsze kanały z historii przełączeń"
+
+msgid "as"
+msgstr "jako"
+
+msgid "available"
+msgstr "dostępne"
+
+msgid "e2MDB"
+msgstr "e2MDB"
+
+msgid "e2MDB EventView"
+msgstr "Widok audycji e2MDB"
+
+msgid "e2MDB Live/EPG Cleanup"
+msgstr "Czyszczenie Live/EPG e2MDB"
+
+msgid "e2MDB Live/EPG Prefill"
+msgstr "Wstępne pobieranie Live/EPG e2MDB"
+
+msgid "e2MDB Refresh"
+msgstr "Odświeżanie e2MDB"
+
+msgid "e2MDB SQLite Maintenance"
+msgstr "Konserwacja SQLite e2MDB"
+
+msgid "e2MDB Settings"
+msgstr "Ustawienia e2MDB"
+
+msgid "e2MDB Single EPG"
+msgstr "Pojedynczy EPG e2MDB"
+
+msgid "e2MDB tools"
+msgstr "Narzędzia e2MDB"
+
+msgid "e2MDB.log"
+msgstr "e2MDB.log"
+
+msgid "e2MDB.log max size (MB)"
+msgstr "Maks. rozmiar e2MDB.log (MB)"
+
+msgid "episode"
+msgstr "odcinek"
+
+msgid "failed/error"
+msgstr "nieudane/błąd"
+
+msgid "finished"
+msgstr "zakończone"
+
+msgid "min"
+msgstr "min"
+
+msgid "not available"
+msgstr "niedostępne"
+
+msgid "per record"
+msgstr "na wpis"
+
+msgid "prefill"
+msgstr "wstępne pobieranie"
+
+msgid "season"
+msgstr "sezon"
+
+msgid "unkown"
+msgstr "nieznany"
+
+msgid "worker request failed"
+msgstr "żądanie zadania nie powiodło się"
+
+msgid "worker requested"
+msgstr "zażądano zadania"
+
+msgid "{not yet}"
+msgstr "{jeszcze nie}"
