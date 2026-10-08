@@ -920,7 +920,7 @@ class JobManager:
 		else:
 			cache = self.settings.get("cache", {}) if isinstance(self.settings.get("cache", {}), dict) else {}
 			database = self.settings.get("database", {}) if isinstance(self.settings.get("database", {}), dict) else {}
-			root = str(cache.get("root") or database.get("root") or "/media/hdd/e2MDB")
+			root = str(database.get("root") or cache.get("root") or "/media/hdd/e2MDB")
 		return join(root, "results")
 
 	def _recordings_catalog_path(self):
@@ -2518,7 +2518,7 @@ def ensure_default_files():
 	startup_settings = read_json(SETTINGS_FILE, {}) or {}
 	startup_cache = startup_settings.get("cache", {}) if isinstance(startup_settings.get("cache", {}), dict) else {}
 	startup_database = startup_settings.get("database", {}) if isinstance(startup_settings.get("database", {}), dict) else {}
-	startup_results_dir = join(str(startup_cache.get("root") or startup_database.get("root") or "/media/hdd/e2MDB"), "results")
+	startup_results_dir = join(str(startup_database.get("root") or startup_cache.get("root") or "/media/hdd/e2MDB"), "results")
 	recordings_file = join(startup_results_dir, "recordings.json")
 	if not isfile(recordings_file):
 		try:

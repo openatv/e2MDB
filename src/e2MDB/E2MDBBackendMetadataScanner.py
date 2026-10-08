@@ -152,7 +152,7 @@ class E2MDBBackendMetadataScanner:
 		settings = settings if isinstance(settings, dict) else {}
 		cache = settings.get("cache", {}) if isinstance(settings.get("cache", {}), dict) else {}
 		database = settings.get("database", {}) if isinstance(settings.get("database", {}), dict) else {}
-		root = cache.get("root", "") or database.get("root", "").strip()
+		root = database.get("root", "").strip() or cache.get("root", "")
 		if not root:
 			db_path = database.get("path", "").strip()
 			if db_path:

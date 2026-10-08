@@ -36,7 +36,7 @@ from Screens.Setup import Setup
 from ServiceReference import ServiceReference
 
 # PLUGIN IMPORTS
-from . import PluginLanguageDomain, __version__, e2mdbglobals, write_log, rotate_e2mdb_log, register_e2mdb_servicelist_infokey, E2MDB_SERVICE_LIST_EVENTVIEW_KEY, E2MDB_SERVICE_LIST_EPG_KEY, _
+from . import PluginLanguageDomain, __version__, e2mdbglobals, get_database_dir, write_log, rotate_e2mdb_log, register_e2mdb_servicelist_infokey, E2MDB_SERVICE_LIST_EVENTVIEW_KEY, E2MDB_SERVICE_LIST_EPG_KEY, _
 from .E2MDBDatabase import resultsdb
 from .E2MDBHelper import E2MDBHelper
 from .E2MDBEventViewSimple import E2MDBEventViewSimple
@@ -563,7 +563,10 @@ class E2MDBMain(E2MDBHelper, Screen):
 				path_name = join(cache_path, sub_path)
 				if not isdir(path_name):
 					makedirs(path_name)
-			resultsdb.set_path(cache_path)
+			database_path = get_database_dir()
+			if not isdir(database_path):
+				makedirs(database_path)
+			resultsdb.set_path(database_path)
 			if not isdir(e2mdbglobals.TEMPDIR):
 				makedirs(e2mdbglobals.TEMPDIR)
 		except OSError as err_msg:

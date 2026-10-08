@@ -11,7 +11,7 @@ from time import time
 
 from Components.config import config
 
-from . import write_log
+from . import get_database_dir, write_log
 
 
 CONFIG_DIR = "/etc/enigma2/e2mdb"
@@ -78,6 +78,7 @@ API_KEY_CONFIG_FIELDS = {
 
 def build_settings_payload():
 	cache_root = _cache_root()
+	database_root = get_database_dir()
 	return {
 		"version": 1,
 		"updated": int(time()),
@@ -88,8 +89,8 @@ def build_settings_payload():
 			"root": cache_root,
 		},
 		"database": {
-			"root": cache_root,
-			"path": join(cache_root, "results.db"),
+			"root": database_root,
+			"path": join(database_root, "results.db"),
 			"journal_mode": "wal",
 			"busy_timeout_ms": 5000,
 			"single_writer": True,

@@ -3803,9 +3803,10 @@ class BackendDatabase:
 			for path in sorted(file_paths):
 				self._safe_remove_file_for_cleanup(path, cache_base, stats, dry_run=dry_run)
 
-	def _remove_database_files_for_cleanup(self, cache_base, stats, dry_run=False):
-		for path in (self.db_path, self.db_path + "-wal", self.db_path + "-shm", join(cache_base, "media.db"), join(cache_base, "media.db-wal"), join(cache_base, "media.db-shm")):
-			self._safe_remove_file_for_cleanup(path, cache_base, stats, dry_run=dry_run)
+	def _remove_database_files_for_cleanup(self, stats, dry_run=False):
+		database_base = dirname(self.db_path)
+		for path in (self.db_path, self.db_path + "-wal", self.db_path + "-shm", join(database_base, "media.db"), join(database_base, "media.db-wal"), join(database_base, "media.db-shm")):
+			self._safe_remove_file_for_cleanup(path, database_base, stats, dry_run=dry_run)
 		if not dry_run:
 			self._ensure_parent()
 			self.create_schema()
@@ -3851,11 +3852,11 @@ class BackendDatabase:
 				for sub_path in ARTWORK_CACHE_DIRS:
 					self._reset_cache_subdir_for_cleanup(cache_base, sub_path, stats, dry_run=dry_run)
 			elif action == "database_only":
-				self._remove_database_files_for_cleanup(cache_base, stats, dry_run=dry_run)
+				self._remove_database_files_for_cleanup(stats, dry_run=dry_run)
 			else:
 				return {"success": False, "error": f"unknown cleanup action: {action}", "stats": stats}
 			if action == "all_with_db":
-				self._remove_database_files_for_cleanup(cache_base, stats, dry_run=dry_run)
+				self._remove_database_files_for_cleanup(stats, dry_run=dry_run)
 			if not dry_run:
 				for sub_path in CACHE_DIRS:
 					path = join(cache_base, sub_path)

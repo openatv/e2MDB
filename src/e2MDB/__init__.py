@@ -168,6 +168,7 @@ config.plugins.e2mdb.fanartactive = ConfigYesNo(default=False)
 config.plugins.e2mdb.fanartapikey = ConfigText()
 config.plugins.e2mdb.fanartmode = ConfigSelection(default="missing", choices=[("missing", _("Fill missing artwork only")), ("prefer", _("Prefer FanArt artwork"))])
 config.plugins.e2mdb.cachePath = ConfigText(default=join("/media/hdd/"))
+config.plugins.e2mdb.databasePath = ConfigText(default="")
 config.plugins.e2mdb.webPort = ConfigInteger(default=6066, limits=(1, 65535))
 config.plugins.e2mdb.enableDatabase = ConfigYesNo(default=True)
 config.plugins.e2mdb.showInMainMenu = ConfigYesNo(default=False)
@@ -208,6 +209,12 @@ def get_api_key(provider=None):
 					"fanart": config.plugins.e2mdb.fanartapikey.value
 					}
 	return provider_dict.get(provider) if provider else None
+
+
+def get_database_dir():
+	"""Return the results.db/media.db folder, an empty database path falls back to the cache path."""
+	path = (config.plugins.e2mdb.databasePath.value or config.plugins.e2mdb.cachePath.value or "/media/hdd/").rstrip("/")
+	return f"{path}/e2MDB"  # e.g. '/media/hdd/e2MDB'
 
 
 def _get_e2mdb_log_path():

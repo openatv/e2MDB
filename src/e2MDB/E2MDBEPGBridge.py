@@ -8,7 +8,7 @@
 # PYTHON IMPORTS
 from os import makedirs
 from json import load
-from os.path import isfile, join
+from os.path import isfile
 from threading import Lock
 from time import localtime, strftime, time
 
@@ -17,7 +17,7 @@ from enigma import eTimer
 from Components.config import config
 
 # PLUGIN IMPORTS
-from . import write_log
+from . import get_database_dir, write_log
 from .E2MDBDatabase import resultsdb
 from .E2MDBLiveEPG import E2MDBLiveEPG
 from .E2MDBPriority import PRIORITY_EPG_OPEN, PRIORITY_EPG_SELECTION
@@ -140,16 +140,6 @@ class E2MDBEPGLogMixin:
 	@staticmethod
 	def log(message, force=False):
 		write_log(E2MDBEPGLogMixin.MODULE_NAME, message)
-
-
-def _configured_cache_path():
-	"""Return the configured e2MDB cache root used for results.db."""
-	try:
-		cache_dir = config.plugins.e2mdb.cachePath.value or "/media/hdd/"
-	except Exception:
-		cache_dir = "/media/hdd/"
-	cache_dir = cache_dir.rstrip("/")
-	return "/e2MDB" if cache_dir == "" else join(cache_dir, "e2MDB")
 
 
 def _set_source_meta(source, meta, reason="selection"):
@@ -310,9 +300,9 @@ def _ensure_resultsdb_ready(context="", log_ready=True):
 		with _resultsdb_schema_lock:
 			db_path = getattr(resultsdb, "db_path", None)
 			if not db_path:
-				cache_path = _configured_cache_path()
-				makedirs(cache_path, exist_ok=True)
-				resultsdb.set_path(cache_path)
+				database_path = get_database_dir()
+				makedirs(database_path, exist_ok=True)
+				resultsdb.set_path(database_path)
 				db_path = getattr(resultsdb, "db_path", None)
 			elif db_path != _resultsdb_schema_ready_path:
 				resultsdb.ensure_live_epg_schema()

@@ -3517,29 +3517,3 @@ ResultsDB.sqlite_maintenance = _sqlite_db_maintenance
 MediaDB.sqlite_maintenance = _sqlite_db_maintenance
 
 resultsdb = ResultsDB()
-
-
-if __name__ == "__main__":
-	db = MediaDB("media.db")
-
-	record = {
-		"path": "/videos/demo.mp4",
-		"name": "demo.mp4",
-		"ref": "123",
-		"title": "Demo Video",
-		"short": "Kurze Beschreibung",
-		"extended": "Längere Beschreibung",
-		"tags": "demo, test",
-		"duration": 120,
-		"begin": 0,
-		"size": 2048000
-	}
-
-	rowid = db.upsert(record)
-	write_log(f"Upsert erfolgreich, Datensatz-ID: {rowid}")
-
-	record["title"] = "Demo Video (aktualisiert)"
-	rowid2 = db.upsert(record)
-	write_log(f"Update erfolgreich, Datensatz-ID: {rowid2}")
-
-	write_log("Einträge:", db.search("path = ?", ("/videos/demo.mp4",)))

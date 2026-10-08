@@ -4,7 +4,8 @@
 		<item level="0" text="Enable Media Database" description="Enable e2MDB database/cache integration. Provider and scan work runs in the backend daemon, not in the Enigma2 GUI process.">config.plugins.e2mdb.enableDatabase</item>
 		<item level="0" text="Show in main menu" description="Add e2MDB to the Enigma2 main menu. The plugin remains available in the plugin browser when this is disabled.">config.plugins.e2mdb.showInMainMenu</item>
 		<item level="1" text="Re-scan existing media entries" description="Off keeps existing DB metadata/artwork and only scans new or changed files. On reprocesses existing entries and may download metadata/artwork again.">config.plugins.e2mdb.scannerRescanExisting</item>
-		<item level="0" text="Cache path" description="Base path for e2MDB cache files, provider artwork, database and generated metadata.">config.plugins.e2mdb.cachePath</item>
+		<item level="0" text="Cache path" description="Base path for e2MDB cache files, provider artwork and generated metadata. Can be a network share.">config.plugins.e2mdb.cachePath</item>
+		<item level="0" text="Database path" description="Base path for the e2MDB SQLite databases. Use a local disk, SQLite is not reliable on network shares. Leave empty to use the cache path.">config.plugins.e2mdb.databasePath</item>
 		<item level="1" text="Web interface port" description="TCP port used by the e2MDB backend web interface. Default is 6066.">config.plugins.e2mdb.webPort</item>
 		<item level="0" text="Provider search language" description="Language used for provider searches and provider API requests.">config.plugins.e2mdb.lang</item>
 
