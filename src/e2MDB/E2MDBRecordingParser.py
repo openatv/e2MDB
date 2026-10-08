@@ -378,6 +378,12 @@ def parse_recording(path):  # HOLGER: Habe ich komplett umgeschrieben, damit nic
 						"service_ref": dict.get("service_ref", ""),
 						"recorded_at": dict.get("recorded_at", 0)
 						})
+		# Merge the first non-empty value of each field to top level (EIT > META > TXT > CUTS).
+		for field in ("title", "short_desc", "extended_desc", "duration_seconds", "service_ref", "recorded_at"):
+			result[field] = next((result[key][field] for key in ("eit", "meta", "txt", "cuts") if result[key].get(field)), 0 if field in ("duration_seconds", "recorded_at") else "")
+		result["parse_error"] = next((result[key]["parse_error"] for key in ("eit", "meta", "txt", "cuts") if result[key].get("parse_error")), "")
+		# Only EIT/META mark an Enigma2 recording, .cuts is also written for any played media file.
+		result["exists"] = eit.get("exists", False) or meta.get("exists", False)
 		return result
 	except Exception as error:
 		return {"path": path, "parse_error": str(error)}
