@@ -56,7 +56,7 @@ class ProviderOMDB:
 		if media_type not in self.media_types:
 			return f"{MODULE_NAME}ERROR in module 'get_result_dicts': unknown search_mode '{media_type}'. Supported is '{', '.join(self.media_types)}'", {}
 		# param 's' (search) returns a result list with useless tiny results, 't' (title) returns only one, but a complete result
-		params = {"t": title, "type": media_type, "y": year, "plot": "full", "apikey": self.api_key}
+		params = {"t": title, "type": media_type, "y": year or None, "plot": "full", "apikey": self.api_key}
 		err_msg, result = self.get_api_dicts(self.base_url, params)
 		if err_msg:
 			write_log(f"{MODULE_NAME}ERROR in module 'get_result_dicts': {err_msg}")
@@ -177,7 +177,7 @@ class ProviderOMDB:
 			response.raise_for_status()
 			return "", response.json()
 		except exceptions.RequestException as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 		finally:
 			if response is not None:
 				response.close()
@@ -187,10 +187,10 @@ provider_omdb = ProviderOMDB()
 
 
 def main(argv):  # shell interface
-	title, media_type, api_key = "the+blacklist", "", ""
+	title, media_type, year, api_key = "the+blacklist", "", "", ""
 	helpstring = "OMDB v0.1: try 'python OMDB.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:m:a:h", ["query=", "mediatype=", "api_key=", "help"])
+		opts, args = getopt(argv, "q:m:y:a:h", ["query=", "mediatype=", "year=", "api_key=", "help"])
 	except GetoptError as error:
 		write_log(f"{MODULE_NAME}ERROR in module 'main': {error}\n{helpstring}")
 		exit(2)
@@ -200,8 +200,9 @@ def main(argv):  # shell interface
 		if not opts or opt == "-h":
 			write_log("Usage 'OMDB v0.1': python OMDB.py [option...] <data>\n"
 			"Example: python OMDB.py -q the+blacklist -m series -a {your personal api-key}\n"
-			"-q, --query <options>\t\tget result list from OMDB search'\n"
+			"-q, --query <string>\t\tget result list from OMDB search, e.g. 'the+perfect+storm'\n"
 			"-m, --mediatype <options>\tset media type 'movie' or 'series' (default 'series')\n"
+			"-y, --year <digit>\t\tset year of release, e.g. '2000'\n"
 			"-a, --api_key <your Api Key>\tpersonal key for accessing the API server\n"
 			"\nNote: OMDB provider has limited episode/season support. Use TVDB or TMDB for full metadata.\n")
 			exit()
@@ -209,6 +210,8 @@ def main(argv):  # shell interface
 			title = arg.replace("+", " ").strip()
 		elif opt in ("-m", "--mediatype"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-a", "--api_key"):
 			api_key = arg
 	if title:
@@ -217,9 +220,9 @@ def main(argv):  # shell interface
 			exit(2)
 		if not media_type:
 			media_type = "series"  # set fallback
-		write_log(f"Search for '{title}', media_type: '{media_type}'")
+		write_log(f"Search for '{title}', media_type: '{media_type}'{f', year: {year}' if year else ''}")
 		provider_omdb.start(api_key)
-		err_msg, norm_dicts = provider_omdb.get_result_dicts(title, media_type=media_type, year=None)
+		err_msg, norm_dicts = provider_omdb.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log("ERROR getting data:", err_msg)
 			exit(2)
@@ -234,7 +237,6 @@ def main(argv):  # shell interface
 					with open(file_name, "w") as file:
 						dump(norm_dicts, file)
 						write_log(f"{media_type.capitalize()} details file '{file_name}' was successfully created.")
-
 					# Try to load full series/movie details if applicable
 					if media_type == "series":
 						err_msg, series_details, episode_index = provider_omdb.get_series_details_index(imdb_id)

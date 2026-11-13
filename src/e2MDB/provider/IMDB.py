@@ -15,13 +15,13 @@ from requests import post, exceptions
 from sys import exit, argv
 
 try:
-    from .Common import Fields, html_to_text, set_dict_key
+	from .Common import Fields, html_to_text, set_dict_key
 except ImportError:
-    import sys
-    from pathlib import Path
+	import sys
+	from pathlib import Path
 
-    sys.path.append(str(Path(__file__).resolve().parents[1]))
-    from Common import Fields, html_to_text, set_dict_key
+	sys.path.append(str(Path(__file__).resolve().parents[1]))
+	from Common import Fields, html_to_text, set_dict_key
 
 try:
 	from .. import write_log
@@ -377,7 +377,7 @@ query TitleStorylineMinimal {
 				return self._graphql_error(api_dict), {}
 			return "", api_dict
 		except exceptions.RequestException as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 		except ValueError as err_msg:
 			return f"Invalid IMDb JSON response: {err_msg}", {}
 		finally:
@@ -538,10 +538,10 @@ provider_imdb = ProviderIMDB()
 
 
 def main(argv):
-	title, language, media_type, title_id = "the+blacklist", "en-US", "series", ""
+	title, language, media_type, year, title_id = "the+blacklist", "en-US", "series", "", ""
 	helpstring = "IMDB v0.1: try 'python IMDB.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:l:m:i:h", ["query=", "language=", "mediatype=", "id=", "help"])
+		opts, args = getopt(argv, "q:l:m:y:i:h", ["query=", "language=", "mediatype=", "year=", "id=", "help"])
 	except GetoptError as error:
 		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -551,9 +551,10 @@ def main(argv):
 		if not opts or opt == "-h":
 			write_log("Usage 'IMDB v0.1': python IMDB.py [option...] <data>\n"
 			"Example: python IMDB.py -q the+blacklist -l de-DE -m series\n"
-			"-q, --query <options>\t\tget result list\n"
+			"-q, --query <string>\t\tget result list from IMDB search, e.g. 'the+perfect+storm'\n"
 			"-l, --language <options>\tset language formatted like 'en-US'\n"
 			"-m, --mediatype <options>\tset media type 'movie', 'series' or 'episode'\n"
+			"-y, --year <digit>\t\tset year of release, e.g. '2000'\n"
 			"-i, --id <options>\t\tget title details for an IMDb ID")
 			exit()
 		elif opt in ("-q", "--query"):
@@ -562,8 +563,11 @@ def main(argv):
 			language = arg.replace("_", "-")
 		elif opt in ("-m", "--mediatype"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-i", "--id"):
 			title_id = arg
+	write_log(f"Search for '{title.replace('+', ' ')}', media_type: '{media_type}'{f', year: {year}' if year else ''}")
 	provider_imdb.start("", language)
 	if title_id:
 		err_msg, details = provider_imdb.get_movie_details(title_id) if media_type == "movie" else provider_imdb.get_series_details_index(title_id)[:2]
@@ -574,7 +578,7 @@ def main(argv):
 				dump(details, file)
 			write_log("IMDb details JSON file 'imdb_details.json' was successfully created.")
 	else:
-		err_msg, norm_dicts = provider_imdb.get_result_dicts(title, media_type=media_type)
+		err_msg, norm_dicts = provider_imdb.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log(err_msg)
 		else:

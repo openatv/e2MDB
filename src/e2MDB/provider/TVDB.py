@@ -94,7 +94,7 @@ class ProviderTVDB:
 		params = {
 			"query": title,
 			"type": media_type,
-			"year": year,
+			"year": year or None,  # requests drops None, "" would be sent as empty parameter
 			"language": self.lang_code,
 			"limit": 10,
 			"page": 0
@@ -734,17 +734,17 @@ class ProviderTVDB:
 			err_msg, api_dicts = ("", remove_nones(response.json())) if response.ok else (f"API server access ERROR, response code: {response.raise_for_status()}", {})
 			return err_msg, api_dicts
 		except exceptions.RequestException as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 
 
 provider_tvdb = ProviderTVDB()
 
 
 def main(argv):  # shell interface
-	title, language, media_type, asset_id, api_key, season_no, episode_no = "the+blacklist", "en", "", "", "", "", ""
+	title, language, media_type, year, asset_id, api_key, season_no, episode_no = "the+blacklist", "en", "", "", "", "", "", ""
 	helpstring = "TVDB v0.1: try 'python TVDB.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:s:e:l:m:a:h", ["query=", "season_no=", "episode_no=", "language=", "mediatype=", "api_key=", "help"])
+		opts, args = getopt(argv, "q:s:e:l:m:y:a:h", ["query=", "season_no=", "episode_no=", "language=", "mediatype=", "year=", "api_key=", "help"])
 	except GetoptError as error:
 		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -754,12 +754,13 @@ def main(argv):  # shell interface
 		if not opts or opt == "-h":
 			write_log("Usage 'TVDB v0.1': python TVDB.py [option...] <data>\n"
 			"Example: python TVDB.py -q the+blacklist -l de -s 1 -e 2 -m series -a {your personal api-key}\n"
-			"-q, --query <options>\t\tget result list from tvdb search'\n"
+			"-q, --query <string>\t\tget result list from TVDB search, e.g. 'the+perfect+storm'\n"
 			"-s, --season_no <digit>\t\tseason Number as digit\n"
-			"-e, --episode_no <digit>\t\tepisode number as digit\n"
+			"-e, --episode_no <digit>\tepisode number as digit\n"
 			"-l, --language <options>\tset language formatted like 'en'\n"
 			"-m, --media_type <options>\tset media type 'series' or 'movie' (default 'series')\n"
-			"-a, --api_key <your api key>\tpersonal key for accessing the AP server\n")
+			"-y, --year <digit>\t\tset year of release, e.g. '2000'\n"
+			"-a, --api_key <your api key>\tpersonal key for accessing the API server\n")
 			exit()
 		elif opt in ("-q", "--query"):
 			title = arg.replace("+", " ").strip()
@@ -771,6 +772,8 @@ def main(argv):  # shell interface
 			language = arg
 		elif opt in ("-m", "--media_type"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-a", "--api_key"):
 			api_key = arg
 	if title and language:
@@ -779,9 +782,9 @@ def main(argv):  # shell interface
 			exit(2)
 		if not media_type:
 			media_type = "series"  # set fallback
-		write_log(f"Search for '{title.replace("+", " ")}', media_type: '{media_type}'")
+		write_log(f"Search for '{title.replace("+", " ")}', media_type: '{media_type}'{f', year: {year}' if year else ''}")
 		provider_tvdb.start(api_key, language)
-		err_msg, norm_dicts = provider_tvdb.get_result_dicts(title, media_type=media_type, year=None)
+		err_msg, norm_dicts = provider_tvdb.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log("ERROR getting data:", err_msg)
 			exit(2)

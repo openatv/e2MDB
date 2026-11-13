@@ -301,10 +301,10 @@ provider_kitsu = ProviderKITSU()
 
 
 def main(argv):
-	title, language, media_type, title_id = "cowboy+bebop", "en", "series", ""
+	title, language, media_type, year, title_id = "cowboy+bebop", "en", "series", "", ""
 	helpstring = "KITSU v0.1: try 'python KITSU.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:l:m:i:h", ["query=", "language=", "mediatype=", "id=", "help"])
+		opts, args = getopt(argv, "q:l:m:y:i:h", ["query=", "language=", "mediatype=", "year=", "id=", "help"])
 	except GetoptError as error:
 		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -314,9 +314,10 @@ def main(argv):
 		if not opts or opt == "-h":
 			write_log("Usage 'KITSU v0.1': python KITSU.py [option...] <data>\n"
 			"Example: python KITSU.py -q cowboy+bebop -l de -m series\n"
-			"-q, --query <options>\t\tget result list\n"
+			"-q, --query <string>\t\tget result list from KITSU search, e.g. 'the+perfect+storm'\n"
 			"-l, --language <options>\tset language hint\n"
 			"-m, --mediatype <options>\tset media type 'movie', 'series', 'anime' or 'manga'\n"
+			"-y, --year <digit>\t\tfilter year of release, e.g. '2000'\n"
 			"-i, --id <options>\t\tget Kitsu media details")
 			exit()
 		elif opt in ("-q", "--query"):
@@ -325,6 +326,8 @@ def main(argv):
 			language = arg.replace("_", "-")
 		elif opt in ("-m", "--mediatype"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-i", "--id"):
 			title_id = arg
 	provider_kitsu.start("", language)
@@ -345,7 +348,7 @@ def main(argv):
 				dump(payload, file)
 			write_log("Kitsu details JSON file 'kitsu_details.json' was successfully created.")
 	else:
-		err_msg, norm_dicts = provider_kitsu.get_result_dicts(title, media_type=media_type)
+		err_msg, norm_dicts = provider_kitsu.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log(err_msg)
 		else:

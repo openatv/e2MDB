@@ -11,13 +11,13 @@ from sys import exit, argv
 from requests import post, exceptions
 
 try:
-    from .Common import Fields, match_season_episode, html_to_text, set_dict_key
+	from .Common import Fields, match_season_episode, html_to_text, set_dict_key
 except ImportError:
-    import sys
-    from pathlib import Path
+	import sys
+	from pathlib import Path
 
-    sys.path.append(str(Path(__file__).resolve().parents[1]))
-    from Common import Fields, match_season_episode, html_to_text, set_dict_key
+	sys.path.append(str(Path(__file__).resolve().parents[1]))
+	from Common import Fields, match_season_episode, html_to_text, set_dict_key
 
 try:
 	from .. import write_log
@@ -385,19 +385,19 @@ query ($id: Int, $type: MediaType) {
 				return "", response.json()
 			return f"API server access ERROR, response code: {response.status_code}", {}
 		except exceptions.RequestException as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 		except ValueError as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 
 
 provider_anime = ProviderANIME()
 
 
 def main(argv):
-	title, language, media_type, title_id = "cowboy+bebop", "en", "series", ""
+	title, language, media_type, year, title_id = "cowboy+bebop", "en", "series", "", ""
 	helpstring = "ANIME v0.1: try 'python ANIME.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:l:m:i:h", ["query=", "language=", "mediatype=", "id=", "help"])
+		opts, args = getopt(argv, "q:l:m:y:i:h", ["query=", "language=", "mediatype=", "year=", "id=", "help"])
 	except GetoptError as error:
 		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -410,6 +410,7 @@ def main(argv):
 			"-q, --query <options>\t\tget result list\n"
 			"-l, --language <options>\tset language hint\n"
 			"-m, --mediatype <options>\tset media type 'movie', 'series', 'anime' or 'manga'\n"
+			"-y, --year <digit>\t\tset year of release, e.g. '2000'\n"
 			"-i, --id <options>\t\tget AniList media details")
 			exit()
 		elif opt in ("-q", "--query"):
@@ -418,8 +419,11 @@ def main(argv):
 			language = arg.replace("_", "-")
 		elif opt in ("-m", "--mediatype"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-i", "--id"):
 			title_id = arg
+	write_log(f"Search for '{title.replace('+', ' ')}', media_type: '{media_type}'{f', year: {year}' if year else ''}")
 	provider_anime.start("", language)
 	if title_id:
 		if media_type == "movie":
@@ -438,7 +442,7 @@ def main(argv):
 				dump(payload, file)
 			write_log("Anime details JSON file 'anime_details.json' was successfully created.")
 	else:
-		err_msg, norm_dicts = provider_anime.get_result_dicts(title, media_type=media_type)
+		err_msg, norm_dicts = provider_anime.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log(err_msg)
 		else:

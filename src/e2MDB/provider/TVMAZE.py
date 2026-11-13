@@ -298,10 +298,10 @@ provider_tvmaze = ProviderTVMAZE()
 
 
 def main(argv):
-	title, language, media_type, title_id = "the+blacklist", "en", "series", ""
+	title, language, media_type, year, title_id = "the+blacklist", "en", "series", "", ""
 	helpstring = "TVMAZE v0.1: try 'python TVMAZE.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:l:m:i:h", ["query=", "language=", "mediatype=", "id=", "help"])
+		opts, args = getopt(argv, "q:l:m:y:i:h", ["query=", "language=", "mediatype=", "year=", "id=", "help"])
 	except GetoptError as error:
 		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -311,9 +311,10 @@ def main(argv):
 		if not opts or opt == "-h":
 			write_log("Usage 'TVMAZE v0.1': python TVMAZE.py [option...] <data>\n"
 			"Example: python TVMAZE.py -q the+blacklist -l de -m series\n"
-			"-q, --query <options>\t\tget result list\n"
+			"-q, --query <string>\t\tget result list from TVMAZE search, e.g. 'the+perfect+storm'\n"
 			"-l, --language <options>\tset language hint\n"
 			"-m, --mediatype <options>\tset media type 'series'\n"
+			"-y, --year <digit>\t\tset year of release, e.g. '2000'\n"
 			"-i, --id <options>\t\tget show details for a TVmaze ID")
 			exit()
 		elif opt in ("-q", "--query"):
@@ -322,6 +323,8 @@ def main(argv):
 			language = arg.replace("_", "-")
 		elif opt in ("-m", "--mediatype"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-i", "--id"):
 			title_id = arg
 	provider_tvmaze.start("", language)
@@ -334,7 +337,7 @@ def main(argv):
 				dump({"details": details, "episode_index": episode_index}, file)
 			write_log("TVmaze details JSON file 'tvmaze_details.json' was successfully created.")
 	else:
-		err_msg, norm_dicts = provider_tvmaze.get_result_dicts(title, media_type=media_type)
+		err_msg, norm_dicts = provider_tvmaze.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log(err_msg)
 		else:

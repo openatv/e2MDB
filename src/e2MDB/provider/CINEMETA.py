@@ -297,19 +297,19 @@ class ProviderCINEMETA:
 				return "", response.json()
 			return f"API server access ERROR, response code: {response.status_code}", {}
 		except exceptions.RequestException as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 		except ValueError as err_msg:
-			return err_msg, {}
+			return str(err_msg), {}
 
 
 provider_cinemeta = ProviderCINEMETA()
 
 
 def main(argv):
-	title, language, media_type, title_id = "the+walking+dead", "en", "series", ""
+	title, language, media_type, year, title_id = "the+walking+dead", "en", "series", "", ""
 	helpstring = "CINEMETA v0.1: try 'python CINEMETA.py -h' for more information"
 	try:
-		opts, args = getopt(argv, "q:l:m:i:h", ["query=", "language=", "mediatype=", "id=", "help"])
+		opts, args = getopt(argv, "q:l:m:y:i:h", ["query=", "language=", "mediatype=", "year=", "id=", "help"])
 	except GetoptError as error:
 		write_log(f"Error: {error}\n{helpstring}")
 		exit(2)
@@ -322,6 +322,7 @@ def main(argv):
 			"-q, --query <options>\t\tget result list\n"
 			"-l, --language <options>\tset language hint (ignored, Cinemeta is English only)\n"
 			"-m, --mediatype <options>\tset media type 'series' or 'movie'\n"
+			"-y, --year <digit>\t\tset year of release, e.g. '2000'\n"
 			"-i, --id <options>\t\tget series/movie details for an IMDb id")
 			exit()
 		elif opt in ("-q", "--query"):
@@ -330,8 +331,11 @@ def main(argv):
 			language = arg.replace("_", "-")
 		elif opt in ("-m", "--mediatype"):
 			media_type = arg
+		elif opt in ("-y", "--year"):
+			year = arg
 		elif opt in ("-i", "--id"):
 			title_id = arg
+	write_log(f"Search for '{title.replace('+', ' ')}', media_type: '{media_type}'{f', year: {year}' if year else ''}")
 	provider_cinemeta.start("", language)
 	if title_id:
 		if media_type == "movie":
@@ -346,7 +350,7 @@ def main(argv):
 				dump(details, file)
 			write_log("Cinemeta details JSON file 'cinemeta_details.json' was successfully created.")
 	else:
-		err_msg, norm_dicts = provider_cinemeta.get_result_dicts(title, media_type=media_type)
+		err_msg, norm_dicts = provider_cinemeta.get_result_dicts(title, media_type=media_type, year=year)
 		if err_msg:
 			write_log(err_msg)
 		else:
