@@ -158,11 +158,12 @@ def _bcd2dec(value):
 	return tens * 10 + units
 
 
-def _read_text_file(path):
+def _read_text_file(path, stripText=True):
 	for encoding in ("utf-8", "latin-1"):
 		try:
 			with open(path, "r", encoding=encoding, errors="ignore") as handle:
-				return handle.read().replace("\x00", "").strip()
+				text = handle.read().replace("\x00", "")
+				return text.strip() if stripText else text
 		except Exception:
 			continue
 	return ""
@@ -288,8 +289,9 @@ def parse_meta(path):
 	meta_exists = isfile(meta_path)
 	result = {"path": meta_path, "exists": meta_exists}
 	if meta_exists:
-		text = _read_text_file(meta_path)
-		lines = [line.strip() for line in text.splitlines()]
+		# Empty service references and descriptions still occupy their native META line.
+		text = _read_text_file(meta_path, stripText=False)
+		lines = [x.rstrip("\r") for x in text.split("\n")]
 		if len(lines) > 0:
 			result["service_ref"] = lines[0]
 		if len(lines) > 1:
@@ -303,6 +305,8 @@ def parse_meta(path):
 				result["recorded_at"] = 0
 		if len(lines) > 4:
 			result["tags"] = lines[4]
+		# iDVBMetaFile.idUserModified follows the original path at zero-based index 11.
+		result["user_modified"] = len(lines) > 11 and lines[11] == "1"
 	return result
 
 
@@ -382,6 +386,9 @@ def parse_recording(path):
 		for field in ("title", "short_desc", "extended_desc", "duration_seconds", "service_ref", "recorded_at"):
 			result[field] = next((result[key][field] for key in ("eit", "meta", "txt", "cuts") if result[key].get(field)), 0 if field in ("duration_seconds", "recorded_at") else "")
 		result["parse_error"] = next((result[key]["parse_error"] for key in ("eit", "meta", "txt", "cuts") if result[key].get("parse_error")), "")
+		if meta.get("user_modified"):
+			result["manual_metadata"] = {"title": meta.get("title", ""), "description": meta.get("short_desc", "")}
+			result.update(title=meta.get("title", ""), short_desc=meta.get("short_desc", ""), extended_desc="")
 		# Only EIT/META mark an Enigma2 recording, .cuts is also written for any played media file.
 		result["exists"] = eit.get("exists", False) or meta.get("exists", False)
 		return result

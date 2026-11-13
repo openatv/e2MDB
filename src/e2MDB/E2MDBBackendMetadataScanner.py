@@ -10,16 +10,16 @@
 # PYTHON IMPORTS
 from datetime import datetime
 from os.path import basename, dirname, exists, isfile, join, normpath, splitext
-from re import search, sub, IGNORECASE
+from re import IGNORECASE, search, sub
 
 # PLUGIN IMPORTS
 # Only e2mdbd.py imports this module, always as a plain top-level import (no
 # parent package) - so relative imports here would never resolve. Absolute
 # imports only, matching how the daemon actually loads this file.
 from E2MDBDatabase import mediadb
-from MediaNameParser import MediaNameParser
-from E2MDBRecordingParser import parse_recording as default_parse_recording
 from E2MDBIgnoreConfig import E2MDBIgnorePatterns
+from E2MDBRecordingParser import parse_recording as default_parse_recording
+from MediaNameParser import MediaNameParser
 from provider.Common import EPGTYPE_SEPAS, EXCLUDED_DIRS, FOREIGN_SEPAS, VIDEO_EXTS, guess_separator, safe_int
 
 
@@ -863,6 +863,7 @@ class E2MDBBackendMetadataScanner:
 			"title": title,
 			"short_desc": sc_short_desc,
 			"extended_desc": sc_extended,
+			"manual_metadata": sc_parsed.get("manual_metadata"),
 			"service_ref": sc_parsed.get("service_ref", ""),
 			"recorded_at": recorded_at,
 			"recorded_at_iso": self.iso_from_timestamp(recorded_at),
