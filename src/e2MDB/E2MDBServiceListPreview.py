@@ -5,22 +5,179 @@
 # It only reads already existing e2MDB DB/cache files while list entries are rendered.                  #
 ########################################################################################################
 
-# PYTHON IMPORTS
+from collections import OrderedDict
 from hashlib import md5
+from os import stat
 from os.path import exists, isfile, join
 from re import IGNORECASE, sub
 from sqlite3 import Row, connect
-from time import time
+from time import monotonic, time
 
-# ENIGMA IMPORTS
+from enigma import ePicLoad, eTimer
+
 from Components.config import config
-from Tools.LoadPixmap import LoadPixmap
 
-# PLUGIN IMPORTS
+from . import e2mdb_log_is_verbose, write_log
 from .E2MDBDatabase import resultsdb
 from .E2MDBLiveEPG import E2MDBEPGCandidate
-from . import e2mdb_log_is_verbose, write_log
 from .provider.Common import normalize_text
+
+
+class ServiceListPixmapCache:
+	MAX_BYTES = 8 * 1024 * 1024
+	MAX_ENTRIES = 128
+	MAX_PENDING = 64
+	MAX_DIMENSION = 1024
+	RETRY_SECONDS = 15
+
+	def __init__(self, refreshCallbacks, logError):
+		self.refreshCallbacks = refreshCallbacks
+		self.logError = logError
+		self.cache = OrderedDict()
+		self.cacheBytes = 0
+		self.pending = OrderedDict()
+		self.failures = OrderedDict()
+		self.active = None
+		self.generation = 0
+		self.decoder = ePicLoad()
+		self.decoder.PictureData.get().append(self.decodeFinished)
+		self.decodeTimer = eTimer()
+		self.decodeTimer.callback.append(self.startNext)
+		self.refreshTimer = eTimer()
+		self.refreshTimer.callback.append(self.refreshReady)
+
+	@classmethod
+	def normalizeSize(cls, size):
+		try:
+			width, height = int(size[0]), int(size[1])
+			if width <= 0 or height <= 0:
+				raise ValueError("Invalid preview size")
+		except (TypeError, ValueError, IndexError, OverflowError):
+			width, height = 240, 120
+		scale = min(1.0, cls.MAX_DIMENSION / width, cls.MAX_DIMENSION / height)
+		return max(1, int(width * scale)), max(1, int(height * scale))
+
+	@staticmethod
+	def fileStamp(path):
+		try:
+			fileInfo = stat(path)
+			return fileInfo.st_mtime_ns, fileInfo.st_size, fileInfo.st_ino
+		except OSError:
+			return None
+
+	def getPixmap(self, path, size=None):
+		if not path:
+			return None
+		width, height = self.normalizeSize(size)
+		key = (path, width, height)
+		stamp = self.fileStamp(path)
+		entry = self.cache.get(key)
+		if entry is not None:
+			if stamp == entry[0]:
+				self.cache.move_to_end(key)
+				return entry[1]
+			self.cacheBytes -= self.cache.pop(key)[2]
+		if stamp is None:
+			return None
+		failure = self.failures.get(key)
+		if failure is not None and failure[0] == stamp and monotonic() < failure[1]:
+			return None
+		self.failures.pop(key, None)
+		if self.active == (key, stamp, self.generation):
+			return None
+		self.pending[key] = stamp
+		while len(self.pending) > self.MAX_PENDING:
+			self.pending.popitem(last=False)
+		if self.active is None and not self.decodeTimer.isActive():
+			# Never open/decode the image from the listbox paint callback.
+			self.decodeTimer.start(1, True)
+		return None
+
+	def startNext(self):
+		if self.active is not None or not self.pending:
+			return
+		key, stamp = self.pending.popitem(last=False)
+		self.active = (key, stamp, self.generation)
+		path, width, height = key
+		try:
+			if self.fileStamp(path) != stamp:
+				raise ValueError("Preview file changed before decoding")
+			# Keep aspect ratio and alpha; do not create a disk thumbnail cache.
+			self.decoder.setPara((width, height, 1, 1, False, 1, "#ff000000"))
+			if self.decoder.startDecode(path, 0, 0, True):
+				raise ValueError("Preview decoder rejected the image")
+		except Exception as error:
+			self.recordFailure(key, stamp, error)
+			self.active = None
+			self.scheduleNext()
+
+	def decodeFinished(self, pictureInfo=None):
+		request = self.active
+		self.active = None
+		try:
+			pixmap = self.decoder.getData()
+			if request is None or request[2] != self.generation:
+				return
+			key, stamp, generation = request
+			if self.fileStamp(key[0]) != stamp:
+				return
+			if pixmap is None:
+				raise ValueError("Preview decoder returned no image")
+			pixmapSize = pixmap.size()
+			width, height = pixmapSize.width(), pixmapSize.height()
+			if width <= 0 or height <= 0 or width > key[1] or height > key[2]:
+				raise ValueError(f"Unexpected preview size {width}x{height}, requested {key[1]}x{key[2]}")
+			# Account for 32-bit pixels and a possible indexed-image palette.
+			byteSize = width * height * 4 + 1024
+			if byteSize > self.MAX_BYTES:
+				raise ValueError("Preview exceeds the cache memory budget")
+			previous = self.cache.pop(key, None)
+			if previous is not None:
+				self.cacheBytes -= previous[2]
+			while self.cache and (self.cacheBytes + byteSize > self.MAX_BYTES or len(self.cache) >= self.MAX_ENTRIES):
+				self.cacheBytes -= self.cache.popitem(last=False)[1][2]
+			self.cache[key] = (stamp, pixmap, byteSize)
+			self.cacheBytes += byteSize
+			if not self.refreshTimer.isActive():
+				# Coalesce completions without continually postponing the refresh.
+				self.refreshTimer.start(500, True)
+		except Exception as error:
+			if request is not None and request[2] == self.generation:
+				self.recordFailure(request[0], request[1], error)
+		finally:
+			# ePicLoad owns the completion callback; reuse it only after it returns.
+			self.scheduleNext()
+
+	def scheduleNext(self):
+		if self.pending:
+			self.decodeTimer.start(1, True)
+
+	def recordFailure(self, key, stamp, error):
+		self.failures[key] = (stamp, monotonic() + self.RETRY_SECONDS)
+		self.failures.move_to_end(key)
+		while len(self.failures) > self.MAX_PENDING:
+			self.failures.popitem(last=False)
+		try:
+			self.logError(f"[e2MDB][SERVICELIST] PREVIEW_DECODE_FAILED path='{key[0]}' size={key[1]}x{key[2]} error={error}")
+		except Exception:
+			pass
+
+	def refreshReady(self):
+		for callback in tuple(self.refreshCallbacks):
+			try:
+				callback("", "preview-ready")
+			except Exception:
+				pass
+
+	def clear(self):
+		self.generation += 1
+		self.decodeTimer.stop()
+		self.refreshTimer.stop()
+		self.cache.clear()
+		self.cacheBytes = 0
+		self.pending.clear()
+		self.failures.clear()
+		# Let an active decode finish safely; its old generation is discarded.
 
 
 # These IDs are used by the optional OpenATV ServiceList integration.
@@ -31,11 +188,10 @@ E2MDB_SERVICE_LIST_INDICES = {
 	"E2MDBStatus": 82,
 }
 
-_pixmap_cache = {}
 _data_cache = {}
 _preview_log_keys = set()
 _refresh_callbacks = []
-_MAX_PIXMAP_CACHE = 100
+serviceListPixmapCache = ServiceListPixmapCache(_refresh_callbacks, write_log)
 _MAX_DATA_CACHE = 300
 _DATA_TTL = 300
 _DATA_MISS_TTL = 2
@@ -645,52 +801,9 @@ def notifyE2MDBServiceListUpdated(source_key="", reason="worker"):
 	return True
 
 
-def _normalize_size(size):
-	try:
-		if size and len(size) >= 2:
-			w, h = int(size[0]), int(size[1])
-			if w > 0 and h > 0:
-				return w, h
-	except Exception:
-		pass
-	return 240, 120
-
-
-def _pixmap_cache_key(path, size):
-	w, h = _normalize_size(size)
-	return f"{path}|{w}x{h}"
-
-
 def _load_pixmap_scaled(path, size=None):
-	"""Load a ServiceList-safe pixmap like Picon.
-
-	The ChannelSelection shows many service rows. This function only loads an
-	already existing local JPG/PNG/WebP path and keeps the pixmap object alive
-	in a Python cache.
-	"""
-	if not path:
-		return None
-	cache_key = _pixmap_cache_key(path, size)
-	pixmap = _pixmap_cache.get(cache_key)
-	if pixmap:
-		_log_once(f"pixmap-cache-{cache_key}", f"PIXMAP_CACHE_HIT path='{path}' size='{size}'", force=True)
-		return pixmap
-	try:
-		try:
-			pixmap = LoadPixmap(path=path, cached=False, autoDetect=True)
-		except TypeError:
-			pixmap = LoadPixmap(path=path)
-	except Exception as err:
-		_log(f"PIXMAP_LOAD_FAILED path='{path}' error={err}", force=True)
-		pixmap = None
-	if pixmap:
-		if len(_pixmap_cache) > _MAX_PIXMAP_CACHE:
-			_pixmap_cache.clear()
-		_pixmap_cache[cache_key] = pixmap
-		_log_once(f"pixmap-loaded-{cache_key}", f"PIXMAP_LOADED path='{path}' size='{size}'", force=True)
-	else:
-		_log_once(f"pixmap-none-{cache_key}", f"PIXMAP_LOAD_NONE path='{path}' size='{size}'", force=True)
-	return pixmap
+	"""Return a cached thumbnail, or queue a decode and repaint when ready."""
+	return serviceListPixmapCache.getPixmap(path, size)
 
 
 def buildE2MDBServiceListMeta(service_ref, event):
@@ -764,6 +877,6 @@ def buildE2MDBServiceListText(service_ref, event, text_type="meta"):
 
 
 def clearE2MDBServiceListPreviewCache():
-	_pixmap_cache.clear()
+	serviceListPixmapCache.clear()
 	_data_cache.clear()
 	_preview_log_keys.clear()
