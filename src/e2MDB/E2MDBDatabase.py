@@ -9,12 +9,12 @@
 
 # PYTHON IMPORTS
 from difflib import SequenceMatcher
-from json import dumps, loads
 from hashlib import md5
-from os.path import basename, dirname, join, exists, isfile, splitext
+from json import dumps, loads
 from os import listdir, makedirs
+from os.path import basename, dirname, exists, isfile, join, splitext
 from re import sub
-from sqlite3 import connect, OperationalError, Row
+from sqlite3 import OperationalError, Row, connect
 from threading import Lock, Thread
 from typing import Any, Optional
 try:
@@ -125,9 +125,9 @@ class MediaDB:
 
 	def _get_titles(self, title: str) -> list[tuple[Any, ...]]:
 		"""
-		Returns (ref, title, short, extended) for all with the title.
+		Returns (path, title, short, extended) for all with the title.
 		"""
-		sql = f"SELECT ref, title, short, extended FROM {self.table} WHERE title = ?"
+		sql = f"SELECT path, title, short, extended FROM {self.table} WHERE title = ?"
 		with self._connect() as conn:
 			cur = conn.execute(sql, (title,))
 			return cur.fetchall()
@@ -156,26 +156,16 @@ class MediaDB:
 			return None
 
 		if deep_check:
-			for ref, t, sdesc, edesc in content:
-				if short:
-					if sdesc == short:
-						result = 1
-					else:
-						sim = SequenceMatcher(None, short, sdesc).ratio()
-						if sim > ratio_short:
-							result = 1
-
-				if result:
-					if not extended:
-						break
-					else:
-						if edesc == extended:
-							break
-						else:
-							sim = SequenceMatcher(None, extended, edesc).ratio()
-							if sim > ratio_extended:
-								break
-					result = None
+			# A title alone cannot distinguish episodes. Compare every supplied
+			# description, including events which only have an extended text.
+			for item in content:
+				shortDescription = item[2] or ""
+				extendedDescription = item[3] or ""
+				shortMatches = not short or short == shortDescription or SequenceMatcher(None, short, shortDescription).ratio() > ratio_short
+				extendedMatches = not extended or extended == extendedDescription or SequenceMatcher(None, extended, extendedDescription).ratio() > ratio_extended
+				if (short or extended) and shortMatches and extendedMatches:
+					result = 1
+					break
 		else:
 			result = 1
 

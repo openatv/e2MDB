@@ -163,13 +163,13 @@ class E2MDBBackendMetadataScanner:
 		if not self.mediadb_enabled:
 			return {"success": False, "error": self.mediadb_error or "MediaDB is not configured"}
 		try:
-			row_id = mediadb.upsert({
+			rowId = mediadb.upsert({
 				"path": item.get("path", ""),
 				"title": item.get("title", ""),
-				"short_desc": item.get("short_desc", ""),
-				"extended_desc": item.get("extended_desc", "")
+				"short": item.get("short_desc", ""),
+				"extended": item.get("extended_desc", "")
 			})
-			return {"success": True, "row_id": row_id}
+			return {"success": True, "row_id": rowId}
 		except Exception as err:
 			self.mediadb_error = str(err)
 			return {"success": False, "error": str(err)}
