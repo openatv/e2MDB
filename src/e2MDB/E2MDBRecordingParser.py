@@ -305,8 +305,6 @@ def parse_meta(path):
 				result["recorded_at"] = 0
 		if len(lines) > 4:
 			result["tags"] = lines[4]
-		# iDVBMetaFile.idUserModified follows the original path at zero-based index 11.
-		result["user_modified"] = len(lines) > 11 and lines[11] == "1"
 	return result
 
 
@@ -386,9 +384,6 @@ def parse_recording(path):
 		for field in ("title", "short_desc", "extended_desc", "duration_seconds", "service_ref", "recorded_at"):
 			result[field] = next((result[key][field] for key in ("eit", "meta", "txt", "cuts") if result[key].get(field)), 0 if field in ("duration_seconds", "recorded_at") else "")
 		result["parse_error"] = next((result[key]["parse_error"] for key in ("eit", "meta", "txt", "cuts") if result[key].get("parse_error")), "")
-		if meta.get("user_modified"):
-			result["manual_metadata"] = {"title": meta.get("title", ""), "description": meta.get("short_desc", "")}
-			result.update(title=meta.get("title", ""), short_desc=meta.get("short_desc", ""), extended_desc="")
 		# Only EIT/META mark an Enigma2 recording, .cuts is also written for any played media file.
 		result["exists"] = eit.get("exists", False) or meta.get("exists", False)
 		return result

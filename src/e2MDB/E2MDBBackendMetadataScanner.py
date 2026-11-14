@@ -860,7 +860,6 @@ class E2MDBBackendMetadataScanner:
 			"title": title,
 			"short_desc": sc_short_desc,
 			"extended_desc": sc_extended,
-			"manual_metadata": sc_parsed.get("manual_metadata"),
 			"service_ref": sc_parsed.get("service_ref", ""),
 			"recorded_at": recorded_at,
 			"recorded_at_iso": self.iso_from_timestamp(recorded_at),

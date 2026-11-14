@@ -548,9 +548,6 @@ class BackendDatabase:
 					if recording_id not in processed_ids:
 						processed_ids.append(recording_id)
 					self._upsert_media(conn, item)
-					manualMetadata = item.get("manual_metadata")
-					if isinstance(manualMetadata, dict) and all(isinstance(manualMetadata.get(x), str) for x in ("title", "description")):
-						conn.execute("INSERT OR REPLACE INTO e2mdb_movie_overrides(media_hash, title, description) VALUES (?, ?, ?)", (recording_id, manualMetadata["title"], manualMetadata["description"]))
 					search_candidates = item.get("search_candidates") if isinstance(item.get("search_candidates"), list) else []
 					search_text = " ".join([candidate_title_year(x)[0] for x in search_candidates]) or str(item.get("title") or "")
 					search_text_norm = normalize_text(search_text)
